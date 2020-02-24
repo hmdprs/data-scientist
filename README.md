@@ -6,7 +6,14 @@ These micro-courses are the single fastest way to gain the skills you'll need to
 
 Learn the most important language for data science.
 
-* [ ] [Hello, Python](https://www.kaggle.com/colinmorris/hello-python)
+* [x] [Hello, Python](https://www.kaggle.com/colinmorris/hello-python)
+  - Intro
+  - Hello, Python!
+    - Variable assignment
+    - Function calls
+  - Numbers and arithmetic in Python
+  - Order of operations
+  - Builtin functions for working with numbers
 * [ ] [Functions and Getting Help](https://www.kaggle.com/colinmorris/functions-and-getting-help)
 * [ ] [Booleans and Conditionals](https://www.kaggle.com/colinmorris/booleans-and-conditionals)
 * [ ] [Lists](https://www.kaggle.com/colinmorris/lists)
