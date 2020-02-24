@@ -14,7 +14,14 @@ Learn the most important language for data science.
   - Numbers and arithmetic in Python
   - Order of operations
   - Builtin functions for working with numbers
-* [ ] [Functions and Getting Help](https://www.kaggle.com/colinmorris/functions-and-getting-help)
+* [x] [Functions and Getting Help](https://www.kaggle.com/colinmorris/functions-and-getting-help)
+    - Intro
+    - Getting Help
+    - Defining functions
+    - Docstrings
+    - Functions that don't return
+    - Default arguments
+    - Functions Applied to Functions
 * [ ] [Booleans and Conditionals](https://www.kaggle.com/colinmorris/booleans-and-conditionals)
 * [ ] [Lists](https://www.kaggle.com/colinmorris/lists)
 * [ ] [Loops and List Comprehensions](https://www.kaggle.com/colinmorris/loops-and-list-comprehensions)
