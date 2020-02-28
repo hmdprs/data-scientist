@@ -15,14 +15,20 @@ Learn the most important language for data science.
   - Order of operations
   - Builtin functions for working with numbers
 * [x] [Functions and Getting Help](https://www.kaggle.com/colinmorris/functions-and-getting-help)
-    - Intro
-    - Getting Help
-    - Defining functions
-    - Docstrings
-    - Functions that don't return
-    - Default arguments
-    - Functions Applied to Functions
-* [ ] [Booleans and Conditionals](https://www.kaggle.com/colinmorris/booleans-and-conditionals)
+  - Intro
+  - Getting Help
+  - Defining functions
+  - Docstrings
+  - Functions that don't return
+  - Default arguments
+  - Functions Applied to Functions
+* [x] [Booleans and Conditionals](https://www.kaggle.com/colinmorris/booleans-and-conditionals)
+  - Booleans
+    - Comparison Operations
+    - Combining Boolean Values
+  - Conditionals
+  - Boolean Conversion
+  - Conditional Expressions (aka 'ternary') & its 1-line-form
 * [ ] [Lists](https://www.kaggle.com/colinmorris/lists)
 * [ ] [Loops and List Comprehensions](https://www.kaggle.com/colinmorris/loops-and-list-comprehensions)
 * [ ] [String and Directories](https://www.kaggle.com/colinmorris/strings-and-dictionaries)
