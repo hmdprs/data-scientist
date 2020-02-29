@@ -7,7 +7,6 @@ These micro-courses are the single fastest way to gain the skills you'll need to
 Learn the most important language for data science.
 
 * [x] [Hello, Python](https://www.kaggle.com/colinmorris/hello-python)
-  - Intro
   - Hello, Python!
     - Variable assignment
     - Function calls
@@ -15,12 +14,11 @@ Learn the most important language for data science.
   - Order of operations
   - Builtin functions for working with numbers
 * [x] [Functions and Getting Help](https://www.kaggle.com/colinmorris/functions-and-getting-help)
-  - Intro
   - Getting Help
-  - Defining functions
+  - Defining Functions
   - Docstrings
-  - Functions that don't return
-  - Default arguments
+  - Functions that don't Return
+  - Default Arguments
   - Functions Applied to Functions
 * [x] [Booleans and Conditionals](https://www.kaggle.com/colinmorris/booleans-and-conditionals)
   - Booleans
@@ -29,7 +27,15 @@ Learn the most important language for data science.
   - Conditionals
   - Boolean Conversion
   - Conditional Expressions (aka 'ternary') & its 1-line-form
-* [ ] [Lists](https://www.kaggle.com/colinmorris/lists)
+* [x] [Lists](https://www.kaggle.com/colinmorris/lists)
+  - Lists
+  	- Indexing
+    - Slicing
+    - Changing Lists
+    - List Functions
+    - Methods
+    - List Methods
+  - Tuples
 * [ ] [Loops and List Comprehensions](https://www.kaggle.com/colinmorris/loops-and-list-comprehensions)
 * [ ] [String and Directories](https://www.kaggle.com/colinmorris/strings-and-dictionaries)
 * [ ] [Working with External Libraries](https://www.kaggle.com/colinmorris/working-with-external-libraries)
