@@ -36,7 +36,19 @@ Learn the most important language for data science.
     - Methods
     - List Methods
   - Tuples
-* [ ] [Loops and List Comprehensions](https://www.kaggle.com/colinmorris/loops-and-list-comprehensions)
+* [x] [Loops and List Comprehensions](https://www.kaggle.com/colinmorris/loops-and-list-comprehensions)
+  - Loops
+  	- `range()`
+  	- `while` loops
+  - List Comprehensions
+    - simple
+  	- with `if`:
+  	- with functions like `min()`, `max()`, and `sum()`, for example the number of negative numbers in the list `nums`:
+    	- `return len([num for num in nums if num < 0])`
+    	- `return sum([num < 0 for num in nums])`
+  - Solving a problem with less code is always nice, but it's worth keeping in mind the following lines from **The Zen of Python**:
+    > Readability counts.<br>
+    > Explicit is better than implicit.
 * [ ] [String and Directories](https://www.kaggle.com/colinmorris/strings-and-dictionaries)
 * [ ] [Working with External Libraries](https://www.kaggle.com/colinmorris/working-with-external-libraries)
 
