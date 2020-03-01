@@ -130,7 +130,73 @@ Learn the most important language for data science.
   - Solving a problem with less code is always nice, but it's worth keeping in mind the following lines from **The Zen of Python** (`import this`):
     > Readability counts.<br>
     > Explicit is better than implicit.
-* [ ] [String and Directories](https://www.kaggle.com/colinmorris/strings-and-dictionaries)
+
+* [x] [String and Directories](https://www.kaggle.com/colinmorris/strings-and-dictionaries)
+  - Strings
+    - `''` or `""` or `""" """`
+    - Escaping
+      | you type | you get | example                   | print(example)         |
+      | -------- | ------- | ------------------------- | ---------------------- |
+      | `\'`     | `'`     | `'What\'s up?'`           | `What's up?`           |
+      | `\"`     | `"`     | `"That's \"cool\""`       | `That's "cool" `       |
+      | `\\`     | `\`     | `"Look, a mountain: /\\"` | `Look, a mountain: /\` |
+    - Strings are Sequences
+      - Same as `list` but Immutable
+      ```py
+      [char + '! ' for char in planet]
+      ```
+    - String Methods
+      ```py
+      str.upper()
+      str.lower()
+      str.index()
+      str.startswith()
+      str.endswith()
+      ```
+      - Going between strings and lists:
+        ```py
+        year, month, day = datestr.split('-')
+        '/'.join([month, day, year])
+        ```
+      - Building strings
+        ```py
+        " ".format()
+        f" "
+        ```
+      - From Exercise:
+        ```py
+        # Iterate through the indices (i) and elements (doc) of documents
+        for i, doc in enumerate(documents):
+            print(i, doc)
+        ```
+  - Dictionaries
+    - Pairs of (Keys, Values)
+      ```py
+      numbers = {'one':1, 'two':2, 'three':3}
+      numbers['one']
+      numbers['eleven'] = 11
+      ```
+    - Dictionary Comprehensions
+      ```py
+      planets = ['Mercury', 'Venus', 'Earth', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune']
+      planet_to_initial = {planet: planet[0] for planet in planets}
+      ```
+    - `in`
+    - Loops
+      - A for loop over a dictionary will loop over its Keys
+      - Access to all the Keys or all the Values
+        ```py
+        dict.keys()
+        dict.values()
+        ' '.join(sorted(planet_to_initial.values()))
+        ```
+      - In Python jargon, an `item` refers to a (key, value) pair
+        ```py
+        for planet, initial in planet_to_initial.items():
+            print("{} begins with \"{}\"".format(planet, initial))
+        ```
+    - `help(dict)`
+
 * [ ] [Working with External Libraries](https://www.kaggle.com/colinmorris/working-with-external-libraries)
 
 ## Intro to Machine Learning
