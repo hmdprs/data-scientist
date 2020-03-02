@@ -54,11 +54,11 @@ Learn the most important language for data science.
 - Booleans
   - Comparison Operations
     ```py
-    a == b    # a equal to b                
-    a != b    # a not equal to b            
-    a < b     # a less than b               
-    a > b     # a greater than b            
-    a <= b    # a less than or equal to b   
+    a == b    # a equal to b
+    a != b    # a not equal to b
+    a < b     # a less than b
+    a > b     # a greater than b
+    a <= b    # a less than or equal to b
     a >= b    # a greater than or equal to b
     ```
   - Combining Boolean Values
@@ -264,7 +264,7 @@ Learn the most important language for data science.
     import numpy
     dir(numpy.random)
     >>> ['set_state', 'shuffle', 'standard_cauchy', 'standard_exponential', 'standard_gamma', 'standard_normal', 'standard_t', 'test', 'triangular', 'uniform', ...]
-    
+
     rolls = numpy.random.randint(low=1, high=6, size=10)
     rolls
     >>> array([3, 2, 5, 2, 4, 2, 2, 3, 2, 3])
@@ -275,14 +275,14 @@ Learn the most important language for data science.
       # to find the type of an object
       type(rolls)
       >>> numpy.ndarray
-      
+
       # to see all variables in the module
       dir(rolls)
       >>> [...,'__bool__', ..., '__delattr__', '__delitem__', '__dir__', ..., '__sizeof__', ..., 'max', 'mean', 'min', ..., 'sort', ..., 'sum', ..., 'tobytes', 'tofile', 'tolist', 'tostring', ...]
-      
+
       rolls.mean()
       >>> 2.8
-      
+
       rolls.tolist()
       >>> [3, 2, 5, 2, 4, 2, 2, 3, 2, 3]
 
@@ -325,6 +325,13 @@ Learn the most important language for data science.
 Learn the core ideas in machine learning, and build your first models.
 
 ### [How Models Work](https://www.kaggle.com/dansbecker/how-models-work)
+
+- Introduction
+  > You ask your cousin how he's predicted real estate values in the past. and he says it is just intuition. But more questioning reveals that he's identified price patterns from houses he has seen in the past, and he uses those patterns to make predictions for new houses he is considering. Machine learning works the same way.
+  - **Fitting** or **Training**: capturing patterns from data
+  - **Training Data**: the data used to fit the model
+  - **Predicting**: getting results from applying model to new data
+- Decision Tree
 
 ### [Basic Data Exploration](https://www.kaggle.com/dansbecker/basic-data-exploration)
 
