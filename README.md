@@ -335,6 +335,32 @@ Learn the core ideas in machine learning, and build your first models.
 
 ### [Basic Data Exploration](https://www.kaggle.com/dansbecker/basic-data-exploration)
 
+- Using Pandas to Get Familiar With Your Data
+  - **DataFrame**: The most important part of the Pandas library, similar to a sheet in Excel, or a table in a SQL database
+    ```python
+    # save filepath to variable for easier access
+    melbourne_file_path = '../input/melbourne-housing-snapshot/melb_data.csv'
+    # read the data and store data in DataFrame titled melbourne_data
+    melbourne_data = pd.read_csv(melbourne_file_path)
+    # print a summary of the data in Melbourne data
+    melbourne_data.describe()
+    ```
+    | param | Rooms |  Price  | Distance | BedR  | BathR |  Car  | LandSize | BuildingArea | YearBuilt |
+    | :---: | :---: | :-----: | :------: | :---: | :---: | :---: | :------: | :----------: | :-------: |
+    | count | 13580 |  13580  |  13580   | 13580 | 13580 | 13518 |  13580   |     7130     |   8205    |
+    | mean  | 2.93  | 1075684 |  10.13   | 2.91  | 1.53  | 1.61  |  558.41  |    151.96    |  1964.68  |
+    |  std  | 0.95  | 639310  |   5.86   | 0.96  | 0.69  | 0.96  | 3990.66  |    541.01    |   37.27   |
+    |  min  |   1   |  85000  |    0     |   0   |   0   |   0   |    0     |      0       |   1196    |
+    |  25%  |   2   | 650000  |   6.1    |   2   |   1   |   1   |   177    |      93      |   1940    |
+    |  50%  |   3   | 903000  |   9.2    |   3   |   1   |   2   |   440    |     126      |   1970    |
+    |  75%  |   3   | 1330000 |    13    |   3   |   2   |   2   |   651    |     174      |   1999    |
+    |  max  |  10   | 9000000 |   48.1   |  20   |   8   |  10   |  433014  |    44515     |   2018    |
+  - Interpreting Data Description
+    - `count`: shows how many rows have non-missing values.
+    - `mean`: the average.
+    - `std`: the standard deviation, measures how numerically spread out the values are.
+    - `min`, `25%` (25th percentile), `50%` (50th percentiles), `75%` (75th percentiles) and `max`
+
 ### [Your First Machine Learning Model](https://www.kaggle.com/dansbecker/your-first-machine-learning-model)
 
 ### [Model Validation](https://www.kaggle.com/dansbecker/model-validation)
