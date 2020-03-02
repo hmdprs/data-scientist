@@ -236,6 +236,90 @@ Learn the most important language for data science.
 
 ### [Working with External Libraries](https://www.kaggle.com/colinmorris/working-with-external-libraries)
 
+- Imports
+  - Simple Import, `.` Access
+    ```py
+    import math
+    math.pi
+    ```
+  - `as` Import, short `.` Access
+    ```py
+    import math as mt
+    mt.pi
+    ```
+  - `*` Import, Simple Access
+    ```py
+    from math import *
+    pi
+    ```
+  - Combined
+    ```py
+    # The problem of * Import is that some modules (ex. `math` and `numpy`) have functions with same name (ex. `log`) but with different semantics. So one of them overwrites (or "shadows") the function. The solution is:
+    from math import log, pi
+    from numpy import asarray
+    ```
+- Submodules
+  - Modules contain variables which can refer to functions or values. Sometimes they can also have variables referring to other modules.
+    ```py
+    import numpy
+    dir(numpy.random)
+    >>> ['set_state', 'shuffle', 'standard_cauchy', 'standard_exponential', 'standard_gamma', 'standard_normal', 'standard_t', 'test', 'triangular', 'uniform', ...]
+    
+    rolls = numpy.random.randint(low=1, high=6, size=10)
+    rolls
+    >>> array([3, 2, 5, 2, 4, 2, 2, 3, 2, 3])
+    ```
+  - Get Help
+    - Standard Python datatypes are: `int`, `float`, `bool`, `list`, `string`, and `dict`. But as you work with various libraries for specialized tasks, you'll find that they define their own types. For example datatypes for **matplotlib** are `Subplot`, `Figure`, `TickMark`, and `Annotation`, for **pandas** are `DataFrame` and `Serie`, and for **tensorflow** is `Tensor`.
+      ```py
+      # to find the type of an object
+      type(rolls)
+      >>> numpy.ndarray
+      
+      # to see all variables in the module
+      dir(rolls)
+      >>> [...,'__bool__', ..., '__delattr__', '__delitem__', '__dir__', ..., '__sizeof__', ..., 'max', 'mean', 'min', ..., 'sort', ..., 'sum', ..., 'tobytes', 'tofile', 'tolist', 'tostring', ...]
+      
+      rolls.mean()
+      >>> 2.8
+      
+      rolls.tolist()
+      >>> [3, 2, 5, 2, 4, 2, 2, 3, 2, 3]
+
+      # to see combined doc for functions and values in the module
+      help(rolls)
+      help(rolls.ravel)
+      ```
+- Operator Overloading
+  - Index
+    ```py
+    xlist = [[1,2,3],[2,4,6]]
+    xlist[1,-1]
+    >>> TypeError: list indices must be integers or slices, not tuple
+    xarray = numpy.asarray(xlist)
+    xarray[1,-1]
+    >>> 6
+    ```
+  - Add
+    ```py
+    [3, 4, 1, 2, 2, 1] + 10
+    >>> TypeError: can only concatenate list (not "int") to list
+    rolls + 10
+    >>> array([13, 12, 15, 12, 14, 12, 12, 13, 12, 13])
+    ```
+  - Add in `tensorflow`
+    ```py
+    import tensorflow as tf
+    # Create two constants, each with value 1
+    a = tf.constant(1)
+    b = tf.constant(1)
+    # Add them together to get...
+    a + b
+    >>> <tf.Tensor 'add:0' shape=() dtype=int32>
+    ```
+  - When Python programmers want to define how operators behave on their types, they do so by implementing **Dunder/Special Methods**, methods with special names beginning and ending with 2 underscores such as `__add__` or `__contains__`.
+  - For more info: https://is.gd/3zuhhL
+
 ## **Intro to Machine Learning**
 
 Learn the core ideas in machine learning, and build your first models.
