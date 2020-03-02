@@ -324,6 +324,20 @@ Learn the most important language for data science.
 
 Learn the core ideas in machine learning, and build your first models.
 
+### [How Models Work](https://www.kaggle.com/dansbecker/how-models-work)
+
+### [Basic Data Exploration](https://www.kaggle.com/dansbecker/basic-data-exploration)
+
+### [Your First Machine Learning Model](https://www.kaggle.com/dansbecker/your-first-machine-learning-model)
+
+### [Model Validation](https://www.kaggle.com/dansbecker/model-validation)
+
+### [Underfitting and Overfitting](https://www.kaggle.com/dansbecker/underfitting-and-overfitting)
+
+### [Random Forests](https://www.kaggle.com/dansbecker/random-forests)
+
+### [Exercise: Machine Learning Competitions](https://www.kaggle.com/kernels/fork/1259198)
+
 ## **Intermediate Machine Learning**
 
 Learn to handle missing values, non-numeric values, data leakage and more. Your models will be more accurate and useful.
