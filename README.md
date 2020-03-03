@@ -100,8 +100,8 @@ Learn the most important language for data science.
 
 - Lists
   - `[]` + mutable + a mix of different types of variables
-	- Indexing
-  	- `0` is first, `-1` is last
+       - Indexing
+         - `0` is first, `-1` is last
   - Slicing
     ```py
     planets[:3]
@@ -149,20 +149,20 @@ Learn the most important language for data science.
 
 - Loops
   - `for _ in _:`
-	- in every iteratable objects: list, tuples, strings, ...
-	- `range()`
-	- `while` loops
+       - in every iteratable objects: list, tuples, strings, ...
+       - `range()`
+       - `while` loops
 - List Comprehensions
   ```py
   squares = [n**2 for n in range(10)]
-	short_planets = [planet.upper() + "!" for planet in planets if len(planet) < 6]
-	[32 for planet in planets]
+       short_planets = [planet.upper() + "!" for planet in planets if len(planet) < 6]
+       [32 for planet in planets]
   ```
-	- with functions like `min()`, `max()`, `sum()`, `any()`:
-  	```py
+       - with functions like `min()`, `max()`, `sum()`, `any()`:
+         ```py
     return len([num for num in nums if num < 0])
-  	return sum([num < 0 for num in nums])
-  	return any([num % 7 == 0 for num in nums])
+         return sum([num < 0 for num in nums])
+         return any([num % 7 == 0 for num in nums])
     ```
 - Solving a problem with less code is always nice, but it's worth keeping in mind the following lines from **The Zen of Python** (`import this`):
   > Readability counts.<br>
@@ -362,6 +362,47 @@ Learn the core ideas in machine learning, and build your first models.
     - `min`, `25%` (25th percentile), `50%` (50th percentiles), `75%` (75th percentiles) and `max`
 
 ### [Your First Machine Learning Model](https://www.kaggle.com/dansbecker/your-first-machine-learning-model)
+
+- Selecting Data for Modeling
+  - Your dataset had too many variables to wrap your head around. We'll start by picking a few variables using our intuition. Later courses will show you statistical techniques to automatically prioritize variables.
+    ```python
+    # to see a list of all columns in the dataset
+    melbourne_data.columns
+    # to drop rows contain missing values
+    melbourne_data = melbourne_data.dropna(axis=0)  # axis=1 to drop columns
+    ```
+  - Selecting The **Prediction Target** (`y`)
+    ```python
+    # dot notation
+    y = melbourne_data.Price
+    # name notation
+    y = melbourne_data['Price']
+    ```
+  - Choosing **Features** (input columns, `X`)
+    ```python
+    # pick by your hand, or iterate and compare models built with different features
+    feature_list = ['Rooms', 'Bathroom', 'Landsize', 'Lattitude', 'Longtitude']
+    X = melbourne_data[feature_list]
+    # quick review the data we'll be using to predict house prices
+    X.describe()
+    X.head()
+    ```
+- Building Your Model
+  - Steps:
+    - **Define**: What type of model will it be? A decision tree? Some other type of model?
+    - **Fit**: Capture patterns from provided data. This is the heart of modeling.
+    - **Predict**: Just what it sounds like.
+    - **Evaluate**: Determine how accurate the model's predictions are.
+  - scikit-learn
+    ```python
+    from sklearn.tree import DecisionTreeRegressor
+    # define model, `random_state` ensures you get the same results in each run
+    melbourne_model = DecisionTreeRegressor(random_state=1)
+    # fit model
+    melbourne_model.fit(X, y)
+    # make predictions for the first few rows of the training data
+    melbourne_model.predict(X.head())
+    ```
 
 ### [Model Validation](https://www.kaggle.com/dansbecker/model-validation)
 
