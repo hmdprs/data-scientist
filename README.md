@@ -335,7 +335,7 @@ Learn the core ideas in machine learning, and build your first models.
 
 ### [Basic Data Exploration](https://www.kaggle.com/dansbecker/basic-data-exploration)
 
-- Using Pandas to Get Familiar With Your Data
+- Using Pandas to Get Familiar with the Data
   - **DataFrame**: The most important part of the Pandas library, similar to a sheet in Excel, or a table in a SQL database
     ```python
     # save filepath to variable for easier access
@@ -345,16 +345,16 @@ Learn the core ideas in machine learning, and build your first models.
     # print a summary of the data in Melbourne data
     melbourne_data.describe()
     ```
-    | param | Rooms |  Price  | Distance | BedR  | BathR |  Car  | LandSize | BuildingArea | YearBuilt |
-    | :---: | :---: | :-----: | :------: | :---: | :---: | :---: | :------: | :----------: | :-------: |
-    | count | 13580 |  13580  |  13580   | 13580 | 13580 | 13518 |  13580   |     7130     |   8205    |
-    | mean  | 2.93  | 1075684 |  10.13   | 2.91  | 1.53  | 1.61  |  558.41  |    151.96    |  1964.68  |
-    |  std  | 0.95  | 639310  |   5.86   | 0.96  | 0.69  | 0.96  | 3990.66  |    541.01    |   37.27   |
-    |  min  |   1   |  85000  |    0     |   0   |   0   |   0   |    0     |      0       |   1196    |
-    |  25%  |   2   | 650000  |   6.1    |   2   |   1   |   1   |   177    |      93      |   1940    |
-    |  50%  |   3   | 903000  |   9.2    |   3   |   1   |   2   |   440    |     126      |   1970    |
-    |  75%  |   3   | 1330000 |    13    |   3   |   2   |   2   |   651    |     174      |   1999    |
-    |  max  |  10   | 9000000 |   48.1   |  20   |   8   |  10   |  433014  |    44515     |   2018    |
+    |       |  Price  | Rooms | Bedroom2 | Bathroom | Landsize | BuildingArea | YearBuilt | Lattitude | Longtitude |  ...  |
+    | :---: | :-----: | :---: | :------: | :------: | :------: | :----------: | :-------: | :-------: | :--------: | :---: |
+    | count |  13580  | 13580 |  13580   |  13580   |  13580   |     7130     |   8205    |   13580   |   13580    |  ...  |
+    | mean  | 1075684 | 2.93  |   2.91   |   1.53   |  558.41  |    151.96    |  1964.68  |  -37.80   |   144.99   |  ...  |
+    |  std  | 639310  | 0.95  |   0.96   |   0.69   | 3990.66  |    541.01    |   37.27   |   0.07    |    0.10    |  ...  |
+    |  min  |  85000  |   1   |    0     |    0     |    0     |      0       |   1196    |  -38.18   |   144.43   |  ...  |
+    |  25%  | 650000  |   2   |    2     |    1     |   177    |      93      |   1940    |  -37.85   |   144.92   |  ...  |
+    |  50%  | 903000  |   3   |    3     |    1     |   440    |     126      |   1970    |  -37.80   |   145.00   |  ...  |
+    |  75%  | 1330000 |   3   |    3     |    2     |   651    |     174      |   1999    |  -37.75   |   145.05   |  ...  |
+    |  max  | 9000000 |  10   |    20    |    8     |  433014  |    44515     |   2018    |  -37.40   |   145.52   |  ...  |
   - Interpreting Data Description
     - `count`: shows how many rows have non-missing values.
     - `mean`: the average.
@@ -364,31 +364,27 @@ Learn the core ideas in machine learning, and build your first models.
 ### [Your First Machine Learning Model](https://www.kaggle.com/dansbecker/your-first-machine-learning-model)
 
 - Selecting Data for Modeling
-  - Your dataset had too many variables to wrap your head around. We'll start by picking a few variables using our intuition. Later courses will show you statistical techniques to automatically prioritize variables.
+  - The dataset has too many variables to wrap your head around. We'll start by picking a few variables using our intuition. Later, we use statistical techniques to automatically prioritize variables.
     ```python
-    # to see a list of all columns in the dataset
+    # look at the list of all columns in the dataset
     melbourne_data.columns
-    # to drop rows contain missing values
-    melbourne_data = melbourne_data.dropna(axis=0)  # axis=1 to drop columns
+    # filter rows with missing values
+    dropna_melbourne_data = melbourne_data.dropna(axis=0)
     ```
   - Selecting The **Prediction Target** (`y`)
     ```python
-    # dot notation
-    y = melbourne_data.Price
-    # name notation
-    y = melbourne_data['Price']
+    y = dropna_melbourne_data['Price']
     ```
   - Choosing **Features** (input columns, `X`)
     ```python
-    # pick by your hand, or iterate and compare models built with different features
-    feature_list = ['Rooms', 'Bathroom', 'Landsize', 'Lattitude', 'Longtitude']
-    X = melbourne_data[feature_list]
-    # quick review the data we'll be using to predict house prices
+    feature_list = ['Rooms', 'Bathroom', 'Landsize', 'BuildingArea', 'YearBuilt', 'Lattitude', 'Longtitude']
+    X = dropna_melbourne_data[feature_list]
+    # quick look at the data we'll be using to predict house prices
     X.describe()
     X.head()
     ```
-- Building Your Model
-  - Steps:
+- Building the Model
+  - Steps
     - **Define**: What type of model will it be? A decision tree? Some other type of model?
     - **Fit**: Capture patterns from provided data. This is the heart of modeling.
     - **Predict**: Just what it sounds like.
@@ -400,11 +396,57 @@ Learn the core ideas in machine learning, and build your first models.
     melbourne_model = DecisionTreeRegressor(random_state=1)
     # fit model
     melbourne_model.fit(X, y)
-    # make predictions for the first few rows of the training data
-    melbourne_model.predict(X.head())
+    # make predictions
+    predictions = melbourne_model.predict(X)
     ```
 
 ### [Model Validation](https://www.kaggle.com/dansbecker/model-validation)
+
+- Summarizing the Model Quality into Metrics
+  - There are many metrics for summarizing the model quality.
+  - **Predictive Accuracy**: Will the model's predictions be close to what actually happens?
+    - **Mean Absolute Error** (MAE)
+      ```python
+      from sklearn.metrics import mean_absolute_error
+      mean_absolute_error(y, predictions)
+      >>> 434.715
+      ```
+- **Big Mistake**: Measuring scores with the training data or the problem with **"In-Sample" scores**!
+- **Validation Data**
+  - **Making Predictions on New Data**
+  - The most straightforward way to do that is to exclude some data from the model-building process, and then use those to test the model's accuracy.
+    ```python
+    from sklearn.model_selection import train_test_split
+    # split data into training and validation data, for both features and target
+    train_X, val_X, train_y, val_y = train_test_split(X, y, random_state=1)
+    # define model
+    melbourne_model = DecisionTreeRegressor(random_state=1)
+    # fit model
+    melbourne_model.fit(train_X, train_y)
+    # get predicted prices on validation data
+    val_predictions = melbourne_model.predict(val_X)
+    mean_absolute_error(val_y, val_predictions)
+    >>> 259556.721
+    ```
+    > The MAE for the in-sample data was about 500 dollars. For out-of-sample data, it's more than 250,000 dollars. As a point of reference, the average home value in the validation data is 1.1 million dollars. So the error in new data is about a quarter of the average home value.
+- There are many ways to improve a model, such as
+  - Find **better features**, the iterating process of building models with different features and comparing them to each other
+  - Find **better model types**
+  - Find better **data pre-processing methods**. For example look at the different ways of using `dropna()`
+    ```python
+    # raw data
+    melbourne_data.shape
+    >>> (13580, 21)
+    # rows without price
+    melbourne_data['Price'].dropna(axis=0).shape
+    >>> (13580,)
+    # rows without the features we want
+    melbourne_data[feature_list].dropna(axis=0).shape
+    >>> (6858, 7)
+    # rows with missing data
+    melbourne_data.dropna(axis=0).shape
+    >>> (6196, 21)
+    ```
 
 ### [Underfitting and Overfitting](https://www.kaggle.com/dansbecker/underfitting-and-overfitting)
 
