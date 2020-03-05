@@ -1,6 +1,6 @@
-# Kaggle Learn
+# Become Data Scientist
 
-These micro-courses are the single fastest way to gain the skills you'll need to do independent data science projects.
+Based on awesome [Kaggle Learn Courses](https://www.kaggle.com/learn/overview)
 
 ## **Python**
 
@@ -11,18 +11,19 @@ Learn the most important language for data science.
 - Variable Assignment
 - Function Calls
 - Numbers and Arithmetic in Python
-  ```py
-  a / b     # true division
-  a // b    # floor division
-  a % b     # modulus
-  a ** b    # exponentiation
+  ```python
+  /     # true division
+  //    # floor division
+  %     # modulus
+  **    # exponentiation
   ```
 - Order of Operators: **PEMDAS**
 - Builtin Functions for Working with Numbers
-  ```py
+  ```python
   min()
   max()
   abs()
+  # conversion functions
   int()
   float()
   ```
@@ -30,295 +31,297 @@ Learn the most important language for data science.
 ### [Functions and Getting Help](https://www.kaggle.com/colinmorris/functions-and-getting-help)
 
 - Getting Help
-  ```py
-  help()
-  ```
-- Defining Functions
-- Docstrings, returns by `help()`
-  ```py
-  """ docstring """
-  ```
-- Functions that don't Return
-- Default Arguments
-  ```py
-  print(..., sep='\t')
-  ```
-- Functions Applied to Functions
-  ```py
-  fn(fn(arg))
-  string.lower().split()
-  ```
+  - on modules, objects, instances, and ...
+    ```python
+    help()
+    dir()
+    ```
+- Functions
+  - `def func_name(vars):`
+  - Docstrings, that `help()` returns
+    ```python
+    """ some useful info about the function """
+    ```
+  - Functions that don't Return
+  - Default Arguments
+    ```python
+    print(..., sep='\t')
+    ```
+  - Functions Applied to Functions
+    ```python
+    fn(fn(arg))
+    string.lower().split()
+    ```
 
 ### [Booleans and Conditionals](https://www.kaggle.com/colinmorris/booleans-and-conditionals)
 
 - Booleans
+  - `True` or `False` or `bool()`
   - Comparison Operations
-    ```py
+    ```python
     a == b    # a equal to b
     a != b    # a not equal to b
-    a < b     # a less than b
-    a > b     # a greater than b
+    a <  b    # a less than b
+    a >  b    # a greater than b
     a <= b    # a less than or equal to b
     a >= b    # a greater than or equal to b
     ```
-  - Combining Boolean Values
-    - Order of Operators, use `()` for clarity & readability
-      ```py
-      ()
-      **
-      +x, -x, ~x
-      *, /, //, %
-      +, -
-      <<, >>
-      &
-      ^
-      |
-      ==, !=, >, >=, <, <=, is, is not, in, not in
-      not
-      and
-      or
-      ```
+  - Order of Operators: **PEMDAS** combined with Boolean Values
+    ```python
+    ()
+    **
+    +x, -x, ~x
+    *, /, //, %
+    +, -
+    <<, >>
+    &
+    ^
+    |
+    ==, !=, >, >=, <, <=, is, is not, in, not in
+    not
+    and
+    or
+    ```
 - Conditionals
-  ```py
+  ```python
   if
   elif
   else
   ```
-- Boolean Conversion
+- Trues and Falses
   - `bool()`
-  - all numbers are treated as true, except `0`
-  - all strings are treated as true, except the empty string `""`
-  - empty sequences (strings, lists, tuples, sets)  are "falsey" and the rest are "truthy"
-- Conditional Expressions (aka 'ternary')
-  - Setting a variable to either of two values depending on some condition
-  - 1-line-form:
-    ```py
+  - All numbers are treated as **true**, except `0`.
+  - All strings are treated as **true**, except the empty string `""`.
+  - Empty sequences (strings, lists, tuples, sets)  are falsey and the rest are **truthy**.
+- Conditional Expressions
+  - Setting a variable to either of two values depending on a condition
+    ```python
     outcome = 'failed' if grade < 50 else 'passed'
     ```
 
 ### [Lists](https://www.kaggle.com/colinmorris/lists)
 
 - Lists
-  - `[]` + mutable + a mix of different types of variables
-       - Indexing
-         - `0` is first, `-1` is last
+  - `[]` or `list()`
+  - **Mutable**
+  - A mix of same or different types of variables
+  - Indexing
+    ```python
+    planets = ['Mercury', 'Venus', 'Earth', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto']
+    # first element
+    planets[0]
+    # last element
+    planets[-1]
+    ```
   - Slicing
-    ```py
+    ```python
     planets[:3]
     planets[-3:]
     ```
   - Changing Lists
-    ```py
+    ```python
     planets[:3] = ['Mur', 'Vee', 'Ur']
     ```
   - List Functions
-    ```py
+    ```python
     len()
     sorted()
     max()
     sum()
     any()
     ```
-  - Methods
-    ```py
+  - Python Attributes & Methods (**Everything is an Object**)
+    ```python
+    # complex number object
     c = 12 + 5j
     c.imag
     c.real
+    # integer number object
     x = 12
     x.bit_length()
-    help(x.bit_length)
-    help(int.bit_length)
     ```
   - List Methods
-    ```py
+    ```python
     list.append()
-    help(list.append)
     list.pop()
     list.index()
     in
     ```
-    - to find all methods: `help(list)`
 - Tuples
-  - `()` or `, , ,` + **immutable**
-  ```py
-  x = 0.125
-  numerator, denominator = x.as_integer_ratio()
-  ```
+  - `()` or `, , ,` or `tuple()`
+  - **Immutable**
+    ```python
+    x = 0.125
+    numerator, denominator = x.as_integer_ratio()
+    ```
 
 ### [Loops and List Comprehensions](https://www.kaggle.com/colinmorris/loops-and-list-comprehensions)
 
 - Loops
-  - `for _ in _:`
-       - in every iteratable objects: list, tuples, strings, ...
-       - `range()`
-       - `while` loops
+  - Use in every iteratable objects: list, tuples, strings, ...
+  - `for - in - :`
+  - `range()`
+  - `while` loops
 - List Comprehensions
-  ```py
-  squares = [n**2 for n in range(10)]
-       short_planets = [planet.upper() + "!" for planet in planets if len(planet) < 6]
-       [32 for planet in planets]
-  ```
-       - with functions like `min()`, `max()`, `sum()`, `any()`:
-         ```py
+  - `[- for - in -]`
+    ```python
+    squares = [n**2 for n in range(10)]
+    # constant
+    [32 for planet in planets]
+    # with if
+    short_planets = [planet.upper() + "!" for planet in planets if len(planet) < 6]
+    # combined with other functions
     return len([num for num in nums if num < 0])
-         return sum([num < 0 for num in nums])
-         return any([num % 7 == 0 for num in nums])
+    return sum([num < 0 for num in nums])
+    return any([num % 7 == 0 for num in nums])
     ```
-- Solving a problem with less code is always nice, but it's worth keeping in mind the following lines from **The Zen of Python** (`import this`):
-  > Readability counts.<br>
-  > Explicit is better than implicit.
+  - Solving a problem with less code is always nice, but it's worth keeping in mind the following lines from **The Zen of Python**.
+    > Readability counts.<br>
+    > Explicit is better than implicit.
+- Enumerate
+  - `for index, item in enumerate(items):`
 
 ### [String and Directories](https://www.kaggle.com/colinmorris/strings-and-dictionaries)
 
 - Strings
-  - `''` or `""` or `""" """`
-  - Escaping
-    | you type | you get | example                   | print(example)         |
-    | -------- | ------- | ------------------------- | ---------------------- |
-    | `\'`     | `'`     | `'What\'s up?'`           | `What's up?`           |
-    | `\"`     | `"`     | `"That's \"cool\""`       | `That's "cool" `       |
-    | `\\`     | `\`     | `"Look, a mountain: /\\"` | `Look, a mountain: /\` |
-  - Strings are Sequences, same as lists, but they are **Immutable**
-    ```py
-    [char + '! ' for char in planet]
+  - `''` or `""` or `""" """` or `str()`
+  - Escaping with `\`
+  - List-like
+    ```python
+    [char + '! ' for char in "Planet"]
+    >>> ['P! ', 'l! ', 'a! ', 'n! ', 'e! ', 't! ']
+    ```
+  - **Immutable**
+    ```python
+    "Planet"[0] = 'M'
+    >>> TypeError: 'str' object does not support item assignment
     ```
   - String Methods
-    ```py
+    ```python
     str.upper()
     str.lower()
     str.index()
     str.startswith()
     str.endswith()
     ```
-    - Going between strings and lists:
-      ```py
-      year, month, day = datestr.split('-')
-      '/'.join([month, day, year])
-      ```
-    - Building strings
-      ```py
-      " ".format()
-      f" "
-      ```
-    - From Exercise:
-      ```py
-      # Iterate through the indices (i) and elements (doc) of documents
-      for i, doc in enumerate(documents):
-          print(i, doc)
-      ```
+  - String and List, Back and Forward
+    ```python
+    # split
+    year, month, day = '2020-03-05'.split('-')
+    year, month, day
+    >>> ('2020', '03', '05')
+    # join
+    '/'.join([month, day, year])
+    >>> '03/05/2020'
+    ```
+  - String Formatting
+    ```python
+    "{}".format()
+    f"{}"
+    ```
 - Dictionaries
-  - Pairs of (Keys, Values)
-    ```py
+  - `{}` or `dict()`
+  - Pairs of keys,values
+    ```python
     numbers = {'one':1, 'two':2, 'three':3}
     numbers['one']
     numbers['eleven'] = 11
     ```
   - Dictionary Comprehensions
-    ```py
-    planets = ['Mercury', 'Venus', 'Earth', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune']
+    ```python
     planet_to_initial = {planet: planet[0] for planet in planets}
     ```
   - `in`
-  - Loops
+  - Loops in Dictionaries
     - A for loop over a dictionary will loop over its Keys
     - Access to all the Keys or all the Values
-      ```py
+      ```python
       dict.keys()
       dict.values()
       ' '.join(sorted(planet_to_initial.values()))
       ```
     - In Python jargon, an `item` refers to a (key, value) pair
-      ```py
+      ```python
       for planet, initial in planet_to_initial.items():
           print("{} begins with \"{}\"".format(planet, initial))
       ```
-  - `help(dict)`
 
 ### [Working with External Libraries](https://www.kaggle.com/colinmorris/working-with-external-libraries)
 
 - Imports
-  - Simple Import, `.` Access
-    ```py
+  - Simple import, `.` access
+    ```python
     import math
     math.pi
     ```
-  - `as` Import, short `.` Access
-    ```py
+  - `as` import, short `.` access
+    ```python
     import math as mt
     mt.pi
     ```
-  - `*` Import, Simple Access
-    ```py
+  - `*` import, simple access
+    ```python
     from math import *
     pi
     ```
-  - Combined
-    ```py
-    # The problem of * Import is that some modules (ex. `math` and `numpy`) have functions with same name (ex. `log`) but with different semantics. So one of them overwrites (or "shadows") the function. The solution is:
+    > The problem of * import is that some modules (ex. `math` and `numpy`) have functions with same name (ex. `log`) but with different semantics. So one of them overwrites (or "shadows") the other. It is called **overloading**.
+  - Combined, solution for the `*` import
+    ```python
     from math import log, pi
     from numpy import asarray
     ```
 - Submodules
   - Modules contain variables which can refer to functions or values. Sometimes they can also have variables referring to other modules.
-    ```py
+    ```python
     import numpy
     dir(numpy.random)
     >>> ['set_state', 'shuffle', 'standard_cauchy', 'standard_exponential', 'standard_gamma', 'standard_normal', 'standard_t', 'test', 'triangular', 'uniform', ...]
-
+    # make an array of random numbers
     rolls = numpy.random.randint(low=1, high=6, size=10)
     rolls
     >>> array([3, 2, 5, 2, 4, 2, 2, 3, 2, 3])
     ```
   - Get Help
-    - Standard Python datatypes are: `int`, `float`, `bool`, `list`, `string`, and `dict`. But as you work with various libraries for specialized tasks, you'll find that they define their own types. For example datatypes for **matplotlib** are `Subplot`, `Figure`, `TickMark`, and `Annotation`, for **pandas** are `DataFrame` and `Serie`, and for **tensorflow** is `Tensor`.
-      ```py
-      # to find the type of an object
-      type(rolls)
-      >>> numpy.ndarray
-
-      # to see all variables in the module
-      dir(rolls)
+    - Standard Python datatypes are: **int**, **float**, **bool**, **list**, **string**, and **dict**.
+    - As you work with various libraries for specialized tasks, you'll find that they define their own types. For example
+      - Matplotlib: **Subplot**, **Figure**, **TickMark**, and **Annotation**
+      - Pandas: **DataFrame** and **Serie**
+      - Tensorflow: **Tensor**
+    - Use `type()` to find the type of an object.
+    - Use `dir()` and `help()` for more details.
+      ```python
+      dir(umpy.ndarray)
       >>> [...,'__bool__', ..., '__delattr__', '__delitem__', '__dir__', ..., '__sizeof__', ..., 'max', 'mean', 'min', ..., 'sort', ..., 'sum', ..., 'tobytes', 'tofile', 'tolist', 'tostring', ...]
-
-      rolls.mean()
-      >>> 2.8
-
-      rolls.tolist()
-      >>> [3, 2, 5, 2, 4, 2, 2, 3, 2, 3]
-
-      # to see combined doc for functions and values in the module
-      help(rolls)
-      help(rolls.ravel)
       ```
 - Operator Overloading
   - Index
-    ```py
-    xlist = [[1,2,3],[2,4,6]]
+    ```python
+    # list
+    xlist = [[1,2,3], [2,4,6]]
     xlist[1,-1]
     >>> TypeError: list indices must be integers or slices, not tuple
+    # numpy array
     xarray = numpy.asarray(xlist)
     xarray[1,-1]
     >>> 6
     ```
   - Add
-    ```py
+    ```python
+    # list
     [3, 4, 1, 2, 2, 1] + 10
     >>> TypeError: can only concatenate list (not "int") to list
+    # numpy array
     rolls + 10
     >>> array([13, 12, 15, 12, 14, 12, 12, 13, 12, 13])
-    ```
-  - Add in `tensorflow`
-    ```py
+    # tensorflow
     import tensorflow as tf
-    # Create two constants, each with value 1
     a = tf.constant(1)
     b = tf.constant(1)
-    # Add them together to get...
     a + b
     >>> <tf.Tensor 'add:0' shape=() dtype=int32>
     ```
   - When Python programmers want to define how operators behave on their types, they do so by implementing **Dunder/Special Methods**, methods with special names beginning and ending with 2 underscores such as `__add__` or `__contains__`.
-  - For more info: https://is.gd/3zuhhL
+  - More info: https://is.gd/3zuhhL
 
 ## **Intro to Machine Learning**
 
@@ -328,9 +331,8 @@ Learn the core ideas in machine learning, and build your first models.
 
 - Introduction
   > You ask your cousin how he's predicted real estate values in the past. and he says it is just intuition. But more questioning reveals that he's identified price patterns from houses he has seen in the past, and he uses those patterns to make predictions for new houses he is considering. Machine learning works the same way.
-  - **Fitting** or **Training**: capturing patterns from data
-  - **Training Data**: the data used to fit the model
-  - **Predicting**: getting results from applying model to new data
+  - **Fitting** or **Training**: Capturing patterns from **training data**
+  - **Predicting**: Getting results from applying the model to **new data**
 - Decision Tree
 
 ### [Basic Data Exploration](https://www.kaggle.com/dansbecker/basic-data-exploration)
@@ -364,14 +366,14 @@ Learn the core ideas in machine learning, and build your first models.
 ### [Your First Machine Learning Model](https://www.kaggle.com/dansbecker/your-first-machine-learning-model)
 
 - Selecting Data for Modeling
-  - The dataset has too many variables to wrap your head around. We'll start by picking a few variables using our intuition. Later, we use statistical techniques to automatically prioritize variables.
+  - Datasets have too many variables to wrap your head around. We'll start by picking a few variables using our intuition. Later, we use statistical techniques to automatically prioritize variables.
     ```python
     # look at the list of all columns in the dataset
     melbourne_data.columns
     # filter rows with missing values
     dropna_melbourne_data = melbourne_data.dropna(axis=0)
     ```
-  - Selecting The **Prediction Target** (`y`)
+  - Selecting the **Prediction Target** (`y`)
     ```python
     y = dropna_melbourne_data['Price']
     ```
