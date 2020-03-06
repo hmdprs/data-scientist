@@ -439,18 +439,20 @@ Learn the core ideas in machine learning, and build your first models.
     # raw data
     melbourne_data.shape
     >>> (13580, 21)
-    # rows without price
+    # rows with price
     melbourne_data['Price'].dropna(axis=0).shape
     >>> (13580,)
-    # rows without the features we want
+    # rows with features we want
     melbourne_data[feature_list].dropna(axis=0).shape
     >>> (6858, 7)
-    # rows with missing data
+    # rows without missing data
     melbourne_data.dropna(axis=0).shape
     >>> (6196, 21)
     ```
 
 ### [Underfitting and Overfitting](https://www.kaggle.com/dansbecker/underfitting-and-overfitting)
+
+
 
 ### [Random Forests](https://www.kaggle.com/dansbecker/random-forests)
 
