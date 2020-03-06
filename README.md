@@ -1,6 +1,6 @@
 # Become Data Scientist
 
-Based on awesome [Kaggle Learn Courses](https://www.kaggle.com/learn/overview)
+A minimalist road to The Data Science World, based on [Kaggle's Roadmap](https://www.kaggle.com/learn/overview)
 
 ## **Python**
 
