@@ -432,9 +432,9 @@ Learn the core ideas in machine learning, and build your first models.
     ```
     > The MAE for the in-sample data was about 500 dollars. For out-of-sample data, it's more than 250,000 dollars. As a point of reference, the average home value in the validation data is 1.1 million dollars. So the error in new data is about a quarter of the average home value.
 - There are many ways to improve a model, such as
-  - Find **better features**, the iterating process of building models with different features and comparing them to each other
-  - Find **better model types**
-  - Find better **data pre-processing methods**. For example look at the different ways of using `dropna()`
+  - Finding **better features**, the iterating process of building models with different features and comparing them to each other
+  - Finding **better model types**
+  - Finding **better data pre-processing methods**. For example look at the different ways of using `dropna()`
     ```python
     # raw data
     melbourne_data.shape
