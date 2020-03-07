@@ -1,6 +1,6 @@
-# Become Data Scientist
+# Data Scientist's Roadmap
 
-A minimalist road to The Data Science World, based on [Kaggle's Roadmap](https://www.kaggle.com/learn/overview)
+A minimalist roadmap to The Data Science World, based on [Kaggle's Roadmap](https://www.kaggle.com/learn/overview)
 
 ## **Python**
 
