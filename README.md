@@ -231,16 +231,20 @@ Learn the most important language for data science.
     ```python
     planet_to_initial = {planet: planet[0] for planet in planets}
     ```
-  - `in`
-  - Loops in Dictionaries
-    - A for loop over a dictionary will loop over its Keys
-    - Access to all the Keys or all the Values
+  - Access to all Keys or all Values
       ```python
       dict.keys()
       dict.values()
       ' '.join(sorted(planet_to_initial.values()))
       ```
-    - In Python jargon, an `item` refers to a (key, value) pair
+  - Get key by value
+    ```python
+    key_of_min_value = min(numbers, key=numbers.get)
+    ```
+  - `in`
+  - Loops in Dictionaries
+    - A for loop over a dictionary will loop over its Keys
+    - For loop over (key, value) pairs, use `item`
       ```python
       for planet, initial in planet_to_initial.items():
           print("{} begins with \"{}\"".format(planet, initial))
@@ -452,7 +456,32 @@ Learn the core ideas in machine learning, and build your first models.
 
 ### [Underfitting and Overfitting](https://www.kaggle.com/dansbecker/underfitting-and-overfitting)
 
-
+- Experimenting with Different Models
+  - **Over-fitting**: Capturing spurious patterns that won't recur in the future, leading to less accurate predictions.
+  - **Under-fitting**: Failing to capture relevant patterns, again leading to less accurate predictions.
+  - In the **Decision Tree Model**, the most important option to control the accuracy is the **tree's depth**, a measure of how many splits it makes before coming to a prediction.
+    - A **deep tree** makes leaves with fewer objects. It causes **over-fitting**.
+    - A **shallow tree** makes big groups. It causes **under-fitting**.
+    - There are a few options for controlling the tree depth, and many allow for some routes through the tree to have greater depth than other routes. But the `max_leaf_nodes` argument provides a very sensible way to control overfitting vs underfitting.
+      ```python
+      def get_mae(max_leaf_nodes, train_X, val_X, train_y, val_y):
+          model = DecisionTreeRegressor(max_leaf_nodes=max_leaf_nodes, random_state=0)
+          model.fit(train_X, train_y)
+          val_predictions = model.predict(val_X)
+          mae = mean_absolute_error(val_y, val_predictions)
+          return(mae)
+      # compare MAE with differing values of max_leaf_nodes
+      candidate_max_leaf_nodes = [5, 50, 500, 5000]
+      for max_leaf_nodes in candidate_max_leaf_nodes:
+          mae_now = get_mae(max_leaf_nodes, train_X, val_X, train_y, val_y)
+          print(f"Max Leaf Nodes: {max_leaf_nodes}  \t\t Mean Absolute Error: {mae_now}")
+      ```
+    - The lowest number is the optimal number of leaves.
+      ```python
+      # find the optimal number with a dict comprehension
+      scores = {leaf_size: get_mae(leaf_size, train_X, val_X, train_y, val_y) for leaf_size in candidate_max_leaf_nodes}
+      best_tree_size = min(scores, key=scores.get)
+      ```
 
 ### [Random Forests](https://www.kaggle.com/dansbecker/random-forests)
 
