@@ -459,7 +459,7 @@ Learn the core ideas in machine learning, and build your first models.
 - Experimenting with Different Models
   - **Over-fitting**: Capturing spurious patterns that won't recur in the future, leading to less accurate predictions.
   - **Under-fitting**: Failing to capture relevant patterns, again leading to less accurate predictions.
-  - In the **Decision Tree Model**, the most important option to control the accuracy is the **tree's depth**, a measure of how many splits it makes before coming to a prediction.
+  - In the **Decision Tree** model, the most important option to control the accuracy is the **tree's depth**, a measure of how many splits it makes before coming to a prediction.
     - A **deep tree** makes leaves with fewer objects. It causes **over-fitting**.
     - A **shallow tree** makes big groups. It causes **under-fitting**.
     - There are a few options for controlling the tree depth, and many allow for some routes through the tree to have greater depth than other routes. But the `max_leaf_nodes` argument provides a very sensible way to control overfitting vs underfitting.
@@ -484,6 +484,23 @@ Learn the core ideas in machine learning, and build your first models.
       ```
 
 ### [Random Forests](https://www.kaggle.com/dansbecker/random-forests)
+
+- Introduction
+  - Decision trees leave you with a difficult decision. A deep tree and over-fitting vs. a shallow one and under-fitting. Even today's most sophisticated modeling techniques face this tension. But, many models have clever ideas that can lead to better performance.
+- A **Random Forest** model uses many trees, and makes a prediction by averaging the predictions of each component. It generally has much better predictive accuracy even with than a single decision tree, even with default parameters, without tuning the parameters like `max_leaf_nodes`.
+  ```python
+  # specify & fit model and make predictions
+  from sklearn.ensemble import RandomForestRegressor
+  forest_model = RandomForestRegressor(random_state=1)
+  forest_model.fit(train_X, train_y)
+  melb_preds = forest_model.predict(val_X)
+  # calculate MAE
+  from sklearn.metrics import mean_absolute_error
+  mean_absolute_error(val_y, melb_preds)
+  >>> 202888.181
+  ```
+  - The result is much better than that was before (259556.721).
+- Some models, like the **XGBoost** model, provides better performance when tuned well with the right parameters (but which requires some skill to get the right model parameters).
 
 ### [Exercise: Machine Learning Competitions](https://www.kaggle.com/kernels/fork/1259198)
 
