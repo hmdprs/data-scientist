@@ -504,6 +504,102 @@ Learn the core ideas in machine learning, and build your first models.
 
 ### [Exercise: Machine Learning Competitions](https://www.kaggle.com/kernels/fork/1259198)
 
+- Train
+  - Load Train Data
+    ```python
+    import pandas as pd
+    iowa_file_path = '../input/train.csv'
+    home_data = pd.read_csv(iowa_file_path)
+    ```
+  - Create y and X
+    ```python
+    y = home_data['SalePrice']
+    features = ['LotArea', 'YearBuilt', '1stFlrSF', '2ndFlrSF', 'FullBath', 'BedroomAbvGr', 'TotRmsAbvGrd']
+    X = home_data[features]
+    ```
+  - Split into Training and Validation Data
+    ```python
+    from sklearn.model_selection import train_test_split
+    train_X, val_X, train_y, val_y = train_test_split(X, y, random_state=1)
+    ```
+  - DecisionTreeRegressor
+    ```python
+    # specify model
+    from sklearn.tree import DecisionTreeRegressor
+    iowa_model = DecisionTreeRegressor(random_state=1)
+    # fit model
+    iowa_model.fit(train_X, train_y)
+    # make validation predictions
+    val_predictions = iowa_model.predict(val_X)
+    # calculate mae
+    from sklearn.metrics import mean_absolute_error
+    val_mae = mean_absolute_error(val_y, val_predictions)
+    f"{val_mae:,.0f}"
+    >>> 29,653
+    ```
+  - DecisionTreeRegressor with `max_leaf_nodes`
+    ```python
+    # using best value for max_leaf_nodes
+    # specify model
+    iowa_model = DecisionTreeRegressor(max_leaf_nodes=100, random_state=1)
+    # fit model
+    iowa_model.fit(train_X, train_y)
+    # make validation predictions
+    val_predictions = iowa_model.predict(val_X)
+    # calculate mae
+    val_mae = mean_absolute_error(val_y, val_predictions)
+    f"{val_mae:,.0f}"
+    >>> 27,283
+    ```
+  - RandomForestRegressor
+    ```python
+    # specify model
+    from sklearn.ensemble import RandomForestRegressor
+    rf_model = RandomForestRegressor(random_state=1)
+    # fit model
+    rf_model.fit(train_X, train_y)
+    # make validation predictions
+    rf_val_predictions = rf_model.predict(val_X)
+    # calculate mae
+    rf_val_mae = mean_absolute_error(val_y, rf_val_predictions)
+    f"{rf_val_mae:,.0f}"
+    >>> 22,762
+    ```
+    > The Best Result
+  - Train the new **Final Model** based on the Best Result, on all of y and X, to **improve accuracy**
+    ```python
+    # specify model
+    rf_model_on_full_data = RandomForestRegressor(random_state=1)
+    # fit rf_model_on_full_data on all data from the training data
+    rf_model_on_full_data.fit(X, y)
+    # make full data predictions
+    rf_model_on_full_data_predictions = rf_model_on_full_data.predict(X)
+    # calculate mae
+    rf_model_on_full_data_mae = mean_absolute_error(y, rf_model_on_full_data_predictions)
+    f"{rf_model_on_full_data_mae:,.0f}"
+    >>> 9,269
+    ```
+- Make Predictions
+  - Load Test Data
+    ```python
+    test_data_path = '../input/test.csv'
+    test_data = pd.read_csv(test_data_path)
+    ```
+  - Create test_X
+    ```python
+    test_X = test_data[features]
+    ```
+  - Apply the **Final Model**
+    ```python
+    # make predictions
+    test_preds = rf_model_on_full_data.predict(test_X)
+    ```
+  - Save Predictions in format used for Competition Scoring
+    ```python
+    output = pd.DataFrame({'Id': test_data.Id, 'SalePrice': test_preds})
+    output.to_csv('submission.csv', index=False)
+    ```
+
 ## **Intermediate Machine Learning**
 
 Learn to handle missing values, non-numeric values, data leakage and more. Your models will be more accurate and useful.
