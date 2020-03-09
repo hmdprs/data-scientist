@@ -114,3 +114,26 @@ features = [
     "TotRmsAbvGrd",
 ]  # mae: 9,481
 
+from sklearn.ensemble import RandomForestRegressor
+
+used_model = RandomForestRegressor(random_state=1)
+
+default_model = RandomForestRegressor(
+    n_estimators=100,  # The number of trees in the forest.
+    criterion="mse",  # The function to measure the quality of a split. ["mse", "mae"]
+    max_depth=None,  # The maximum depth of the tree.
+    min_samples_split=2,  # The minimum number of samples required to split an internal node.
+    min_samples_leaf=1,  # The minimum number of samples required to be at a leaf node
+    min_weight_fraction_leaf=0,  # The minimum weighted fraction of the sum total of weights (of all the input samples) required to be at a leaf node.
+    max_features="auto",  # The number of features to consider when looking for the best split.
+    max_leaf_nodes=None,  # Grow trees with `max_leaf_nodes` in best-first fashion. Best nodes are defined as relative reduction in impurity.
+    min_impurity_decrease=0,  # A node will be split if this split induces a decrease of the impurity greater than or equal to this value.
+    bootstrap=True,  # Whether bootstrap samples are used when building trees. If `False`, the whole datset is used to build each tree.
+    oob_score=False,  # whether to use out-of-bag samples to estimate the R^2 on unseen data.
+    n_jobs=None,  # The number of jobs to run in parallel. `None` means 1 and `-1` means using all processors.
+    random_state=1,  # Controls both the randomness of the bootstrapping of the samples used when building trees.
+    verbose=0,  # Controls the verbosity when fitting and predicting.
+    warm_start=False,  # When set to `True`, reuse the solution of the previous call to fit and add more estimators to the ensemble, otherwise, just fit a whole new forest.
+    ccp_alpha=0.0,  # Complexity parameter used for Minimal Cost-Complexity Pruning. The subtree with the largest cost complexity that is smaller than `ccp_alpha` will be chosen.
+    max_samples=None,  # If bootstrap is `True`, the number of samples to draw from X to train each base estimator.
+)
