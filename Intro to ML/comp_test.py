@@ -24,7 +24,7 @@ features_numeric = [
     "ScreenPorch",  # Screen porch area in square feet [0-480]
     "PoolArea",  # Pool area in square feet [0-738]
     "MiscVal",  # $Value of miscellaneous feature [0-15500]
-]
+]  # 9,481
 
 # categorical
 features_categorical = [
