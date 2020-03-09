@@ -74,7 +74,7 @@ features_date = [
     "YearRemodAdd",  # Remodel date [1950-2010]
     "MoSold",  # Month Sold [1-12]
     "YrSold",  # Year Sold [2006-2010]
-]
+]  # mae = 22,972
 
 # first guess non useful (>= 90%)
 features_nonuseful = [
