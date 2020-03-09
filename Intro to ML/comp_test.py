@@ -91,7 +91,7 @@ features_nonuseful = [
     "GarageQual",  # Garage quality (90%, 6%)
     "GarageCond",  # Garage condition (91%, 6%)
     "PavedDrive",  # Paved driveway (92%, 6%)
-]
+]  # You have categorical data, but your model needs something numerical.
 
 # NA
 features_na = [
