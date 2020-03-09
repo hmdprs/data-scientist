@@ -66,7 +66,7 @@ features_categorical = [
     "GarageCars",  # Size of garage in car capacity [0-4]
     "SaleType",  # Type of sale (87%, 8%)
     "SaleCondition",  # Condition of sale (82%, 9%)
-]
+]  # You have categorical data, but your model needs something numerical.
 
 # date
 features_date = [
