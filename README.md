@@ -431,15 +431,15 @@ Measure the performance of your model ? so you can test and compare alternatives
   - The most straightforward way to do that is to exclude some data from the model-building process, and then use those to test the model's accuracy.
     ```python
     from sklearn.model_selection import train_test_split
-    # split data into training and validation data, for both features and target
-    train_X, val_X, train_y, val_y = train_test_split(X, y, random_state=1)
+    # break off validation set from training data, for both features and target
+    X_train, X_valid, y_train, y_val = train_test_split(X, y, random_state=1)
     # define model
     melbourne_model = DecisionTreeRegressor(random_state=1)
     # fit model
-    melbourne_model.fit(train_X, train_y)
+    melbourne_model.fit(X_train, y_train)
     # get predicted prices on validation data
-    val_predictions = melbourne_model.predict(val_X)
-    mean_absolute_error(val_y, val_predictions)
+    predictions_val = melbourne_model.predict(X_valid)
+    mean_absolute_error(y_val, predictions_val)
     >>> 259556.721
     ```
     > The MAE for the in-sample data was about 500 dollars. For out-of-sample data, it's more than 250,000 dollars. As a point of reference, the average home value in the validation data is 1.1 million dollars. So the error in new data is about a quarter of the average home value.
@@ -473,22 +473,22 @@ Fine-tune your model for better performance.
     - A **shallow tree** makes big groups. It causes **under-fitting**.
     - There are a few options for controlling the tree depth, and many allow for some routes through the tree to have greater depth than other routes. But the `max_leaf_nodes` argument provides a very sensible way to control overfitting vs underfitting.
       ```python
-      def get_mae(max_leaf_nodes, train_X, val_X, train_y, val_y):
+      def get_mae(max_leaf_nodes, X_train, X_valid, y_train, y_val):
           model = DecisionTreeRegressor(max_leaf_nodes=max_leaf_nodes, random_state=0)
-          model.fit(train_X, train_y)
-          val_predictions = model.predict(val_X)
-          mae = mean_absolute_error(val_y, val_predictions)
+          model.fit(X_train, y_train)
+          predictions_val = model.predict(X_valid)
+          mae = mean_absolute_error(y_val, predictions_val)
           return(mae)
       # compare MAE with differing values of max_leaf_nodes
-      candidate_max_leaf_nodes = [5, 50, 500, 5000]
-      for max_leaf_nodes in candidate_max_leaf_nodes:
-          mae_now = get_mae(max_leaf_nodes, train_X, val_X, train_y, val_y)
+      max_leaf_nodes_candidates = [5, 50, 500, 5000]
+      for max_leaf_nodes in max_leaf_nodes_candidates:
+          mae_now = get_mae(max_leaf_nodes, X_train, X_valid, y_train, y_val)
           print(f"Max Leaf Nodes: {max_leaf_nodes}  \t\t Mean Absolute Error: {mae_now}")
       ```
     - The lowest number is the optimal number of leaves.
       ```python
       # find the optimal number with a dict comprehension
-      scores = {leaf_size: get_mae(leaf_size, train_X, val_X, train_y, val_y) for leaf_size in candidate_max_leaf_nodes}
+      scores = {leaf_size: get_mae(leaf_size, X_train, X_valid, y_train, y_val) for leaf_size in max_leaf_nodes_candidates}
       best_tree_size = min(scores, key=scores.get)
       ```
 
@@ -502,11 +502,11 @@ Using a more sophisticated machine learning algorithm.
   # specify & fit model and make predictions
   from sklearn.ensemble import RandomForestRegressor
   forest_model = RandomForestRegressor(random_state=1)
-  forest_model.fit(train_X, train_y)
-  melb_preds = forest_model.predict(val_X)
+  forest_model.fit(X_train, y_train)
+  melb_preds = forest_model.predict(X_valid)
   # calculate MAE
   from sklearn.metrics import mean_absolute_error
-  mean_absolute_error(val_y, melb_preds)
+  mean_absolute_error(y_val, melb_preds)
   >>> 202888.181
   ```
   - The result is much better than that was before (259556.721).
@@ -515,107 +515,88 @@ Using a more sophisticated machine learning algorithm.
 ### [Exercise: Machine Learning Competitions](https://www.kaggle.com/kernels/fork/1259198)
 Enter the world of machine learning competitions to keep improving and see your progress
 
-- Train
-  - Load Train Data
-    ```python
-    import pandas as pd
-    iowa_file_path = '../input/train.csv'
-    home_data = pd.read_csv(iowa_file_path)
-    ```
-  - Create y and X
-    ```python
-    y = home_data['SalePrice']
-    features = ['LotArea', 'YearBuilt', '1stFlrSF', '2ndFlrSF', 'FullBath', 'BedroomAbvGr', 'TotRmsAbvGrd']
-    X = home_data[features]
-    ```
-  - Split into Training and Validation Data
-    ```python
-    from sklearn.model_selection import train_test_split
-    train_X, val_X, train_y, val_y = train_test_split(X, y, random_state=1)
-    ```
-  - DecisionTreeRegressor
-    ```python
-    # specify model
-    from sklearn.tree import DecisionTreeRegressor
-    iowa_model = DecisionTreeRegressor(random_state=1)
-    # fit model
-    iowa_model.fit(train_X, train_y)
-    # make validation predictions
-    val_predictions = iowa_model.predict(val_X)
-    # calculate mae
-    from sklearn.metrics import mean_absolute_error
-    val_mae = mean_absolute_error(val_y, val_predictions)
-    f"{val_mae:,.0f}"
-    >>> 29,653
-    ```
-  - DecisionTreeRegressor with `max_leaf_nodes`
-    ```python
-    # using best value for max_leaf_nodes
-    # specify model
-    iowa_model = DecisionTreeRegressor(max_leaf_nodes=100, random_state=1)
-    # fit model
-    iowa_model.fit(train_X, train_y)
-    # make validation predictions
-    val_predictions = iowa_model.predict(val_X)
-    # calculate mae
-    val_mae = mean_absolute_error(val_y, val_predictions)
-    f"{val_mae:,.0f}"
-    >>> 27,283
-    ```
-  - RandomForestRegressor
-    ```python
-    # specify model
-    from sklearn.ensemble import RandomForestRegressor
-    rf_model = RandomForestRegressor(random_state=1)
-    # fit model
-    rf_model.fit(train_X, train_y)
-    # make validation predictions
-    rf_val_predictions = rf_model.predict(val_X)
-    # calculate mae
-    rf_val_mae = mean_absolute_error(val_y, rf_val_predictions)
-    f"{rf_val_mae:,.0f}"
-    >>> 22,762
-    ```
-    > The Best Result
-  - Train the new **Final Model** based on the Best Result, on all of y and X, to **improve accuracy**
-    ```python
-    # specify model
-    rf_model_on_full_data = RandomForestRegressor(random_state=1)
-    # fit rf_model_on_full_data on all data from the training data
-    rf_model_on_full_data.fit(X, y)
-    # make full data predictions
-    rf_model_on_full_data_predictions = rf_model_on_full_data.predict(X)
-    # calculate mae
-    rf_model_on_full_data_mae = mean_absolute_error(y, rf_model_on_full_data_predictions)
-    f"{rf_model_on_full_data_mae:,.0f}"
-    >>> 9,269
-    ```
-- Make Predictions
-  - Load Test Data
-    ```python
-    test_data_path = '../input/test.csv'
-    test_data = pd.read_csv(test_data_path)
-    ```
-  - Create test_X
-    ```python
-    test_X = test_data[features]
-    ```
-  - Apply the **Final Model**
-    ```python
-    # make predictions
-    test_preds = rf_model_on_full_data.predict(test_X)
-    ```
-  - Save Predictions in format used for Competition Scoring
-    ```python
-    output = pd.DataFrame({'Id': test_data.Id, 'SalePrice': test_preds})
-    output.to_csv('submission.csv', index=False)
-    ```
+- Setup
+  ```python
+  # load data
+  import pandas as pd
+  X_full = pd.read_csv('../input/train.csv', index_col='Id')
+  X_test_full = pd.read_csv('../input/test.csv', index_col='Id')
+  
+  # obtain target (y) and features (X)
+  y = X_full['SalePrice']
+  features = ['LotArea', 'YearBuilt', '1stFlrSF', '2ndFlrSF', 'FullBath', 'BedroomAbvGr', 'TotRmsAbvGrd']
+  X = X_full[features].copy()
+  X_test = X_test_full[features].copy()
+
+  # break off validation set from training data
+  from sklearn.model_selection import train_test_split
+  X_train, X_valid, y_train, y_valid = train_test_split(X, y, train_size=0.8, test_size=0.2, random_state=0)
+  ```
+- Evaluate Several Models
+  ```python
+  # specify models
+  from sklearn.tree import DecisionTreeRegressor
+  from sklearn.ensemble import RandomForestRegressor
+  model_1 = DecisionTreeRegressor(random_state=0)
+  model_2 = DecisionTreeRegressor(max_leaf_nodes=100, random_state=0)
+  model_3 = RandomForestRegressor(n_estimators=50, random_state=0)
+  model_4 = RandomForestRegressor(n_estimators=100, random_state=0)
+  model_5 = RandomForestRegressor(n_estimators=100, criterion='mae', random_state=0)
+  model_6 = RandomForestRegressor(n_estimators=200, min_samples_split=20, random_state=0)
+  model_7 = RandomForestRegressor(n_estimators=100, max_depth=7, random_state=0)
+  models = [model_1, model_2, model_3, model_4, model_5, model_6, model_7]
+  
+  # compare models
+  from sklearn.metrics import mean_absolute_error
+  # function for comparing different models
+  def score_model(model, X_train, X_valid, y_train, y_val):
+      # fit model
+      model.fit(X_train, y_train)
+      # make validation predictions
+      preds = model.predict(X_valid)
+      # return mae
+      return mean_absolute_error(y_val, preds)
+  for i in range(len(models)):
+      mae = score_model(models[i])
+      print(f"Model {i+1} MAE: {mae:,.0f}")
+  ```
+  ```bash
+  Model 1 MAE: 29,653
+  Model 2 MAE: 27,283
+  Model 3 MAE: 24,015
+  Model 4 MAE: 23,740
+  Model 5 MAE: 23,528
+  Model 6 MAE: 23,996
+  Model 7 MAE: 23,706
+  ```
+- Generate Test Predictions
+  ```python
+  # specify model, based on the most accurate model
+  my_model = RandomForestRegressor(n_estimators=100, criterion='mae', random_state=0)
+
+  # fit the model to the training data, all of it
+  my_model.fit(X, y)
+
+  # generate test predictions
+  preds_test = my_model.predict(X_test)
+
+  # save predictions in format used for competition scoring
+  output = pd.DataFrame({'Id': X_test.index, 'SalePrice': preds_test})
+  output.to_csv('submission.csv', index=False)
+  ```
 
 ## **Intermediate Machine Learning**
 Learn to handle missing values, non-numeric values, data leakage and more. Your models will be more accurate and useful.
 
 ### [Introduction](https://www.kaggle.com/alexisbcook/introduction)
 Review what you need for this Micro-Course
+
+In this micro-course, you will accelerate your machine learning expertise by learning how to:
+* Tackle data types often found in real-world datasets (**missing values**, **categorical variables**),
+* Design **pipelines** to improve the quality of your machine learning code,
+* Use advanced techniques for model validation (**cross-validation**),
+* Build state-of-the-art models that are widely used to win Kaggle competitions (**XGBoost**), and
+* Avoid common and important data science mistakes (**leakage**).
 
 ### [Missing Values](https://www.kaggle.com/alexisbcook/missing-values)
 Missing values happen. Be prepared for this common challenge in real datasets.
