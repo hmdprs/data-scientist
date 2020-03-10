@@ -601,8 +601,28 @@ Learn the core ideas in machine learning, and build your first models.
     ```
 
 ## **Intermediate Machine Learning**
-
 Learn to handle missing values, non-numeric values, data leakage and more. Your models will be more accurate and useful.
+
+### [Introduction](https://www.kaggle.com/alexisbcook/introduction)
+Review what you need for this Micro-Course
+
+### [Missing Values](https://www.kaggle.com/alexisbcook/missing-values)
+Missing values happen. Be prepared for this common challenge in real datasets.
+
+### [Categorical Variables](https://www.kaggle.com/alexisbcook/categorical-variables)
+There's a lot of non-numeric data out there. Here's how to use it for machine learning
+
+### [Pipelines](https://www.kaggle.com/alexisbcook/pipelines)
+A critical skill for deploying (and even testing) complex models with pre-processing
+
+### [Cross-Validation](https://www.kaggle.com/alexisbcook/cross-validation)
+A better way to test your models
+
+### [XGBoost](https://www.kaggle.com/alexisbcook/xgboost)
+The most accurate modeling technique for structured data
+
+### [Data Leakage](https://www.kaggle.com/alexisbcook/data-leakage)
+Find and fix this problem that ruins your model in subtle ways
 
 ## **Data Visualization**
 
