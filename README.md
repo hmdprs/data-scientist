@@ -1,12 +1,11 @@
 # Data Scientist's Roadmap
-
 A minimalist roadmap to The Data Science World, based on [Kaggle's Roadmap](https://www.kaggle.com/learn/overview)
 
 ## **Python**
-
 Learn the most important language for data science.
 
 ### [Hello, Python](https://www.kaggle.com/colinmorris/hello-python)
+A quick introduction to Python syntax, variable assignment, and numbers
 
 - Variable Assignment
 - Function Calls
@@ -29,6 +28,7 @@ Learn the most important language for data science.
   ```
 
 ### [Functions and Getting Help](https://www.kaggle.com/colinmorris/functions-and-getting-help)
+Calling functions and defining our own, and using Python's builtin documentation
 
 - Getting Help
   - on modules, objects, instances, and ...
@@ -54,6 +54,7 @@ Learn the most important language for data science.
     ```
 
 ### [Booleans and Conditionals](https://www.kaggle.com/colinmorris/booleans-and-conditionals)
+Using booleans for branching logic
 
 - Booleans
   - `True` or `False` or `bool()`
@@ -100,6 +101,7 @@ Learn the most important language for data science.
     ```
 
 ### [Lists](https://www.kaggle.com/colinmorris/lists)
+Lists and the things you can do with them. Includes indexing, slicing and mutating
 
 - Lists
   - `[]` or `list()`
@@ -156,6 +158,7 @@ Learn the most important language for data science.
     ```
 
 ### [Loops and List Comprehensions](https://www.kaggle.com/colinmorris/loops-and-list-comprehensions)
+For and while loops, and a much-loved Python feature: list comprehensions 
 
 - Loops
   - Use in every iteratable objects: list, tuples, strings, ...
@@ -182,6 +185,7 @@ Learn the most important language for data science.
   - `for index, item in enumerate(items):`
 
 ### [String and Directories](https://www.kaggle.com/colinmorris/strings-and-dictionaries)
+Working with strings and dictionaries, two fundamental Python data types 
 
 - Strings
   - `''` or `""` or `""" """` or `str()`
@@ -251,6 +255,7 @@ Learn the most important language for data science.
       ```
 
 ### [Working with External Libraries](https://www.kaggle.com/colinmorris/working-with-external-libraries)
+Imports, operator overloading, and survival tips for venturing into the world of external libraries
 
 - Imports
   - Simple import, `.` access
@@ -328,10 +333,10 @@ Learn the most important language for data science.
   - More info: https://is.gd/3zuhhL
 
 ## **Intro to Machine Learning**
-
 Learn the core ideas in machine learning, and build your first models.
 
 ### [How Models Work](https://www.kaggle.com/dansbecker/how-models-work)
+The first step if you're new to machine learning
 
 - Introduction
   > You ask your cousin how he's predicted real estate values in the past. and he says it is just intuition. But more questioning reveals that he's identified price patterns from houses he has seen in the past, and he uses those patterns to make predictions for new houses he is considering. Machine learning works the same way.
@@ -340,6 +345,7 @@ Learn the core ideas in machine learning, and build your first models.
 - Decision Tree
 
 ### [Basic Data Exploration](https://www.kaggle.com/dansbecker/basic-data-exploration)
+Load and understand your data
 
 - Using Pandas to Get Familiar with the Data
   - **DataFrame**: The most important part of the Pandas library, similar to a sheet in Excel, or a table in a SQL database
@@ -368,6 +374,7 @@ Learn the core ideas in machine learning, and build your first models.
     - `min`, `25%` (25th percentile), `50%` (50th percentiles), `75%` (75th percentiles) and `max`
 
 ### [Your First Machine Learning Model](https://www.kaggle.com/dansbecker/your-first-machine-learning-model)
+Building your first model. Hurray!
 
 - Selecting Data for Modeling
   - Datasets have too many variables to wrap your head around. We'll start by picking a few variables using our intuition. Later, we use statistical techniques to automatically prioritize variables.
@@ -407,6 +414,7 @@ Learn the core ideas in machine learning, and build your first models.
     ```
 
 ### [Model Validation](https://www.kaggle.com/dansbecker/model-validation)
+Measure the performance of your model ? so you can test and compare alternatives
 
 - Summarizing the Model Quality into Metrics
   - There are many metrics for summarizing the model quality.
@@ -455,6 +463,7 @@ Learn the core ideas in machine learning, and build your first models.
     ```
 
 ### [Underfitting and Overfitting](https://www.kaggle.com/dansbecker/underfitting-and-overfitting)
+Fine-tune your model for better performance.
 
 - Experimenting with Different Models
   - **Over-fitting**: Capturing spurious patterns that won't recur in the future, leading to less accurate predictions.
@@ -484,6 +493,7 @@ Learn the core ideas in machine learning, and build your first models.
       ```
 
 ### [Random Forests](https://www.kaggle.com/dansbecker/random-forests)
+Using a more sophisticated machine learning algorithm.
 
 - Introduction
   - Decision trees leave you with a difficult decision. A deep tree and over-fitting vs. a shallow one and under-fitting. Even today's most sophisticated modeling techniques face this tension. But, many models have clever ideas that can lead to better performance.
@@ -503,6 +513,7 @@ Learn the core ideas in machine learning, and build your first models.
 - Some models, like the **XGBoost** model, provides better performance when tuned well with the right parameters (but which requires some skill to get the right model parameters).
 
 ### [Exercise: Machine Learning Competitions](https://www.kaggle.com/kernels/fork/1259198)
+Enter the world of machine learning competitions to keep improving and see your progress
 
 - Train
   - Load Train Data
