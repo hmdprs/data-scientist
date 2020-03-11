@@ -432,14 +432,14 @@ Measure the performance of your model ? so you can test and compare alternatives
     ```python
     from sklearn.model_selection import train_test_split
     # break off validation set from training data, for both features and target
-    X_train, X_valid, y_train, y_val = train_test_split(X, y, random_state=1)
+    X_train, X_valid, y_train, y_valid = train_test_split(X, y, random_state=1)
     # define model
     melbourne_model = DecisionTreeRegressor(random_state=1)
     # fit model
     melbourne_model.fit(X_train, y_train)
     # get predicted prices on validation data
     predictions_val = melbourne_model.predict(X_valid)
-    mean_absolute_error(y_val, predictions_val)
+    mean_absolute_error(y_valid, predictions_val)
     >>> 259556.721
     ```
     > The MAE for the in-sample data was about 500 dollars. For out-of-sample data, it's more than 250,000 dollars. As a point of reference, the average home value in the validation data is 1.1 million dollars. So the error in new data is about a quarter of the average home value.
@@ -473,22 +473,22 @@ Fine-tune your model for better performance.
     - A **shallow tree** makes big groups. It causes **under-fitting**.
     - There are a few options for controlling the tree depth, and many allow for some routes through the tree to have greater depth than other routes. But the `max_leaf_nodes` argument provides a very sensible way to control overfitting vs underfitting.
       ```python
-      def get_mae(max_leaf_nodes, X_train, X_valid, y_train, y_val):
+      def get_mae(max_leaf_nodes, X_train, X_valid, y_train, y_valid):
           model = DecisionTreeRegressor(max_leaf_nodes=max_leaf_nodes, random_state=0)
           model.fit(X_train, y_train)
           predictions_val = model.predict(X_valid)
-          mae = mean_absolute_error(y_val, predictions_val)
+          mae = mean_absolute_error(y_valid, predictions_val)
           return(mae)
       # compare MAE with differing values of max_leaf_nodes
       max_leaf_nodes_candidates = [5, 50, 500, 5000]
       for max_leaf_nodes in max_leaf_nodes_candidates:
-          mae_now = get_mae(max_leaf_nodes, X_train, X_valid, y_train, y_val)
+          mae_now = get_mae(max_leaf_nodes, X_train, X_valid, y_train, y_valid)
           print(f"Max Leaf Nodes: {max_leaf_nodes}  \t\t Mean Absolute Error: {mae_now}")
       ```
     - The lowest number is the optimal number of leaves.
       ```python
       # find the optimal number with a dict comprehension
-      scores = {leaf_size: get_mae(leaf_size, X_train, X_valid, y_train, y_val) for leaf_size in max_leaf_nodes_candidates}
+      scores = {leaf_size: get_mae(leaf_size, X_train, X_valid, y_train, y_valid) for leaf_size in max_leaf_nodes_candidates}
       best_tree_size = min(scores, key=scores.get)
       ```
 
@@ -503,10 +503,10 @@ Using a more sophisticated machine learning algorithm.
   from sklearn.ensemble import RandomForestRegressor
   forest_model = RandomForestRegressor(random_state=1)
   forest_model.fit(X_train, y_train)
-  melb_preds = forest_model.predict(X_valid)
+  preds_valid = forest_model.predict(X_valid)
   # calculate MAE
   from sklearn.metrics import mean_absolute_error
-  mean_absolute_error(y_val, melb_preds)
+  mean_absolute_error(y_valid, preds_valid)
   >>> 202888.181
   ```
   - The result is much better than that was before (259556.721).
@@ -549,13 +549,13 @@ Enter the world of machine learning competitions to keep improving and see your 
   # compare models
   from sklearn.metrics import mean_absolute_error
   # function for comparing different models
-  def score_model(model, X_train, X_valid, y_train, y_val):
+  def score_model(model, X_train, X_valid, y_train, y_valid):
       # fit model
       model.fit(X_train, y_train)
       # make validation predictions
-      preds = model.predict(X_valid)
+      preds_valid = model.predict(X_valid)
       # return mae
-      return mean_absolute_error(y_val, preds)
+      return mean_absolute_error(y_valid, preds_valid)
   for i in range(len(models)):
       mae = score_model(models[i])
       print(f"Model {i+1} MAE: {mae:,.0f}")
@@ -600,6 +600,115 @@ In this micro-course, you will accelerate your machine learning expertise by lea
 
 ### [Missing Values](https://www.kaggle.com/alexisbcook/missing-values)
 Missing values happen. Be prepared for this common challenge in real datasets.
+
+- Introduction: There are many ways data can end up with missing values. For example,
+  - A 2 bedroom house won't include a value for the size of a third bedroom.
+  - A survey respondent may choose not to share his income.
+- Approaches
+  - Setup
+    ```python
+    # load data
+    import pandas as pd
+    X_full = pd.read_csv('../input/train.csv', index_col='Id')
+    X_test_full = pd.read_csv('../input/test.csv', index_col='Id')
+
+    # remove rows with missing 'SalePrice'
+    X_full.dropna(axis=0, subset=['SalePrice'], inplace=True)
+
+    # separate target from predictors
+    y = X_full['SalePrice']
+    X_full.drop(['SalePrice'], axis=1, inplace=True)
+
+    # to keep things simple, we'll use only numerical predictors
+    X = X_full.select_dtypes(exclude=['object'])
+    X_test = X_test_full.select_dtypes(exclude=['object'])
+
+    # break off validation set from training data
+    from sklearn.model_selection import train_test_split
+    X_train, X_valid, y_train, y_valid = train_test_split(X, y, train_size=0.8, test_size=0.2, random_state=0)
+
+    # get names of columns with missing values
+    cols_with_missing = [col for col in X_train.columns if X_train[col].isnull().any()]
+
+    # function for comparing different approaches
+    from sklearn.ensemble import RandomForestRegressor
+    from sklearn.metrics import mean_absolute_error
+    def score_dataset(X_train, X_valid, y_train, y_valid):
+        model = RandomForestRegressor(n_estimators=10, random_state=0)
+        model.fit(X_train, y_train)
+        preds_valid = model.predict(X_valid)
+        return mean_absolute_error(y_valid, preds_valid)
+    ```
+  - A Simple Option: **Drop** Columns with Missing Values
+    - The model loses access to a lot of (potentially useful!) information with this approach.
+      ```python
+      # drop cols_with_missing in training and validation data
+      reduced_X_train = X_train.drop(cols_with_missing, axis=1)
+      reduced_X_valid = X_valid.drop(cols_with_missing, axis=1)
+      # score
+      score_dataset(reduced_X_train, reduced_X_valid, y_train, y_valid)
+      >>> 183550
+      ```
+  - A Better Option: **Imputation**
+    - Imputation fills in the missing values with some number.
+    - Strategy:
+      - default=`mean` replaces missing values using the mean along each column. (only numeric)
+      - `median` replaces missing values using the median along each column. (only numeric)
+      - `most_frequent` replaces missing using the most frequent value along each column. (strings or numeric)
+      - `constant` replaces missing values with `fill_value`. (strings or numeric)
+      ```python
+      # imputation
+      from sklearn.impute import SimpleImputer
+      imputer = SimpleImputer(strategy='mean')
+      imputed_X_train = pd.DataFrame(imputer.fit_transform(X_train))
+      imputed_X_valid = pd.DataFrame(imputer.transform(X_valid))
+      # imputation removed column names; put them back
+      imputed_X_train.columns = X_train.columns
+      imputed_X_valid.columns = X_valid.columns
+      # score
+      score_dataset(imputed_X_train, imputed_X_valid, y_train, y_valid)
+      >>> 178166
+      ```
+  - So, why did imputation perform better than dropping the columns?
+    - The training data shape is (10864, 12), where three columns contain missing data. Dropping the columns removes a lot of useful information.
+      ```python
+      # function to show number of missing values in each column
+      def missing_val_count(data):
+          missing_val_count_by_column = data.isnull().sum()
+          return missing_val_count_by_column[missing_val_count_by_column > 0]
+      # use on training data
+      missing_val_count(X_train)
+      ```
+      ```bash
+      Car               49
+      BuildingArea    5156
+      YearBuilt       4307
+      dtype: int64
+      ```
+  - Train and Evaluate Model
+    ```python
+    # define and fit model
+    model = RandomForestRegressor(n_estimators=100, random_state=0)
+    model.fit(imputed_X_train, y_train)
+    
+    # get validation predictions and MAE
+    preds_valid = model.predict(imputed_X_valid)
+    mean_absolute_error(y_valid, preds_valid)
+    >>> 17791
+    ```
+- Test Data
+  ```python
+  # preprocess test data
+  imputed_X_test = pd.DataFrame(final_imputer.fit_transform(X_test))
+  # put column names back
+  imputed_X_test.columns = X_test.columns
+  
+  # get test predictions
+  preds_test = model.predict(imputed_X_test)
+  # save test predictions to file
+  output = pd.DataFrame({'Id': X_test.index, 'SalePrice': preds_test})
+  output.to_csv('submission.csv', index=False)
+  ```
 
 ### [Categorical Variables](https://www.kaggle.com/alexisbcook/categorical-variables)
 There's a lot of non-numeric data out there. Here's how to use it for machine learning
