@@ -350,11 +350,11 @@ Load and understand your data
 - Using Pandas to Get Familiar with the Data
   - **DataFrame**: The most important part of the Pandas library, similar to a sheet in Excel, or a table in a SQL database
     ```python
-    # save filepath to variable for easier access
-    melbourne_file_path = '../input/melbourne-housing-snapshot/melb_data.csv'
-    # read the data and store data in DataFrame titled melbourne_data
-    melbourne_data = pd.read_csv(melbourne_file_path)
-    # print a summary of the data in Melbourne data
+    # read data from csv file and store it in pandas DataFrame
+    import pandas as pd
+    melbourne_data = pd.read_csv('../input/melbourne-housing-snapshot/melb_data.csv')
+    
+    # statistical summary
     melbourne_data.describe()
     ```
     |       |  Price  | Rooms | Bedroom2 | Bathroom | Landsize | BuildingArea | YearBuilt | Lattitude | Longtitude |  ...  |
@@ -381,6 +381,7 @@ Building your first model. Hurray!
     ```python
     # look at the list of all columns in the dataset
     melbourne_data.columns
+    
     # filter rows with missing values
     dropna_melbourne_data = melbourne_data.dropna(axis=0)
     ```
@@ -392,6 +393,7 @@ Building your first model. Hurray!
     ```python
     feature_list = ['Rooms', 'Bathroom', 'Landsize', 'BuildingArea', 'YearBuilt', 'Lattitude', 'Longtitude']
     X = dropna_melbourne_data[feature_list]
+    
     # quick look at the data we'll be using to predict house prices
     X.describe()
     X.head()
@@ -404,12 +406,15 @@ Building your first model. Hurray!
     - **Evaluate**: Determine how accurate the model's predictions are.
   - scikit-learn
     ```python
+    # define model
+    # in random processes like defining a model, `random_state` ensures you get the same results in each run
     from sklearn.tree import DecisionTreeRegressor
-    # define model, `random_state` ensures you get the same results in each run
     melbourne_model = DecisionTreeRegressor(random_state=1)
+    
     # fit model
     melbourne_model.fit(X, y)
-    # make predictions
+    
+    # make prediction
     predictions = melbourne_model.predict(X)
     ```
 
@@ -430,14 +435,17 @@ Measure the performance of your model ? so you can test and compare alternatives
   - **Making Predictions on New Data**
   - The most straightforward way to do that is to exclude some data from the model-building process, and then use those to test the model's accuracy.
     ```python
-    from sklearn.model_selection import train_test_split
     # break off validation set from training data, for both features and target
+    from sklearn.model_selection import train_test_split
     X_train, X_valid, y_train, y_valid = train_test_split(X, y, random_state=1)
+    
     # define model
     melbourne_model = DecisionTreeRegressor(random_state=1)
+    
     # fit model
     melbourne_model.fit(X_train, y_train)
-    # get predicted prices on validation data
+    
+    # make prediction on validation data
     predictions_val = melbourne_model.predict(X_valid)
     mean_absolute_error(y_valid, predictions_val)
     >>> 259556.721
@@ -446,21 +454,6 @@ Measure the performance of your model ? so you can test and compare alternatives
 - There are many ways to improve a model, such as
   - Finding **better features**, the iterating process of building models with different features and comparing them to each other
   - Finding **better model types**
-  - Finding **better data pre-processing methods**. For example look at the different ways of using `dropna()`
-    ```python
-    # raw data
-    melbourne_data.shape
-    >>> (13580, 21)
-    # rows with price
-    melbourne_data['Price'].dropna(axis=0).shape
-    >>> (13580,)
-    # rows with features we want
-    melbourne_data[feature_list].dropna(axis=0).shape
-    >>> (6858, 7)
-    # rows without missing data
-    melbourne_data.dropna(axis=0).shape
-    >>> (6196, 21)
-    ```
 
 ### [Underfitting and Overfitting](https://www.kaggle.com/dansbecker/underfitting-and-overfitting)
 Fine-tune your model for better performance.
@@ -473,21 +466,16 @@ Fine-tune your model for better performance.
     - A **shallow tree** makes big groups. It causes **under-fitting**.
     - There are a few options for controlling the tree depth, and many allow for some routes through the tree to have greater depth than other routes. But the `max_leaf_nodes` argument provides a very sensible way to control overfitting vs underfitting.
       ```python
+      # function for comparing MAE with differing values of max_leaf_nodes
       def get_mae(max_leaf_nodes, X_train, X_valid, y_train, y_valid):
           model = DecisionTreeRegressor(max_leaf_nodes=max_leaf_nodes, random_state=0)
           model.fit(X_train, y_train)
           predictions_val = model.predict(X_valid)
           mae = mean_absolute_error(y_valid, predictions_val)
           return(mae)
-      # compare MAE with differing values of max_leaf_nodes
+      
+      # compare models
       max_leaf_nodes_candidates = [5, 50, 500, 5000]
-      for max_leaf_nodes in max_leaf_nodes_candidates:
-          mae_now = get_mae(max_leaf_nodes, X_train, X_valid, y_train, y_valid)
-          print(f"Max Leaf Nodes: {max_leaf_nodes}  \t\t Mean Absolute Error: {mae_now}")
-      ```
-    - The lowest number is the optimal number of leaves.
-      ```python
-      # find the optimal number with a dict comprehension
       scores = {leaf_size: get_mae(leaf_size, X_train, X_valid, y_train, y_valid) for leaf_size in max_leaf_nodes_candidates}
       best_tree_size = min(scores, key=scores.get)
       ```
@@ -499,12 +487,13 @@ Using a more sophisticated machine learning algorithm.
   - Decision trees leave you with a difficult decision. A deep tree and over-fitting vs. a shallow one and under-fitting. Even today's most sophisticated modeling techniques face this tension. But, many models have clever ideas that can lead to better performance.
 - A **Random Forest** model uses many trees, and makes a prediction by averaging the predictions of each component. It generally has much better predictive accuracy even with than a single decision tree, even with default parameters, without tuning the parameters like `max_leaf_nodes`.
   ```python
-  # specify & fit model and make predictions
+  # define & fit model
   from sklearn.ensemble import RandomForestRegressor
   forest_model = RandomForestRegressor(random_state=1)
   forest_model.fit(X_train, y_train)
+  
+  # make prediction
   preds_valid = forest_model.predict(X_valid)
-  # calculate MAE
   from sklearn.metrics import mean_absolute_error
   mean_absolute_error(y_valid, preds_valid)
   >>> 202888.181
@@ -522,7 +511,7 @@ Enter the world of machine learning competitions to keep improving and see your 
   X_full = pd.read_csv('../input/train.csv', index_col='Id')
   X_test_full = pd.read_csv('../input/test.csv', index_col='Id')
   
-  # obtain target (y) and features (X)
+  # separate target (y) from features (X)
   y = X_full['SalePrice']
   features = ['LotArea', 'YearBuilt', '1stFlrSF', '2ndFlrSF', 'FullBath', 'BedroomAbvGr', 'TotRmsAbvGrd']
   X = X_full[features].copy()
@@ -534,7 +523,7 @@ Enter the world of machine learning competitions to keep improving and see your 
   ```
 - Evaluate Several Models
   ```python
-  # specify models
+  # define models
   from sklearn.tree import DecisionTreeRegressor
   from sklearn.ensemble import RandomForestRegressor
   model_1 = DecisionTreeRegressor(random_state=0)
@@ -546,9 +535,8 @@ Enter the world of machine learning competitions to keep improving and see your 
   model_7 = RandomForestRegressor(n_estimators=100, max_depth=7, random_state=0)
   models = [model_1, model_2, model_3, model_4, model_5, model_6, model_7]
   
-  # compare models
-  from sklearn.metrics import mean_absolute_error
   # function for comparing different models
+  from sklearn.metrics import mean_absolute_error
   def score_model(model, X_train, X_valid, y_train, y_valid):
       # fit model
       model.fit(X_train, y_train)
@@ -556,6 +544,8 @@ Enter the world of machine learning competitions to keep improving and see your 
       preds_valid = model.predict(X_valid)
       # return mae
       return mean_absolute_error(y_valid, preds_valid)
+  
+  # compare models
   for i in range(len(models)):
       mae = score_model(models[i])
       print(f"Model {i+1} MAE: {mae:,.0f}")
@@ -571,13 +561,13 @@ Enter the world of machine learning competitions to keep improving and see your 
   ```
 - Generate Test Predictions
   ```python
-  # specify model, based on the most accurate model
+  # define model, based on the most accurate model
   my_model = RandomForestRegressor(n_estimators=100, criterion='mae', random_state=0)
 
   # fit the model to the training data, all of it
   my_model.fit(X, y)
 
-  # generate test predictions
+  # make test prediction
   preds_test = my_model.predict(X_test)
 
   # save predictions in format used for competition scoring
@@ -601,9 +591,17 @@ In this micro-course, you will accelerate your machine learning expertise by lea
 ### [Missing Values](https://www.kaggle.com/alexisbcook/missing-values)
 Missing values happen. Be prepared for this common challenge in real datasets.
 
-- Introduction: There are many ways data can end up with missing values. For example,
-  - A 2 bedroom house won't include a value for the size of a third bedroom.
-  - A survey respondent may choose not to share his income.
+- Introduction
+  - There are many ways data can end up with missing values. For example,
+    - A 2 bedroom house won't include a value for the size of a third bedroom.
+    - A survey respondent may choose not to share his income.
+  - Most machine learning libraries (including scikit-learn) give an error if you try to build a model using data with missing values.
+  - To show number of missing values in each column
+    ```python
+    def missing_val_count(data):
+        missing_val_count_by_column = data.isnull().sum()
+        return missing_val_count_by_column[missing_val_count_by_column > 0]
+    ```
 - Approaches
   - Setup
     ```python
@@ -615,11 +613,11 @@ Missing values happen. Be prepared for this common challenge in real datasets.
     # remove rows with missing 'SalePrice'
     X_full.dropna(axis=0, subset=['SalePrice'], inplace=True)
 
-    # separate target from predictors
+    # separate target (y) from features (X)
     y = X_full['SalePrice']
     X_full.drop(['SalePrice'], axis=1, inplace=True)
 
-    # to keep things simple, we'll use only numerical predictors
+    # use only numerical features, to keep things simple
     X = X_full.select_dtypes(exclude=['object'])
     X_test = X_test_full.select_dtypes(exclude=['object'])
 
@@ -642,7 +640,7 @@ Missing values happen. Be prepared for this common challenge in real datasets.
   - A Simple Option: **Drop** Columns with Missing Values
     - The model loses access to a lot of (potentially useful!) information with this approach.
       ```python
-      # drop cols_with_missing in training and validation data
+      # drop `cols_with_missing` in training and validation data
       reduced_X_train = X_train.drop(cols_with_missing, axis=1)
       reduced_X_valid = X_valid.drop(cols_with_missing, axis=1)
       # score
@@ -669,33 +667,17 @@ Missing values happen. Be prepared for this common challenge in real datasets.
       score_dataset(imputed_X_train, imputed_X_valid, y_train, y_valid)
       >>> 178166
       ```
-  - So, why did imputation perform better than dropping the columns?
-    - The training data shape is (10864, 12), where three columns contain missing data. Dropping the columns removes a lot of useful information.
-      ```python
-      # function to show number of missing values in each column
-      def missing_val_count(data):
-          missing_val_count_by_column = data.isnull().sum()
-          return missing_val_count_by_column[missing_val_count_by_column > 0]
-      # use on training data
-      missing_val_count(X_train)
-      ```
-      ```bash
-      Car               49
-      BuildingArea    5156
-      YearBuilt       4307
-      dtype: int64
-      ```
-  - Train and Evaluate Model
-    ```python
-    # define and fit model
-    model = RandomForestRegressor(n_estimators=100, random_state=0)
-    model.fit(imputed_X_train, y_train)
-    
-    # get validation predictions and MAE
-    preds_valid = model.predict(imputed_X_valid)
-    mean_absolute_error(y_valid, preds_valid)
-    >>> 17791
-    ```
+- Train and Evaluate Model
+  ```python
+  # define and fit model
+  model = RandomForestRegressor(n_estimators=100, random_state=0)
+  model.fit(imputed_X_train, y_train)
+  
+  # make validation prediction
+  preds_valid = model.predict(imputed_X_valid)
+  mean_absolute_error(y_valid, preds_valid)
+  >>> 17791
+  ```
 - Test Data
   ```python
   # preprocess test data
@@ -703,8 +685,9 @@ Missing values happen. Be prepared for this common challenge in real datasets.
   # put column names back
   imputed_X_test.columns = X_test.columns
   
-  # get test predictions
+  # make test prediction
   preds_test = model.predict(imputed_X_test)
+  
   # save test predictions to file
   output = pd.DataFrame({'Id': X_test.index, 'SalePrice': preds_test})
   output.to_csv('submission.csv', index=False)
