@@ -681,7 +681,7 @@ Missing values happen. Be prepared for this common challenge in real datasets.
 - Test Data
   ```python
   # preprocess test data
-  imputed_X_test = pd.DataFrame(final_imputer.fit_transform(X_test))
+  imputed_X_test = pd.DataFrame(imputer.fit_transform(X_test))
   # put column names back
   imputed_X_test.columns = X_test.columns
   
@@ -695,6 +695,137 @@ Missing values happen. Be prepared for this common challenge in real datasets.
 
 ### [Categorical Variables](https://www.kaggle.com/alexisbcook/categorical-variables)
 There's a lot of non-numeric data out there. Here's how to use it for machine learning
+
+- Introduction
+  - A categorical variable takes only a limited number of values.
+    - Ordinal: A question that asks "how often you eat breakfast?" and provides four options: "Never", "Rarely", "Most days", or "Every day".
+    - Nominal: A question that asks "what brand of car you own?".
+  - Most machine learning libraries (including scikit-learn) give an error if you try to build a model using data with categorical variables.
+- Approaches
+  - Setup
+    ```python
+    # load data
+    import pandas as pd
+    data = pd.read_csv('../input/melbourne-housing-snapshot/melb_data.csv')
+
+    # separate target (y) from features (X)
+    y = data['Price']
+    X = data.drop(['Price'], axis=1)
+
+    # break off validation set from training data
+    from sklearn.model_selection import train_test_split
+    X_train_full, X_valid_full, y_train, y_valid = train_test_split(X, y, train_size=0.8, test_size=0.2, random_state=0)
+
+    # handle missing values (simplest approach)
+    cols_with_missing = [col for col in X_train_full.columns if X_train_full[col].isnull().any()] 
+    X_train_full.drop(cols_with_missing, axis=1, inplace=True)
+    X_valid_full.drop(cols_with_missing, axis=1, inplace=True)
+
+    # create X_train and X_valid from (catagorical & numerical)  columns from X_train_full and X_valid_full
+    
+    # select categorical columns with relatively low cardinality, to keep things simple
+    # cardinality means the number of unique values in a column
+    object_cols = [cname for cname in X_train_full.columns if (X_train_full[cname].dtype == 'object') and (X_train_full[cname].nunique() < 10)]
+
+    # select numerical columns
+    numerical_cols = [cname for cname in X_train_full.columns if X_train_full[cname].dtype in ['int64', 'float64']]
+
+    # keep selected columns only
+    my_cols = object_cols + numerical_cols
+    X_train = X_train_full[my_cols].copy()
+    X_valid = X_valid_full[my_cols].copy()
+
+    # function for comparing different approaches
+    from sklearn.ensemble import RandomForestRegressor
+    from sklearn.metrics import mean_absolute_error
+    def score_dataset(X_train, X_valid, y_train, y_valid):
+        model = RandomForestRegressor(n_estimators=100, random_state=0)
+        model.fit(X_train, y_train)
+        preds = model.predict(X_valid)
+        return mean_absolute_error(y_valid, preds)
+    ```
+  - Drop Categorical Variables
+    - This approach will only work well if the columns did not contain useful information.
+      ```python
+      # drop catagorial columns
+      drop_X_train = X_train.select_dtypes(exclude=['object'])
+      drop_X_valid = X_valid.select_dtypes(exclude=['object'])
+      
+      # score
+      score_dataset(drop_X_train, drop_X_valid, y_train, y_valid)
+      >>> 175703
+      ```
+  - Label Encoding
+    - Label encoding assigns each unique value, that appears in the training data, to a different integer.
+    - In the case that the validation data contains values that don't also appear in the training data, the encoder will throw an error, because these values won't have an integer assigned to them.
+    - It should be used only for target labels encoding.
+    - To encode categorical features, use One-Hot Encoder, which can handle unseen values.
+    - For **tree-based models** (like decision trees and random forests), you can expect label encoding to work well with **ordinal** variables.
+      ```python
+      # find columns, which are in validation data but not in training data
+      good_label_cols = [col for col in object_cols if set(X_train[col]) == set(X_valid[col])]
+      bad_label_cols = list(set(object_cols) - set(good_label_cols))
+      
+      # drop them
+      label_X_train = X_train.drop(bad_label_cols, axis=1)
+      label_X_valid = X_valid.drop(bad_label_cols, axis=1)
+
+      # apply label encoder 
+      from sklearn.preprocessing import LabelEncoder
+      label_encoder = LabelEncoder()
+      for col in good_label_cols:
+          label_X_train[col] = label_encoder.fit_transform(X_train[col])
+          label_X_valid[col] = label_encoder.transform(X_valid[col])
+      
+      # score
+      score_dataset(label_X_train, label_X_valid, y_train, y_valid)
+      >>> 165936
+      ```
+  - One-Hot Encoding
+    - One-hot encoding creates new columns indicating the presence (or absence) of each possible value in the original data. Useful parameters are:
+      - `handle_unknown='ignore'` avoids errors when the validation data contains classes that aren't represented in the training data,
+      - `sparse=False` returns the encoded columns as a numpy array (instead of a sparse matrix).
+    - In contrast to label encoding, one-hot encoding does not assume an ordering of the categories. Thus, you can expect this approach to work particularly well with categorical variables without an intrinsic ranking, we refer them as **nominal** variables.
+    - One-hot encoding generally does **not** perform well with high-cardinality categorical variable (i.e., more than 15 different values). **Cardinality** means the number of unique values in a column.
+      ```python
+      # get cardinality for each column with categorical data
+      object_nunique = list(map(lambda col: X_train[col].nunique(), object_cols))
+      d = dict(zip(object_cols, object_nunique))
+
+      # print cardinality by column, in ascending order
+      sorted(d.items(), key=lambda x: x[1])
+      ```
+    - For this reason, we typically will only one-hot encode columns with relatively low cardinality. Then, high cardinality columns can either be dropped from the dataset, or we can use label encoding.
+      ```python
+      # columns that will be one-hot encoded
+      low_cardinality_cols = [col for col in object_cols if X_train[col].nunique() < 10]
+
+      # columns that will be dropped from the dataset
+      high_cardinality_cols = list(set(object_cols) - set(low_cardinality_cols))
+
+      # apply one-hot encoder to each column with categorical data
+      from sklearn.preprocessing import OneHotEncoder
+      oh_encoder = OneHotEncoder(handle_unknown='ignore', sparse=False)
+      oh_cols_train = pd.DataFrame(oh_encoder.fit_transform(X_train[low_cardinality_cols]))
+      oh_cols_valid = pd.DataFrame(oh_encoder.transform(X_valid[low_cardinality_cols]))
+
+      # one-hot encoding removed index; put it back
+      oh_cols_train.index = X_train.index
+      oh_cols_valid.index = X_valid.index
+
+      # drop all categorical columns (will replace with one-hot encoding)
+      num_X_train = X_train.drop(object_cols, axis=1)
+      num_X_valid = X_valid.drop(object_cols, axis=1)
+
+      # add one-hot encoded columns to numerical features
+      oh_X_train = pd.concat([num_X_train, oh_cols_train], axis=1)
+      oh_X_valid = pd.concat([num_X_valid, oh_cols_valid], axis=1)
+
+      # score
+      score_dataset(oh_X_train, oh_X_valid, y_train, y_valid)
+      >>> 166089
+      ```
+- TODO: Fix train & test part in Kaggle kernel
 
 ### [Pipelines](https://www.kaggle.com/alexisbcook/pipelines)
 A critical skill for deploying (and even testing) complex models with pre-processing
