@@ -830,6 +830,119 @@ There's a lot of non-numeric data out there. Here's how to use it for machine le
 ### [Pipelines](https://www.kaggle.com/alexisbcook/pipelines)
 A critical skill for deploying (and even testing) complex models with pre-processing
 
+- Introduction
+  - Pipelines are a simple way to keep your data preprocessing and modeling code organized. Specifically, a pipeline **bundles preprocessing and modeling steps** so you can use the whole bundle as if it were a single step.
+  - Some important benefits of pipelines are:
+    - **Cleaner Code**: Accounting for data at each step of preprocessing can get messy. With a pipeline, you won't need to manually keep track of your training and validation data at each step.
+    - **Fewer Bugs**: There are fewer opportunities to misapply a step or forget a preprocessing step.
+    - **Easier to Productionize**: It can be surprisingly hard to transition a model from a prototype to something deployable at scale, but pipelines can help.
+    - **More Options for Model Validation**: You will see an example in the Cross-Validation tutorial.
+- Steps
+  - Setup
+    ```python
+    # load data
+    import pandas as pd
+    X_full = pd.read_csv("../input/train.csv", index_col="Id")
+    X_test_full = pd.read_csv("../input/test.csv", index_col="Id")
+
+    # remove rows with missing target
+    X_full.dropna(axis=0, subset=["SalePrice"], inplace=True)
+
+    # separate target (y) from features (X)
+    y = X_full["Price"]
+    X = X_full.drop(["Price"], axis=1)
+
+    # break off validation set from training data
+    from sklearn.model_selection import train_test_split
+    X_train_full, X_valid_full, y_train, y_valid = train_test_split(
+        X, y, train_size=0.8, test_size=0.2, random_state=0
+    )
+
+    # select categorical columns with relatively low cardinality, to keep things simple
+    # cardinality means the number of unique values in a column
+    categorical_cols = [
+        cname
+        for cname in X_train_full.columns
+        if X_train_full[cname].nunique() < 10 and X_train_full[cname].dtype == "object"
+    ]
+
+    # select numerical columns
+    numerical_cols = [
+        cname
+        for cname in X_train_full.columns
+        if X_train_full[cname].dtype in ["int64", "float64"]
+    ]
+
+    # keep selected columns only
+    my_cols = categorical_cols + numerical_cols
+    X_train = X_train_full[my_cols].copy()
+    X_valid = X_valid_full[my_cols].copy()
+    X_test = X_test_full[my_cols].copy()
+    ```
+  - Step 1: **Define Preprocessing Steps**
+    - Similar to how a pipeline bundles together preprocessing and modeling steps, we use the `ColumnTransformer` class to bundle together different preprocessing steps. The code below:
+      - imputes missing values in numerical data, and
+      - imputes missing values and applies a one-hot encoding to categorical data.
+      ```python
+      from sklearn.pipeline import Pipeline
+
+      # preprocessing for numerical data
+      from sklearn.impute import SimpleImputer
+      numerical_transformer = SimpleImputer(strategy="most_frequent")
+
+      # preprocessing for categorical data
+      from sklearn.preprocessing import OneHotEncoder
+      categorical_transformer = Pipeline(
+          steps=[
+              ("imputer", SimpleImputer(strategy="most_frequent")),
+              ("onehot", OneHotEncoder(handle_unknown="ignore")),
+          ]
+      )
+
+      # bundle preprocessing for numerical and categorical data
+      from sklearn.compose import ColumnTransformer
+      preprocessor = ColumnTransformer(
+          transformers=[
+              ("num", numerical_transformer, numerical_cols),
+              ("cat", categorical_transformer, categorical_cols),
+          ]
+      )
+      ```
+  - Step 2: **Define the Model**
+    - For example we use `RandomForestRegressor`
+      ```python
+      from sklearn.ensemble import RandomForestRegressor
+      model = RandomForestRegressor(n_estimators=100, min_samples_split=3, random_state=0)
+      ```
+  - Step 3: **Create and Evaluate the Pipeline**
+    - We use the `Pipeline` class to define a pipeline that bundles the preprocessing and modeling steps.
+      - With the pipeline, we preprocess the training data and fit the model in a single line of code.
+      - With the pipeline, we supply the unprocessed features in X_valid to the predict() command, and the pipeline automatically preprocesses the features before generating predictions.
+      ```python
+      # bundle preprocessing and modeling code in a pipeline
+      my_pipeline = Pipeline(steps=[("preprocessor", preprocessor), ("model", model)])
+
+      # preprocessing of training data, fit model
+      my_pipeline.fit(X_train, y_train)
+
+      # preprocessing of validation data, get predictions
+      preds = my_pipeline.predict(X_valid)
+
+      # evaluate the model
+      from sklearn.metrics import mean_absolute_error
+      mean_absolute_error(y_valid, preds)
+      ```
+- Test
+  ```python
+  # preprocessing of test data, fit model
+  preds_test = my_pipeline.predict(X_test)
+
+  # save predictions in format used for competition scoring
+  output = pd.DataFrame({"Id": X_test.index, "SalePrice": preds_test})
+  output.to_csv("submission.csv", index=False)
+  ```
+- **Vola**!
+
 ### [Cross-Validation](https://www.kaggle.com/alexisbcook/cross-validation)
 A better way to test your models
 
