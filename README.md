@@ -251,7 +251,7 @@ Working with strings and dictionaries, two fundamental Python data types
     - For loop over (key, value) pairs, use `item`
       ```python
       for planet, initial in planet_to_initial.items():
-          print("{} begins with \"{}\"".format(planet, initial))
+          print(f"{planet} begins with \"{initial}\"")
       ```
 
 ### [Working with External Libraries](https://www.kaggle.com/colinmorris/working-with-external-libraries)
@@ -352,7 +352,7 @@ Load and understand your data
     ```python
     # read data from csv file and store it in pandas DataFrame
     import pandas as pd
-    melbourne_data = pd.read_csv('../input/melbourne-housing-snapshot/melb_data.csv')
+    melbourne_data = pd.read_csv("../input/melbourne-housing-snapshot/melb_data.csv")
     
     # statistical summary
     melbourne_data.describe()
@@ -387,11 +387,19 @@ Building your first model. Hurray!
     ```
   - Selecting the **Prediction Target** (`y`)
     ```python
-    y = dropna_melbourne_data['Price']
+    y = dropna_melbourne_data["Price"]
     ```
   - Choosing **Features** (input columns, `X`)
     ```python
-    feature_list = ['Rooms', 'Bathroom', 'Landsize', 'BuildingArea', 'YearBuilt', 'Lattitude', 'Longtitude']
+    feature_list = [
+    "Rooms",
+    "Bathroom",
+    "Landsize",
+    "BuildingArea",
+    "YearBuilt",
+    "Lattitude",
+    "Longtitude",
+    ]
     X = dropna_melbourne_data[feature_list]
     
     # quick look at the data we'll be using to predict house prices
@@ -428,7 +436,6 @@ Measure the performance of your model ? so you can test and compare alternatives
       ```python
       from sklearn.metrics import mean_absolute_error
       mean_absolute_error(y, predictions)
-      >>> 434.715
       ```
 - **Big Mistake**: Measuring scores with the training data or the problem with **"In-Sample" scores**!
 - **Validation Data**
@@ -447,8 +454,9 @@ Measure the performance of your model ? so you can test and compare alternatives
     
     # make prediction on validation data
     predictions_val = melbourne_model.predict(X_valid)
+    
+    # evaluate the model
     mean_absolute_error(y_valid, predictions_val)
-    >>> 259556.721
     ```
     > The MAE for the in-sample data was about 500 dollars. For out-of-sample data, it's more than 250,000 dollars. As a point of reference, the average home value in the validation data is 1.1 million dollars. So the error in new data is about a quarter of the average home value.
 - There are many ways to improve a model, such as
@@ -476,7 +484,10 @@ Fine-tune your model for better performance.
       
       # compare models
       max_leaf_nodes_candidates = [5, 50, 500, 5000]
-      scores = {leaf_size: get_mae(leaf_size, X_train, X_valid, y_train, y_valid) for leaf_size in max_leaf_nodes_candidates}
+      scores = {
+          leaf_size: get_mae(leaf_size, X_train, X_valid, y_train, y_valid)
+          for leaf_size in max_leaf_nodes_candidates
+      }
       best_tree_size = min(scores, key=scores.get)
       ```
 
@@ -485,20 +496,21 @@ Using a more sophisticated machine learning algorithm.
 
 - Introduction
   - Decision trees leave you with a difficult decision. A deep tree and over-fitting vs. a shallow one and under-fitting. Even today's most sophisticated modeling techniques face this tension. But, many models have clever ideas that can lead to better performance.
-- A **Random Forest** model uses many trees, and makes a prediction by averaging the predictions of each component. It generally has much better predictive accuracy even with than a single decision tree, even with default parameters, without tuning the parameters like `max_leaf_nodes`.
-  ```python
-  # define & fit model
-  from sklearn.ensemble import RandomForestRegressor
-  forest_model = RandomForestRegressor(random_state=1)
-  forest_model.fit(X_train, y_train)
-  
-  # make prediction
-  preds_valid = forest_model.predict(X_valid)
-  from sklearn.metrics import mean_absolute_error
-  mean_absolute_error(y_valid, preds_valid)
-  >>> 202888.181
-  ```
-  - The result is much better than that was before (259556.721).
+- **Random Forest**
+  - A Random Forest model uses many trees, and makes a prediction by averaging the predictions of each component. It generally has much better predictive accuracy even with than a single decision tree, even with default parameters, without tuning the parameters like `max_leaf_nodes`.
+    ```python
+    # define & fit model
+    from sklearn.ensemble import RandomForestRegressor
+    forest_model = RandomForestRegressor(random_state=1)
+    forest_model.fit(X_train, y_train)
+    
+    # make prediction
+    preds_valid = forest_model.predict(X_valid)
+    
+    # evaluate the model
+    from sklearn.metrics import mean_absolute_error
+    mean_absolute_error(y_valid, preds_valid)
+    ```
 - Some models, like the **XGBoost** model, provides better performance when tuned well with the right parameters (but which requires some skill to get the right model parameters).
 
 ### [Exercise: Machine Learning Competitions](https://www.kaggle.com/kernels/fork/1259198)
@@ -508,12 +520,20 @@ Enter the world of machine learning competitions to keep improving and see your 
   ```python
   # load data
   import pandas as pd
-  X_full = pd.read_csv('../input/train.csv', index_col='Id')
-  X_test_full = pd.read_csv('../input/test.csv', index_col='Id')
+  X_full = pd.read_csv("../input/train.csv", index_col="Id")
+  X_test_full = pd.read_csv("../input/test.csv", index_col="Id")
   
   # separate target (y) from features (X)
-  y = X_full['SalePrice']
-  features = ['LotArea', 'YearBuilt', '1stFlrSF', '2ndFlrSF', 'FullBath', 'BedroomAbvGr', 'TotRmsAbvGrd']
+  y = X_full["SalePrice"]
+  features = [
+      "LotArea",
+      "YearBuilt",
+      "1stFlrSF",
+      "2ndFlrSF",
+      "FullBath",
+      "BedroomAbvGr",
+      "TotRmsAbvGrd",
+  ]
   X = X_full[features].copy()
   X_test = X_test_full[features].copy()
 
@@ -530,7 +550,7 @@ Enter the world of machine learning competitions to keep improving and see your 
   model_2 = DecisionTreeRegressor(max_leaf_nodes=100, random_state=0)
   model_3 = RandomForestRegressor(n_estimators=50, random_state=0)
   model_4 = RandomForestRegressor(n_estimators=100, random_state=0)
-  model_5 = RandomForestRegressor(n_estimators=100, criterion='mae', random_state=0)
+  model_5 = RandomForestRegressor(n_estimators=100, criterion="mae", random_state=0)
   model_6 = RandomForestRegressor(n_estimators=200, min_samples_split=20, random_state=0)
   model_7 = RandomForestRegressor(n_estimators=100, max_depth=7, random_state=0)
   models = [model_1, model_2, model_3, model_4, model_5, model_6, model_7]
@@ -562,7 +582,7 @@ Enter the world of machine learning competitions to keep improving and see your 
 - Generate Test Predictions
   ```python
   # define model, based on the most accurate model
-  my_model = RandomForestRegressor(n_estimators=100, criterion='mae', random_state=0)
+  my_model = RandomForestRegressor(n_estimators=100, criterion="mae", random_state=0)
 
   # fit the model to the training data, all of it
   my_model.fit(X, y)
@@ -571,8 +591,8 @@ Enter the world of machine learning competitions to keep improving and see your 
   preds_test = my_model.predict(X_test)
 
   # save predictions in format used for competition scoring
-  output = pd.DataFrame({'Id': X_test.index, 'SalePrice': preds_test})
-  output.to_csv('submission.csv', index=False)
+  output = pd.DataFrame({"Id": X_test.index, "SalePrice": preds_test})
+  output.to_csv("submission.csv", index=False)
   ```
 
 ## **Intermediate Machine Learning**
@@ -607,23 +627,25 @@ Missing values happen. Be prepared for this common challenge in real datasets.
     ```python
     # load data
     import pandas as pd
-    X_full = pd.read_csv('../input/train.csv', index_col='Id')
-    X_test_full = pd.read_csv('../input/test.csv', index_col='Id')
+    X_full = pd.read_csv("../input/train.csv", index_col="Id")
+    X_test_full = pd.read_csv("../input/test.csv", index_col="Id")
 
-    # remove rows with missing 'SalePrice'
-    X_full.dropna(axis=0, subset=['SalePrice'], inplace=True)
+    # remove rows with missing "SalePrice"
+    X_full.dropna(axis=0, subset=["SalePrice"], inplace=True)
 
     # separate target (y) from features (X)
-    y = X_full['SalePrice']
-    X_full.drop(['SalePrice'], axis=1, inplace=True)
+    y = X_full["SalePrice"]
+    X_full.drop(["SalePrice"], axis=1, inplace=True)
 
     # use only numerical features, to keep things simple
-    X = X_full.select_dtypes(exclude=['object'])
-    X_test = X_test_full.select_dtypes(exclude=['object'])
+    X = X_full.select_dtypes(exclude=["object"])
+    X_test = X_test_full.select_dtypes(exclude=["object"])
 
     # break off validation set from training data
     from sklearn.model_selection import train_test_split
-    X_train, X_valid, y_train, y_valid = train_test_split(X, y, train_size=0.8, test_size=0.2, random_state=0)
+    X_train, X_valid, y_train, y_valid = train_test_split(
+        X, y, train_size=0.8, test_size=0.2, random_state=0
+    )
 
     # get names of columns with missing values
     cols_with_missing = [col for col in X_train.columns if X_train[col].isnull().any()]
@@ -643,9 +665,9 @@ Missing values happen. Be prepared for this common challenge in real datasets.
       # drop `cols_with_missing` in training and validation data
       reduced_X_train = X_train.drop(cols_with_missing, axis=1)
       reduced_X_valid = X_valid.drop(cols_with_missing, axis=1)
-      # score
+      
+      # evaluate the model
       score_dataset(reduced_X_train, reduced_X_valid, y_train, y_valid)
-      >>> 183550
       ```
   - A Better Option: **Imputation**
     - Imputation fills in the missing values with some number.
@@ -657,15 +679,16 @@ Missing values happen. Be prepared for this common challenge in real datasets.
       ```python
       # imputation
       from sklearn.impute import SimpleImputer
-      imputer = SimpleImputer(strategy='mean')
+      imputer = SimpleImputer(strategy="mean")
       imputed_X_train = pd.DataFrame(imputer.fit_transform(X_train))
       imputed_X_valid = pd.DataFrame(imputer.transform(X_valid))
+      
       # imputation removed column names; put them back
       imputed_X_train.columns = X_train.columns
       imputed_X_valid.columns = X_valid.columns
-      # score
+      
+      # evaluate the model
       score_dataset(imputed_X_train, imputed_X_valid, y_train, y_valid)
-      >>> 178166
       ```
 - Train and Evaluate Model
   ```python
@@ -676,7 +699,6 @@ Missing values happen. Be prepared for this common challenge in real datasets.
   # make validation prediction
   preds_valid = model.predict(imputed_X_valid)
   mean_absolute_error(y_valid, preds_valid)
-  >>> 17791
   ```
 - Test Data
   ```python
@@ -689,8 +711,8 @@ Missing values happen. Be prepared for this common challenge in real datasets.
   preds_test = model.predict(imputed_X_test)
   
   # save test predictions to file
-  output = pd.DataFrame({'Id': X_test.index, 'SalePrice': preds_test})
-  output.to_csv('submission.csv', index=False)
+  output = pd.DataFrame({"Id": X_test.index, "SalePrice": preds_test})
+  output.to_csv("submission.csv", index=False)
   ```
 
 ### [Categorical Variables](https://www.kaggle.com/alexisbcook/categorical-variables)
@@ -706,34 +728,49 @@ There's a lot of non-numeric data out there. Here's how to use it for machine le
     ```python
     # load data
     import pandas as pd
-    data = pd.read_csv('../input/melbourne-housing-snapshot/melb_data.csv')
+    X_full = pd.read_csv("../input/train.csv", index_col="Id")
+    X_test_full = pd.read_csv("../input/test.csv", index_col="Id")
+
+    # remove rows with missing target
+    X_full.dropna(axis=0, subset=["SalePrice"], inplace=True)
 
     # separate target (y) from features (X)
-    y = data['Price']
-    X = data.drop(['Price'], axis=1)
+    y = data["Price"]
+    X = data.drop(["Price"], axis=1)
 
     # break off validation set from training data
     from sklearn.model_selection import train_test_split
-    X_train_full, X_valid_full, y_train, y_valid = train_test_split(X, y, train_size=0.8, test_size=0.2, random_state=0)
+    X_train_full, X_valid_full, y_train, y_valid = train_test_split(
+        X, y, train_size=0.8, test_size=0.2, random_state=0
+    )
 
-    # handle missing values (simplest approach)
-    cols_with_missing = [col for col in X_train_full.columns if X_train_full[col].isnull().any()] 
+    # handle missing values (simplest approach)    
+    cols_with_missing = [
+        col for col in X_train_full.columns if X_train_full[col].isnull().any()
+    ]
     X_train_full.drop(cols_with_missing, axis=1, inplace=True)
     X_valid_full.drop(cols_with_missing, axis=1, inplace=True)
 
-    # create X_train and X_valid from (catagorical & numerical)  columns from X_train_full and X_valid_full
-    
     # select categorical columns with relatively low cardinality, to keep things simple
     # cardinality means the number of unique values in a column
-    object_cols = [cname for cname in X_train_full.columns if (X_train_full[cname].dtype == 'object') and (X_train_full[cname].nunique() < 10)]
+    categorical_cols = [
+        cname
+        for cname in X_train_full.columns
+        if (X_train_full[cname].dtype == "object") and (X_train_full[cname].nunique() < 10)
+    ]
 
     # select numerical columns
-    numerical_cols = [cname for cname in X_train_full.columns if X_train_full[cname].dtype in ['int64', 'float64']]
+    numerical_cols = [
+        cname
+        for cname in X_train_full.columns
+        if X_train_full[cname].dtype in ["int64", "float64"]
+    ]
 
     # keep selected columns only
-    my_cols = object_cols + numerical_cols
+    my_cols = categorical_cols + numerical_cols
     X_train = X_train_full[my_cols].copy()
     X_valid = X_valid_full[my_cols].copy()
+    X_test = X_test_full[my_cols].copy()
 
     # function for comparing different approaches
     from sklearn.ensemble import RandomForestRegressor
@@ -744,18 +781,17 @@ There's a lot of non-numeric data out there. Here's how to use it for machine le
         preds = model.predict(X_valid)
         return mean_absolute_error(y_valid, preds)
     ```
-  - Drop Categorical Variables
+  - **Drop** Categorical Variables
     - This approach will only work well if the columns did not contain useful information.
       ```python
       # drop catagorial columns
-      drop_X_train = X_train.select_dtypes(exclude=['object'])
-      drop_X_valid = X_valid.select_dtypes(exclude=['object'])
+      drop_X_train = X_train.select_dtypes(exclude=["object"])
+      drop_X_valid = X_valid.select_dtypes(exclude=["object"])
       
-      # score
+      # evaluate the model
       score_dataset(drop_X_train, drop_X_valid, y_train, y_valid)
-      >>> 175703
       ```
-  - Label Encoding
+  - **Label Encoding**
     - Label encoding assigns each unique value, that appears in the training data, to a different integer.
     - In the case that the validation data contains values that don't also appear in the training data, the encoder will throw an error, because these values won't have an integer assigned to them.
     - It should be used only for target labels encoding.
@@ -763,8 +799,10 @@ There's a lot of non-numeric data out there. Here's how to use it for machine le
     - For **tree-based models** (like decision trees and random forests), you can expect label encoding to work well with **ordinal** variables.
       ```python
       # find columns, which are in validation data but not in training data
-      good_label_cols = [col for col in object_cols if set(X_train[col]) == set(X_valid[col])]
-      bad_label_cols = list(set(object_cols) - set(good_label_cols))
+      good_label_cols = [
+          col for col in categorical_cols if set(X_train[col]) == set(X_valid[col])
+      ]
+      bad_label_cols = list(set(categorical_cols) - set(good_label_cols))
       
       # drop them
       label_X_train = X_train.drop(bad_label_cols, axis=1)
@@ -777,20 +815,19 @@ There's a lot of non-numeric data out there. Here's how to use it for machine le
           label_X_train[col] = label_encoder.fit_transform(X_train[col])
           label_X_valid[col] = label_encoder.transform(X_valid[col])
       
-      # score
+      # evaluate the model
       score_dataset(label_X_train, label_X_valid, y_train, y_valid)
-      >>> 165936
       ```
-  - One-Hot Encoding
+  - **One-Hot Encoding**
     - One-hot encoding creates new columns indicating the presence (or absence) of each possible value in the original data. Useful parameters are:
-      - `handle_unknown='ignore'` avoids errors when the validation data contains classes that aren't represented in the training data,
+      - `handle_unknown="ignore"` avoids errors when the validation data contains classes that aren't represented in the training data,
       - `sparse=False` returns the encoded columns as a numpy array (instead of a sparse matrix).
     - In contrast to label encoding, one-hot encoding does not assume an ordering of the categories. Thus, you can expect this approach to work particularly well with categorical variables without an intrinsic ranking, we refer them as **nominal** variables.
     - One-hot encoding generally does **not** perform well with high-cardinality categorical variable (i.e., more than 15 different values). **Cardinality** means the number of unique values in a column.
       ```python
       # get cardinality for each column with categorical data
-      object_nunique = list(map(lambda col: X_train[col].nunique(), object_cols))
-      d = dict(zip(object_cols, object_nunique))
+      object_nunique = list(map(lambda col: X_train[col].nunique(), categorical_cols))
+      d = dict(zip(categorical_cols, object_nunique))
 
       # print cardinality by column, in ascending order
       sorted(d.items(), key=lambda x: x[1])
@@ -798,14 +835,14 @@ There's a lot of non-numeric data out there. Here's how to use it for machine le
     - For this reason, we typically will only one-hot encode columns with relatively low cardinality. Then, high cardinality columns can either be dropped from the dataset, or we can use label encoding.
       ```python
       # columns that will be one-hot encoded
-      low_cardinality_cols = [col for col in object_cols if X_train[col].nunique() < 10]
+      low_cardinality_cols = [col for col in categorical_cols if X_train[col].nunique() < 10]
 
       # columns that will be dropped from the dataset
-      high_cardinality_cols = list(set(object_cols) - set(low_cardinality_cols))
+      high_cardinality_cols = list(set(categorical_cols) - set(low_cardinality_cols))
 
       # apply one-hot encoder to each column with categorical data
       from sklearn.preprocessing import OneHotEncoder
-      oh_encoder = OneHotEncoder(handle_unknown='ignore', sparse=False)
+      oh_encoder = OneHotEncoder(handle_unknown="ignore", sparse=False)
       oh_cols_train = pd.DataFrame(oh_encoder.fit_transform(X_train[low_cardinality_cols]))
       oh_cols_valid = pd.DataFrame(oh_encoder.transform(X_valid[low_cardinality_cols]))
 
@@ -814,18 +851,17 @@ There's a lot of non-numeric data out there. Here's how to use it for machine le
       oh_cols_valid.index = X_valid.index
 
       # drop all categorical columns (will replace with one-hot encoding)
-      num_X_train = X_train.drop(object_cols, axis=1)
-      num_X_valid = X_valid.drop(object_cols, axis=1)
+      num_X_train = X_train.drop(categorical_cols, axis=1)
+      num_X_valid = X_valid.drop(categorical_cols, axis=1)
 
       # add one-hot encoded columns to numerical features
       oh_X_train = pd.concat([num_X_train, oh_cols_train], axis=1)
       oh_X_valid = pd.concat([num_X_valid, oh_cols_valid], axis=1)
 
-      # score
+      # evaluate the model
       score_dataset(oh_X_train, oh_X_valid, y_train, y_valid)
-      >>> 166089
       ```
-- TODO: Fix train & test part in Kaggle kernel
+- Doing all things seperately for training, evaluating and testing is way DIFFICULT. Doing with Pipelines is **FUN**!
 
 ### [Pipelines](https://www.kaggle.com/alexisbcook/pipelines)
 A critical skill for deploying (and even testing) complex models with pre-processing
