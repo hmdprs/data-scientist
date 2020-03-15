@@ -982,6 +982,102 @@ A critical skill for deploying (and even testing) complex models with pre-proces
 ### [Cross-Validation](https://www.kaggle.com/alexisbcook/cross-validation)
 A better way to test your models
 
+- Introduction
+  - Machine learning is an **iterative process**. You will face choices about what **predictive variables** to use, what **types of models** to use, what **arguments** to supply to those models, etc.
+  - In a dataset with 5000 rows, you will typically keep about 20% of the data as a validation dataset, or 1000 rows. But this leaves some random chance in determining model scores. That is, a model might do well on one set of 1000 rows, even if it would be inaccurate on a different 1000 rows.
+  - The larger the validation set, the less randomness (aka "noise") there is in our measure of model quality.
+- Cross-Validation
+  - In cross-validation, we run our modeling process on different subsets of the data to get multiple measures of model quality.
+  - In Experiment 1, we use the first **fold** (20%) as a **validation (or holdout) set** and everything else as training data. We repeat this process, using every fold once as the holdout set.
+  - Putting this together, 100% of the data is used as holdout at some point, and we end up with a measure of model quality that is based on all of the rows in the dataset.
+  - Cross-validation gives a more accurate measure of model quality. However, it can take longer to run.
+  - For **small datasets**, you should run cross-validation. But for larger datasets, a single validation set is sufficient.
+  - There's no simple threshold for what constitutes a large vs. small dataset. But if your model takes a couple minutes or less to run, it's probably worth switching to cross-validation. Or you can run cross-validation and see if the scores for each experiment seem close.
+- Steps
+  - Setup
+    ```python
+    # load data
+    import pandas as pd
+    X_full = pd.read_csv("../input/train.csv", index_col="Id")
+
+    # remove rows with missing target
+    X_full.dropna(axis=0, subset=["SalePrice"], inplace=True)
+
+    # separate target (y) from features (X)
+    y = X_full["SalePrice"]
+    X_full.drop(["SalePrice"], axis=1, inplace=True)
+
+    # select numeric columns only
+    numeric_cols = [
+        cname for cname in X_full.columns if X_full[cname].dtype in ["int64", "float64"]
+    ]
+    X = X_full[numeric_cols].copy()
+    X_test = test_data[numeric_cols].copy()
+    ```
+  - **Define a Pipeline**. It's difficult to do cross-validation without pipelines.
+    ```python
+    from sklearn.pipeline import Pipeline
+    from sklearn.impute import SimpleImputer
+    from sklearn.ensemble import RandomForestRegressor
+    my_pipeline = Pipeline(
+        steps=[
+            ("preprocessor", SimpleImputer()),
+            ("model", RandomForestRegressor(n_estimators=50, random_state=0)),
+        ]
+    )
+    ```
+  - **Obtain the cross-validation scores** with the `cross_val_score()` function
+    ```python
+    from sklearn.model_selection import cross_val_score
+    scores = -1 * cross_val_score(
+        my_pipeline, X, y, cv=5, scoring="neg_mean_absolute_error"
+    )
+    scores
+    >>> [301628 303164 287298 236061 260383]
+    
+    # take the average score across experiments
+    scores.mean()
+    >>> 277707
+    ```
+    - The `cv` parameter sets the number of folds.
+    - The `scoring` parameter chooses a measure of model quality to report. The docs for scikit-learn show a [list of options](http://scikit-learn.org/stable/modules/model_evaluation.html).
+    - It is a little surprising that we specify **negative MAE**. Scikit-learn has a convention where all metrics are defined so a high number is better. Using negatives here allows them to be consistent with that convention. So multiply this score by -1.
+  - **Combine** them as a function, for example on `n_estimators`, the number of trees in the random forest
+    ```python
+    def get_score(n_estimators):
+        """return the average MAE over 3 CV folds of random forest model.
+        
+        Keyword argument:
+        n_estimators -- the number of trees in the forest
+        """
+        
+        my_pipeline = Pipeline(
+            steps=[
+                ("preprocessor", SimpleImputer()),
+                ("model", RandomForestRegressor(n_estimators=n_estimators, random_state=0)),
+            ]
+        )
+
+        scores = -1 * cross_val_score(
+            my_pipeline, X, y, cv=3, scoring="neg_mean_absolute_error"
+        )
+
+        return scores.mean()
+    ```
+  - **Evalute** the model performance corresponding to some different values
+    ```python
+    # for example 50, 100, 150, ..., 300, 350, 400
+    results = {i: get_score(i) for i in range(50, 450, 50)}
+    ```
+  - Find the best parameter value
+    ```python
+    import matplotlib.pyplot as plt
+    %matplotlib inline
+    plt.plot(results.keys(), results.values())
+    plt.show()
+    ```
+  - If you'd like to learn more about **hyperparameter optimization**, you're encouraged to start with **grid search**, which is a straightforward method for determining the best combination of parameters for a machine learning model. Thankfully, scikit-learn also contains a built-in function `GridSearchCV()` that can make your grid search code very efficient!
+
 ### [XGBoost](https://www.kaggle.com/alexisbcook/xgboost)
 The most accurate modeling technique for structured data
 
