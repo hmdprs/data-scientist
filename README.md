@@ -1195,6 +1195,143 @@ The most accurate modeling technique for structured data
 ### [Data Leakage](https://www.kaggle.com/alexisbcook/data-leakage)
 Find and fix this problem that ruins your model in subtle ways
 
+- Introduction
+  - Data leakage (or leakage) happens when your training data contains information about the target, but similar data will not be available when the model is used for prediction.
+  - This causes a model to **look accurate** until you start making decisions with the model, and then the model becomes very inaccurate.
+  - There are two main types of leakage: target leakage and train-test contamination.
+- **Target Leakage**
+  - It occurs when **your predictors include data becomes available after predictions**.
+  - Example: People take antibiotic medicines after getting pneumonia in order to recover.
+    - The data shows a strong relationship between those columns.
+    - But `took_antibiotic_medicine` is frequently changed after the value for `got_pneumonia` is determined.
+    - The model would see that anyone who has a value of `False` for `took_antibiotic_medicine` didn't have pneumonia.
+    - Since validation data comes from the same source as training data, the pattern will repeat itself in validation, and the model will have great validation (or cross-validation) scores.
+  - **Prevent**
+    - Any variable updated (or created) after the target value is realized should be excluded.
+- **Train-Test Contamination**
+  - It occurs when **the validation data affects the preprocessing behavior**.
+  - Example: Imagine you run preprocessing (like fitting an imputer for missing values) before calling `train_test_split()`.
+  - This problem becomes even more dangerous when you do more complex feature engineering.
+  - **Prevent**
+    - If your validation is based on a simple train-test split, exclude the validation data from any type of fitting, including the fitting of preprocessing steps.
+    - This is easier if you use scikit-learn **pipelines**.
+    - When using cross-validation, it's even more critical that you do your preprocessing inside the pipeline!
+- Examples
+  - **The Data Science of Shoelaces**
+    - Build a model to predict how many shoelaces NIKE needs each month.
+    - The most important features in the model are
+      - The current month
+      - Advertising expenditures in the previous month
+      - Various macroeconomic features (like the unemployment rate) as of the beginning of the current month
+      - The amount of leather they ended up using in the current month
+    - The results show the model is almost perfectly accurate if you include the feature about how much leather they used because the amount of leather they use is a **perfect indicator** of how many shoes they produce.
+    - Is the leather used feature constitutes a source of data leakage?
+    - **Solution**
+      - It depends on details of **how data is collected** (which is common when thinking about leakage).
+      - Would you at the beginning of the month decide how much leather will be used that month? If so, this is ok. But if that is determined during the month, you would not have access to it when you make the prediction.
+    - You could use the amount of leather they ordered (rather than the amount they actually used) leading up to a given month as a predictor in your shoelace model.
+    - Is this constitutes a source of data leakage?
+    - **Solution**
+      - This could be fine, but it depends on whether they order shoelaces first or leather first.
+      - If they order shoelaces first, you won't know how much leather they've ordered when you predict their shoelace needs.
+  - **Getting Rich with Cryptocurrencies**
+    - Build a model to predict the price of a new cryptocurrency one day ahead.
+    - The most important features in the model are
+      - Current price of the currency
+      - Amount of the currency sold in the last 24 hours
+      - Change in the currency price in the last 24 hours
+      - Change in the currency price in the last 1 hour
+      - Number of new tweets in the last 24 hours that mention the currency
+    - The value of the cryptocurrency in dollars has fluctuated up and down by over 100$ in the last year, and yet the model′s average error is less than 1$.
+    - Do you invest based on this model?
+    - **Solution**
+      - There is no source of leakage here. These features should be available at the moment you want to make a predition, and they're unlikely to be changed in the training data after the prediction target is determined.
+      - But, this model's accuracy could be misleading if you aren't careful.
+      - If the price moves gradually, today's price will be an accurate predictor of tomorrow's price, but it may not tell you whether it's a good time to invest.
+      - A better prediction target would be the change in price (up or down and by how much) over the next day.
+  - **Housing Prices**
+    - Build a model to predict housing prices.
+    - The most important features in the model are
+      - Size of the house (in square meters)
+      - Average sales price of homes in the same neighborhood
+      - Latitude and longitude of the house
+      - Whether the house has a basement
+    - Which of the features is most likely to be a source of leakage?
+    - **Solution**:
+      - Average sales price of homes in the same neighborhood is the source of target leakage.
+        - We don't know the rules for when this is updated.
+        - If the field is updated in the raw data after a home was sold, and the home's sale is used to calculate the average, this constitutes a case of target leakage.
+        - At an extreme, if only one home is sold in the neighborhood, and it is the home we are trying to predict, then the average will be exactly equal to the value we are trying to predict.
+        - In general, for neighborhoods with few sales, the model will perform very well on the training data. But when you apply the model, the home you are predicting won't have been sold yet, so this feature won't work the same as it did in the training data.
+      - Other features don't change, and will be available at the time we want to make a prediction.
+  - **Credit Card Applications**
+    - Build a model to predict which applications were accepted.
+      ```python
+      # load data
+      import pandas as pd
+      data = pd.read_csv(
+          "../input/aer-credit-card-data/AER_credit_card_data.csv",
+          true_values=["yes"],
+          false_values=["no"],
+      )
+
+      # separate target (y) from features (X)
+      y = data["card"]
+      X = data.drop(["card"], axis=1)
+      ```
+    - Since this is a small dataset, we will use cross-validation to ensure accurate measures of model quality.
+      ```python
+      # since there is no preprocessing, we don't need a pipeline (used anyway as best practice!)
+      from sklearn.pipeline import make_pipeline
+      from sklearn.ensemble import RandomForestClassifier
+      my_pipeline = make_pipeline(RandomForestClassifier(n_estimators=100))
+      
+      # evalutae model
+      from sklearn.model_selection import cross_val_score
+      cv_scores = cross_val_score(my_pipeline, X, y, cv=5, scoring="accuracy")
+      cv_scores.mean()
+      >>> 0.981043
+      ```
+    - With experience, you'll find that it's very rare to find models that are accurate 98% of the time. It happens, but it's uncommon enough that we should inspect the data more closely for **target leakage**.
+    - Summary of the data
+      ```
+      card: 1 if credit card application accepted, 0 if not
+      reports: Number of major derogatory reports
+      age: Age n years plus twelfths of a year
+      income: Yearly income (divided by 10,000)
+      share: Ratio of monthly credit card expenditure to yearly income
+      expenditure: Average monthly credit card expenditure
+      owner: 1 if owns home, 0 if rents
+      selfempl: 1 if self-employed, 0 if not
+      dependents: 1 + number of dependents
+      months: Months living at current address
+      majorcards: Number of major credit cards held
+      active: Number of active credit accounts
+      ```
+    - A few variables look suspicious. For example, does `expenditure` mean expenditure on this card or on cards used before appying?
+      ```python
+      # fraction of those who received a card and had no expenditures
+      (X["expenditure"][y] == 0).mean()
+      >>> 0.02
+
+      # fraction of those who did not receive a card and had no expenditures
+      (X["expenditure"][~y] == 0).mean()
+      >>> 1.00
+      ```
+    - As shown above, everyone who did not receive a card had no expenditures, while only 2% of those who received a card had no expenditures. This seems to be a case of target leakage, where expenditures probably means expenditures on the card they applied for.
+    - Since `share` is partially determined by `expenditure`, it should be excluded too.
+    - The variables `active` and `majorcards` are a little less clear, but from the description, they sound concerning.
+      ```python
+      # drop leaky features from dataset
+      potential_leaks = ["expenditure", "share", "active", "majorcards"]
+      X2 = X.drop(potential_leaks, axis=1)
+
+      # evaluate the model, with leaky predictors removed
+      cv_scores = cross_val_score(my_pipeline, X2, y, cv=5, scoring="accuracy")
+      cv_scores.mean()
+      >>> 0.831679
+      ```
+
 ## **Data Visualization**
 
 Make great data visualizations. A great way to see the power of coding!
