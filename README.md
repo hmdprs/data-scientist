@@ -1332,11 +1332,29 @@ Find and fix this problem that ruins your model in subtle ways
       >>> 0.831679
       ```
 
-## **Data Visualization**
-Make great data visualizations. A great way to see the power of coding!
-
 ## **Pandas**
 Solve short hands-on challenges to perfect your data manipulation skills.
+
+### [Creating, Reading and Writing](https://www.kaggle.com/residentmario/creating-reading-and-writing)
+You can't work with data if you can't read it. Get started here.
+
+### [Indexing, Selecting & Assigning](https://www.kaggle.com/residentmario/indexing-selecting-assigning)
+Pro data scientists do this dozens of times a day. You can, too!
+
+### [Summary Functions and Maps](https://www.kaggle.com/residentmario/summary-functions-and-maps)
+Extract insights from your data.
+
+### [Grouping and Sorting](https://www.kaggle.com/residentmario/grouping-and-sorting)
+Scale up your level of insight. The more complex the dataset, the more this matters
+
+### [Data Types and Missing Values](https://www.kaggle.com/residentmario/data-types-and-missing-values)
+Deal with the most common progress-blocking problems
+
+### [Renaming and Combining](https://www.kaggle.com/residentmario/renaming-and-combining)
+Data comes in from many sources. Help it all make sense together
+
+## **Data Visualization**
+Make great data visualizations. A great way to see the power of coding!
 
 ## **Feature Engineering**
 Discover the most effective way to improve your models.
