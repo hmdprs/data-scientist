@@ -1397,6 +1397,101 @@ You can't work with data if you can't read it. Get started here.
 ### [Indexing, Selecting & Assigning](https://www.kaggle.com/residentmario/indexing-selecting-assigning)
 Pro data scientists do this dozens of times a day. You can, too!
 
+- Naive Accessors
+  - In Python, we can access the property of an object by accessing it as an attribute. A `reviews` object, might have a `country` property, which we can access by calling `reviews.country`. Columns in a pandas DataFrame work in much the same way.
+  - If we have a Python dictionary, we can access its values using the indexing `[]` operator.
+    ```python
+    # select the `country` column
+    reviews["country"]
+    ```
+  - A pandas Series looks kind of like a dictionary. So, to drill down to a single specific value, we need only use the indexing operator `[]` once more.
+    ```python
+    # select the first value from the `country` column
+    reviews["country"][0]
+    >>> 'Italy'
+    ```
+- Indexing in Pandas
+  - For more advanced operations, pandas has its own accessor operators, `iloc` and `loc`.
+  - Index-based Selection
+    - Selecting data based on its **numerical position** in the data, like a matrix.
+      ```python
+      # select the first row
+      reviews.iloc[0]
+      
+      # select the first column, `:` means everything
+      reviews.iloc[:, 0]
+
+      # select the first value from the `country` column
+      reviews["country"].iloc[0]
+
+      # select the last five elements of the dataset
+      reviews.iloc[-5:]
+      ```
+  - Label-based Selection
+    - selecting data based on its **index value**, not its position.
+    - **Inclusive** range.
+      ```python
+      # select the first value from the `country` column
+      reviews.loc[0, "country"]
+
+      # select all the entries from three specific columns
+      reviews.loc[:, ["taster_name", "taster_twitter_handle", "points"]]
+      ```
+  - **Inclusive range**: `iloc` vs. `loc`
+    ```python
+    # select first three rows
+    reviews.iloc[:3]
+    # or
+    reviews.loc[:2]
+    
+    # select the first 100 records of the `country` and `variety` columns.
+    cols_idx = [0, 11]
+    reviews.iloc[:100, cols_idx]
+    # or
+    cols = ["country", "variety"]
+    reviews.loc[:99, cols]
+    ```
+  - Manipulating the Index
+    ```python
+    reviews.set_index("title")
+    ```
+- **Conditional Selection**
+  - To do interesting things with the data, we often need to ask questions based on conditions.
+  - To combine multiple conditions in pandas, **bitwise operators** must be used.
+    ```python
+    &    # AND          x & y
+    |    # OR           x | y
+    ^    # XOR          x ^ y
+    ~    # NOT          ~x
+    >>   # right shift  x>>
+    <<   # left shift   x<<
+    ```
+  - For example, suppose that we're interested in better-than-average wines produced in Italy.
+    ```python
+    cond1 = (reviews["country"] == "Italy")
+    cond2 = (reviews["points"] >= 90)
+    reviews.loc[cond1 & cond2]
+    ```
+  - Built-in Conditional Selectors
+    - `isin()` lets you select data whose value "is in" a list of values.
+      ```python
+      # select wines only from Italy or France
+      reviews.loc[reviews.country.isin(["Italy", "France"])]
+      ```
+    - `isnull()` and `notnull()` let you highlight values which are (or are not) empty (NaN).
+      ```python
+      # filter out wines lacking a price tag in the dataset
+      reviews.loc[reviews["price"].notnull()]
+      ```
+- Assigning Data
+  ```python
+  # you can assign either a constant value
+  reviews["critic"] = "everyone"
+  
+  # or with an iterable of values
+  reviews["index_backwards"] = range(len(reviews), 0, -1)
+  ```
+
 ### [Summary Functions and Maps](https://www.kaggle.com/residentmario/summary-functions-and-maps)
 Extract insights from your data.
 
