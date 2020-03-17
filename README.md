@@ -1338,6 +1338,62 @@ Solve short hands-on challenges to perfect your data manipulation skills.
 ### [Creating, Reading and Writing](https://www.kaggle.com/residentmario/creating-reading-and-writing)
 You can't work with data if you can't read it. Get started here.
 
+- Creating Data
+  - DataFrame
+    - It is a table.
+    - It contains an array of individual entries, each of which has a certain value.
+    - Each entry corresponds to a row (or record) and a column.
+      ```python
+      import pandas as pd
+      pd.DataFrame({"Apples": [50, 21], "Bananas": [131, 2]})
+      ```
+    - The syntax for declaring a new one is a dictionary whose keys are the column names, and whose values are a list of entries.
+    - The list of row labels used in a DataFrame is known as an Index. We can assign values to it by using an `index` parameter in our constructor
+      ```python
+      pd.DataFrame(
+          {"Apples": [50, 21], "Bananas": [131, 2]}, index=["2018 Sales", "2019 Sales"]
+      )
+      ```
+  - Series
+    - It is a sequence of data values.
+      ```python
+      pd.Series([30, 50, 21])
+      ```
+    - In essence, it is a single column of a DataFrame.
+    - You can assign column values to the Series the same way as before, using an `index` parameter. However, a Series does not have a column name, it only has one overall `name`.
+      ```python
+      pd.Series(
+          [30, 50, 21], index=["2017 Sales", "2018 Sales", "2019 Sales"], name="Apples"
+      )
+      ```
+- Reading Data Files
+  - Data can be stored in any of a number of different forms and formats. By far the most basic of these is the humble CSV file. A CSV file is a table of values separated by commas.
+    ```python
+    # load data
+    wine_reviews = pd.read_csv("../input/wine-reviews/winemag-data-130k-v2.csv")
+
+    # data dimention
+    wine_reviews.shape
+    >>> (129971, 14)
+
+    # top rows
+    wine_reviews.head()
+    ```
+  - The `pd.read_csv()` function has over 30 optional parameters.
+  - For example, if your CSV file has a built-in index, pandas can use that column for the index (instead of creating a new one automatically).
+    ```python
+    wine_reviews = pd.read_csv(
+        "../input/wine-reviews/winemag-data-130k-v2.csv", index_col=0
+    )
+    ```
+- Writing Data to File
+  ```python
+  animals = pd.DataFrame(
+      {"Cows": [12, 20], "Goats": [22, 19]}, index=["Year 1", "Year 2"]
+  )
+  animals.to_csv("cows_and_goats.csv")
+  ```
+
 ### [Indexing, Selecting & Assigning](https://www.kaggle.com/residentmario/indexing-selecting-assigning)
 Pro data scientists do this dozens of times a day. You can, too!
 
