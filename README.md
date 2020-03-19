@@ -1570,6 +1570,59 @@ Extract insights from your data.
 ### [Grouping and Sorting](https://www.kaggle.com/residentmario/grouping-and-sorting)
 Scale up your level of insight. The more complex the dataset, the more this matters
 
+- Groupwise Analysis
+  - Maps allow us to transform data in a DataFrame or Series one value at a time for an entire column.
+  - However, often we want to group our data, and then do something specific to the group the data is in.
+  - `groupby()`
+    ```python
+    # replicate what `value_counts()` does
+    reviews.groupby("points")["points"].count()
+
+    # get the minimum price from each group of points
+    reviews.groupby("points")["price"].min()
+
+    # get a series whose index is the taster_twitter_handle values count how many reviews each person wrote
+    reviews.groupby("taster_twitter_handle").size()
+    # or
+    reviews.groupby("taster_twitter_handle")["taster_twitter_handle"].count()
+
+    # get the title of the first wine reviewed from each winery
+    reviews.groupby("winery").apply(lambda df: df["title"].iloc[0])
+    ```
+  - Aggregate Different Functions Simultaneously
+    ```python
+    # get a dataframe whose index is the variety category and values are the `min` and `max` prices
+    reviews.groupby("variety")["price"].agg([min, max])
+    ```
+  - Multi-indexes, Group by More than One Column
+    ```python
+    # pick out the best wine by country and province
+    reviews.groupby(["country", "province"]).apply(lambda df: df.loc[df["points"].idxmax()])
+    ```
+    - Multi-indices have several methods for dealing with their tiered structure which are absent for single-level indices.
+    - They also require two levels of labels to retrieve a value.
+    - The use cases for a multi-index are detailed alongside instructions on using them in the [MultiIndex / Advanced Selection](https://pandas.pydata.org/pandas-docs/stable/advanced.html) section of the pandas documentation.
+    ```python
+    # convert back to a regular index
+    count_prov_best.reset_index()
+    ```
+- Sorting
+  - `sort_values()`
+    ```python
+    # sort (country, province) based on how many reviews are belong to
+    count_prov_reviewed = reviews.groupby(["country", "province"])["description"].agg([len])
+    count_prov_reviewed.reset_index().sort_values(by="len", ascending=False)
+    ```
+  - Sort by More than One Column
+    ```python
+    count_prov_reviewed.reset_index().sort_values(by=["country", "len"], ascending=False)
+    ```
+  - `sort_index()`
+    ```python
+    # get a series whose index is wine prices and values is the maximum points a wine costing that much was given in a review. sort the values by price, ascending
+    reviews.groupby("price")["points"].max().sort_index(ascending=True)
+    ```
+
 ### [Data Types and Missing Values](https://www.kaggle.com/residentmario/data-types-and-missing-values)
 Deal with the most common progress-blocking problems
 
