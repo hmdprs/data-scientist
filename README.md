@@ -1495,6 +1495,78 @@ Pro data scientists do this dozens of times a day. You can, too!
 ### [Summary Functions and Maps](https://www.kaggle.com/residentmario/summary-functions-and-maps)
 Extract insights from your data.
 
+- Summary Functions
+  ```python
+  # get summary statistic about a DataFrame
+  reviews.describe()
+  
+  # get summary statistic about a Series
+  reviews["points"].describe()
+  
+  # see the mean
+  reviews["points"].mean()
+
+  # see a list of unique values
+  reviews["points"].unique()
+
+  # see a list of unique values and how often they occur
+  reviews["points"].value_counts()
+
+  # get the title of the wine with the highest points-to-price ratio
+  max_p2pr = (reviews["points"] / reviews["price"]).idxmax()
+  reviews.loc[max_p2pr, "title"]
+  >>> 'Bandit NV Merlot (California)'
+  ```
+- Maps
+  - A function that takes one set of values and "maps" them to another set of values, for creating new representations from existing data.
+  - `map()`
+    ```python
+    # remean the scores the wines received to 0
+    review_points_mean = reviews["points"].mean()
+    reviews["points"].map(lambda p: p - review_points_mean)
+
+    # create a series counting how many times each of "tropical" or "fruity" appears in the description column
+    n_tropical = reviews["description"].map(lambda desc: "tropical" in desc).sum()
+    n_fruity = reviews["description"].map(lambda desc: "fruity" in desc).sum()
+    pd.Series([n_tropical, n_fruity], index=["tropical", "fruity"])
+    ```
+    - The function you pass to `map()` should expect a single value from the Series (a point value, in the above example), and return a transformed version of that value. `map()` returns a new **Series**.
+  - `apply()`
+    ```python
+    # remean the scores the wines received to 0
+    def remean_points(row):
+        row["points"] = row["points"] - review_points_mean
+        return row
+    reviews.apply(remean_points, axis="columns")
+
+    # create a series with the number of stars corresponding to each review
+    def stars(row):
+        # any wines from country X should automatically get 3 stars, because of ADs' MONEY!
+        if row["country"] == "X":
+            return 3
+        elif row["points"] >= 95:
+            return 3
+        elif row["points"] >= 85:
+            return 2
+        else:
+            return 1
+    reviews.apply(stars, axis="columns")
+    ```
+    - `apply()` is the equivalent method if we want to transform a whole DataFrame by calling a custom method on each row. `apply()` returns a new **DataFrame**.
+    - If we had called `reviews.apply()` with `axis="index"`, then instead of passing a function to transform each row, we would need to give a function to transform each column.
+  - Pandas built-ins Common Mapping Operators
+    - They perform a simple operation between a lot of values on the left and a single (a lot of) value(s) on the right.
+      ```python
+      # remean the scores the wines received to 0
+      review_points_mean = reviews["points"].mean()
+      reviews["points"] - review_points_mean
+
+      # combine country and region information in the dataset
+      reviews["country"] + " - " + reviews["region_1"]
+      ```
+    - These operators are **faster** than `map()` or `apply()` because they uses speed ups built into pandas. All of the standard Python operators (`>`, `<`, `==`, and so on) work in this manner.
+    - However, they are **not as flexible as** `map()` or `apply()`, which can do more advanced things, like applying conditional logic, which cannot be done with addition and subtraction alone.
+
 ### [Grouping and Sorting](https://www.kaggle.com/residentmario/grouping-and-sorting)
 Scale up your level of insight. The more complex the dataset, the more this matters
 
