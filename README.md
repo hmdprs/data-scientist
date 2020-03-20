@@ -1707,6 +1707,32 @@ Make great data visualizations. A great way to see the power of coding!
 ### [Hello, Seaborn](https://www.kaggle.com/alexisbcook/hello-seaborn)
 Your first introduction to coding for data visualization
 
+- Set up
+  ```python
+  import pandas as pd
+  # to plot timeseries
+  pd.plotting.register_matplotlib_converters()
+  
+  import matplotlib.pyplot as plt
+  # to show plots in notebooks
+  %matplotlib inline
+  
+  import seaborn as sns
+  ```
+- Load Data
+  ```python
+  # load a timeseries data file
+  fifa_data = pd.read_csv("../input/fifa.csv", index_col="Date", parse_dates=True)
+  ```
+- Plot the Data
+  ```python
+  # set the width and height of the figure
+  plt.figure(figsize=(16,6))
+
+  # plot how FIFA rankings evolved over time 
+  sns.lineplot(data=fifa_data)
+  ```
+
 ### [Line Charts](https://www.kaggle.com/alexisbcook/line-charts)
 Visualize trends over time
 
