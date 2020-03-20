@@ -1668,6 +1668,39 @@ Deal with the most common progress-blocking problems
 ### [Renaming and Combining](https://www.kaggle.com/residentmario/renaming-and-combining)
 Data comes in from many sources. Help it all make sense together
 
+- Renaming
+  - `rename()`
+    ```python
+    # change the names of columns
+    reviews.rename(columns={"region_1": "region", "region_2": "locale"})
+
+    # change the indices of rows
+    reviews.rename(index={0: "firstEntry", 1: "secondEntry"})
+
+    # change the names of axes, form rows to wines, from columns to fields
+    reviews.rename_axis("wines", axis="rows").rename_axis("fields", axis="columns")
+    ```
+- Combining
+  - We will sometimes need to combine different DataFrames and/or Series. Pandas has three core methods for doing this. In order of increasing complexity, these are:
+  - `concat()`
+    - It will smush a list of elements together along an axis.
+    - This is useful when we have data in different DataFrame or Series objects but having the same columns.
+      ```python
+      canadian_yt = pd.read_csv("../input/youtube-new/CAvideos.csv")
+      british_yt = pd.read_csv("../input/youtube-new/GBvideos.csv")
+      pd.concat([canadian_yt, british_yt])
+      ```
+  - `join()`
+    - It lets you combine different DataFrame objects which have an index in common.
+      ```python
+      # pull down videos that happened to be trending on the same day in both Canada and the UK
+      left = canadian_yt.set_index(["title", "trending_date"])
+      right = british_yt.set_index(["title", "trending_date"])
+      left.join(right, lsuffix="_CAN", rsuffix="_UK")
+      ```
+    - The `lsuffix` and `rsuffix` parameters are necessary when the data has the same column names in both datasets.
+  - `merge()`
+
 ## **Data Visualization**
 Make great data visualizations. A great way to see the power of coding!
 
