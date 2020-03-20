@@ -1626,6 +1626,45 @@ Scale up your level of insight. The more complex the dataset, the more this matt
 ### [Data Types and Missing Values](https://www.kaggle.com/residentmario/data-types-and-missing-values)
 Deal with the most common progress-blocking problems
 
+- Dtypes
+  - The data type for a column in a DataFrame or a Series is known as the `dtype`.
+  - `int64`, `float64`, `object`
+    ```python
+    # a dataframe
+    reviews.dtypes
+
+    # a series
+    reviews["price"].dtype
+
+    # a dataframe or series index
+    reviews.index.dtype
+
+    # convert a dtype
+    reviews["points"].astype("float64")
+    ```
+- Missing Values
+  - `isnull()`, `notnull()`
+    ```python
+    # get a series of True & False, based on where NaNs are
+    reviews["price"].isnull()
+    
+    # find the number of NaNs
+    reviews["price"].isnull().sum()
+
+    # create a dataframe of rows with missing (NaN) country
+    reviews[reviews["country"].isnull()]
+    ```
+  - `fillna()`
+    ```python
+    # fill NaNs with Unknown
+    reviews["region_1"].fillna("Unknown")
+    ```
+  - `replace()`
+    ```python
+    # replace missing data which is given some kind of sentinel values
+    reviews["region_1"].replace(["Unknown", "Undisclosed", "Invalid"], "NaN")
+    ```
+
 ### [Renaming and Combining](https://www.kaggle.com/residentmario/renaming-and-combining)
 Data comes in from many sources. Help it all make sense together
 
