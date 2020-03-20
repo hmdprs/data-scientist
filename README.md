@@ -1704,6 +1704,30 @@ Data comes in from many sources. Help it all make sense together
 ## **Data Visualization**
 Make great data visualizations. A great way to see the power of coding!
 
+### [Hello, Seaborn](https://www.kaggle.com/alexisbcook/hello-seaborn)
+Your first introduction to coding for data visualization
+
+### [Line Charts](https://www.kaggle.com/alexisbcook/line-charts)
+Visualize trends over time
+
+### [Bar Charts and Heatmaps](https://www.kaggle.com/alexisbcook/bar-charts-and-heatmaps)
+Use color or length to compare categories in a dataset
+
+### [Scatter Plots](https://www.kaggle.com/alexisbcook/scatter-plots)
+Leverage the coordinate plane to explore relationships between variables
+
+### [Distributions](https://www.kaggle.com/alexisbcook/distributions)
+Create histograms and density plots
+
+### [Choosing Plot Types and Custom Styles](https://www.kaggle.com/alexisbcook/choosing-plot-types-and-custom-styles)
+Customize your charts and make them look snazzy
+
+### [Final Project](https://www.kaggle.com/alexisbcook/final-project)
+Practice for real-world application
+
+### [Creating Your Own Notebooks](https://www.kaggle.com/alexisbcook/creating-your-own-notebooks)
+How to put your new skills to use for your next personal or work project
+
 ## **Feature Engineering**
 Discover the most effective way to improve your models.
 
