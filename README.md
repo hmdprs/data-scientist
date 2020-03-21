@@ -1742,6 +1742,43 @@ Visualize trends over time
 ### [Bar Charts and Heatmaps](https://www.kaggle.com/alexisbcook/bar-charts-and-heatmaps)
 Use color or length to compare categories in a dataset
 
+- Bar Chart
+  ```python
+  # load data
+  flight_data = pd.read_csv("../input/flight_delays.csv", index_col="Month")
+  
+  # add title
+  plt.title("Average Arrival Delay for Spirit Airlines Flights, by Month")
+
+  # rotate labels for horizontal axis
+  plt.xticks(rotation="vertical")
+  
+  # plot a bar chart, showing average arrival delay for Spirit Airlines flights by month
+  sns.barplot(x=flight_data.index, y=flight_data["NK"])
+
+  # add label for vertical axis
+  plt.ylabel("Arrival delay (in minutes)")
+  ```
+  - **Important Note**: You must select the indexing column with `flight_data.index`, and it is not possible to use `flight_data['Month']`, because when we loaded the dataset, the `"Month"` column was used to index the rows.
+- Heatmap
+  ```python
+  # add title
+  plt.title("Average Arrival Delay for Each Airline, by Month")
+
+  # plot a heatmap, showing average arrival delay for each airline by month
+  sns.heatmap(data=flight_data, annot=True)
+
+  # add label for horizontal axis
+  plt.xlabel("Airline")
+  ```
+  ```python
+  # get the maximum average delay on March
+  flight_data.loc[3].max()
+
+  # find the aireline with the minimum average delay on October
+  flight_data.loc[10].idxmin()
+  ```
+
 ### [Scatter Plots](https://www.kaggle.com/alexisbcook/scatter-plots)
 Leverage the coordinate plane to explore relationships between variables
 
