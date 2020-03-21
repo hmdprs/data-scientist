@@ -1782,6 +1782,29 @@ Use color or length to compare categories in a dataset
 ### [Scatter Plots](https://www.kaggle.com/alexisbcook/scatter-plots)
 Leverage the coordinate plane to explore relationships between variables
 
+- Scatter Plots
+  ```python
+  # load data
+  insurance_data = pd.read_csv("../input/insurance.csv")
+
+  # a simple scatter plot
+  sns.scatterplot(x=insurance_data["bmi"], y=insurance_data["charges"])
+
+  # add a regression line
+  sns.regplot(x=insurance_data["bmi"], y=insurance_data["charges"])
+
+  # a color-coded scatter plot
+  sns.scatterplot(
+      x=insurance_data["bmi"], y=insurance_data["charges"], hue=insurance_data["smoker"]
+  )
+
+  # add two regression lines, corresponding to hue
+  sns.lmplot(x="bmi", y="charges", hue="smoker", data=insurance_data)
+
+  # a categorical scatter plot with non-overlapping points (swarmplot)
+  sns.swarmplot(x=insurance_data["smoker"], y=insurance_data["charges"])
+  ```
+
 ### [Distributions](https://www.kaggle.com/alexisbcook/distributions)
 Create histograms and density plots
 
