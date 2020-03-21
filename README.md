@@ -1378,6 +1378,9 @@ You can't work with data if you can't read it. Get started here.
 
     # top rows
     wine_reviews.head()
+
+    # bottom rows
+    wine_reviews.tail()
     ```
   - The `pd.read_csv()` function has over 30 optional parameters.
   - For example, if your CSV file has a built-in index, pandas can use that column for the index (instead of creating a new one automatically).
@@ -1704,37 +1707,37 @@ Data comes in from many sources. Help it all make sense together
 ## **Data Visualization**
 Make great data visualizations. A great way to see the power of coding!
 
-### [Hello, Seaborn](https://www.kaggle.com/alexisbcook/hello-seaborn)
-Your first introduction to coding for data visualization
-
-- Set up
-  ```python
-  import pandas as pd
-  # to plot timeseries
-  pd.plotting.register_matplotlib_converters()
-  
-  import matplotlib.pyplot as plt
-  # to show plots in notebooks
-  %matplotlib inline
-  
-  import seaborn as sns
-  ```
-- Load Data
-  ```python
-  # load a timeseries data file
-  fifa_data = pd.read_csv("../input/fifa.csv", index_col="Date", parse_dates=True)
-  ```
-- Plot the Data
-  ```python
-  # set the width and height of the figure
-  plt.figure(figsize=(16,6))
-
-  # plot how FIFA rankings evolved over time 
-  sns.lineplot(data=fifa_data)
-  ```
-
 ### [Line Charts](https://www.kaggle.com/alexisbcook/line-charts)
 Visualize trends over time
+
+- Set up the notebook
+  ```python
+  import pandas as pd
+  pd.plotting.register_matplotlib_converters()
+  import matplotlib.pyplot as plt
+  %matplotlib inline
+  import seaborn as sns
+  ```
+- Line Chart
+  ```python
+  # load a timeseries data file
+  spotify_data = pd.read_csv("../input/spotify.csv", index_col="Date", parse_dates=True)
+  
+  # set the width and height of the figure
+  plt.figure(figsize=(14,6))
+
+  # add title
+  plt.title("Daily Global Streams of Popular Songs in 2017-2018")
+
+  # plot a line chart for daily global streams of each song 
+  sns.lineplot(data=spotify_data)
+
+  # plot a subset of the data
+  sns.lineplot(data=spotify_data["Shape of You"], label="Shape of You")
+
+  # add label for horizontal axis
+  plt.xlabel("Date")
+  ```
 
 ### [Bar Charts and Heatmaps](https://www.kaggle.com/alexisbcook/bar-charts-and-heatmaps)
 Use color or length to compare categories in a dataset
