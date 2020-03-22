@@ -1808,6 +1808,38 @@ Leverage the coordinate plane to explore relationships between variables
 ### [Distributions](https://www.kaggle.com/alexisbcook/distributions)
 Create histograms and density plots
 
+- Histogram
+  ```python
+  # load data
+  iris_data = pd.read_csv("../input/iris.csv", index_col="Id")
+
+  # a simple histogram
+  sns.distplot(a=iris_data["Petal Length (cm)"], kde=False)
+
+  # a kde (kernel density estimate) plot
+  sns.kdeplot(data=iris_data["Petal Length (cm)"], shade=True)
+
+  # a 2D kde plot
+  sns.jointplot(
+      x=iris_data["Petal Length (cm)"], y=iris_data["Sepal Width (cm)"], kind="kde"
+  )
+  ```
+- Color-coded Plots
+  ```python
+  # load data
+  iris_set_data = pd.read_csv("../input/iris_setosa.csv", index_col="Id")
+  iris_ver_data = pd.read_csv("../input/iris_versicolor.csv", index_col="Id")
+  iris_vir_data = pd.read_csv("../input/iris_virginica.csv", index_col="Id")
+
+  # kde plots for each one, histograms can be used too
+  sns.kdeplot(data=iris_set_data["Petal Length (cm)"], label="Setosa", shade=True)
+  sns.kdeplot(data=iris_ver_data["Petal Length (cm)"], label="Versicolor", shade=True)
+  sns.kdeplot(data=iris_vir_data["Petal Length (cm)"], label="Virginica", shade=True)
+
+  # force legend to appear
+  plt.legend()
+  ```
+
 ### [Choosing Plot Types and Custom Styles](https://www.kaggle.com/alexisbcook/choosing-plot-types-and-custom-styles)
 Customize your charts and make them look snazzy
 
