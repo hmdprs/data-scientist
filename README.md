@@ -1862,6 +1862,13 @@ Decide how to best tell the story behind your data
 ### [Final Project](https://www.kaggle.com/alexisbcook/final-project)
 Practice for real-world application
 
+- Use your own dataset
+  ```python
+  # list all your datasets' folders
+  import os
+  print(os.listdir("../input"))
+  ```
+
 ### [Creating Your Own Notebooks](https://www.kaggle.com/alexisbcook/creating-your-own-notebooks)
 How to put your new skills to use for your next personal or work project
 
