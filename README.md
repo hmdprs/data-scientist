@@ -2420,8 +2420,23 @@ cv_scores.mean()
 # Advanced SQL
 *Take your SQL skills to the next level.*
 
-# Geopatial Analysis
+# Geospatial Analysis
 *Create interactive maps, and discover patterns in geospatial data.*
+
+## Your First Map
+*Get started with plotting in GeoPandas. [#](https://www.kaggle.com/alexisbcook/your-first-map)*
+
+## Coordinate Reference Systems
+*It's pretty amazing that we can represent the Earth's surface in 2 dimensions! [#](https://www.kaggle.com/alexisbcook/coordinate-reference-systems)*
+
+## Interactive Maps
+*Learn how to make interactive heatmaps, choropleth maps, and more! [#](https://www.kaggle.com/alexisbcook/interactive-maps)*
+
+## Manipulating Geospatial Data
+*Find locations with just the name of a place. And, learn how to join data based on spatial relationships. [#](https://www.kaggle.com/alexisbcook/manipulating-geospatial-data)*
+
+## Proximity Analysis
+*Measure distance, and explore neighboring points on a map. [#](https://www.kaggle.com/alexisbcook/proximity-analysis)*
 
 # Microchallenges
 *Solve ultra-short challenges to build and test your skill.*
