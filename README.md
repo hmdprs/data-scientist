@@ -2280,7 +2280,7 @@ Is this constitutes a source of data leakage?
 - This could be fine, but it depends on whether they order shoelaces first or leather first.
 - If they order shoelaces first, you won't know how much leather they've ordered when you predict their shoelace needs.
 
-### Getting Rich with Cryptocurrencies
+#### Getting Rich with Cryptocurrencies
 
 Build a model to predict the price of a new cryptocurrency one day ahead.
 
@@ -2425,6 +2425,65 @@ cv_scores.mean()
 
 ## Your First Map
 *Get started with plotting in GeoPandas. [#](https://www.kaggle.com/alexisbcook/your-first-map)*
+
+### Introduction
+
+With this course you can find solutions for several real-world problems like:
+
+- Where should a global non-profit expand its reach in remote areas of the Philippines?
+- How do purple martins, a threatened bird species, travel between North and South America? Are the birds travelling to conservation areas?
+- Which areas of Japan could potentially benefit from extra earthquake reinforcement?
+- Which Starbucks stores in California are strong candidates for the next Starbucks Reserve Roastery location?
+- ...
+
+### Reading Data
+
+```python
+import geopandas as gpd
+```
+
+The data was loaded into a (GeoPandas) GeoDataFrame object has all of the capabilities of a (Pandas) DataFrame. So, every command that you can use with a DataFrame will work with the data!
+
+There are many, many different geospatial file formats, such as [shapefile](https://en.wikipedia.org/wiki/Shapefile), [GeoJSON](https://en.wikipedia.org/wiki/GeoJSON), [KML](https://en.wikipedia.org/wiki/Keyhole_Markup_Language), and [GPKG](https://en.wikipedia.org/wiki/GeoPackage).
+
+- shapefile is the most common file type that you'll encounter, and
+- all of these file types can be quickly loaded with the `read_file()` function.
+
+Every GeoDataFrame contains a special "geometry" column. It contains all of the geometric objects that are displayed when we call the `plot()` method. While this column can contain a variety of different datatypes, each entry will typically be a `Point`, `LineString`, or `Polygon`.
+
+### Create Your Map
+*Create it layer by layer.*
+
+```python
+# load data
+world_loans = gpd.read_file(
+    "../input/geospatial-learn-course-data/kiva_loans/kiva_loans/kiva_loans.shp"
+)
+
+# define a base map with county boundaries
+world = gpd.read_file(gpd.datasets.get_path("naturalearth_lowres"))
+ax = world.plot(figsize=(20, 20), color="whitesmoke", linestyle=":", edgecolor="lightgray")
+
+# add loans to the base map
+world_loans.plot(ax=ax, color="black", markersize=2)
+```
+
+You can subset the data for more details.
+
+```python
+# subset the data
+phl_loans = world_loans.loc[world_loans["country"] == "Philippines"].copy()
+
+# enable fiona driver & load a KML file containing island boundaries
+gpd.io.file.fiona.drvsupport.supported_drivers["KML"] = "rw"
+phl = gpd.read_file("../input/geospatial-learn-course-data/Philippines_AL258.kml", driver="KML")
+
+# define a base map with county boundaries
+ax_ph = phl.plot(figsize=(20, 20), color="whitesmoke", linestyle=":", edgecolor="lightgray")
+
+# add loans to the base map
+phl_loans.plot(ax=ax_ph, color="black", markersize=2)
+```
 
 ## Coordinate Reference Systems
 *It's pretty amazing that we can represent the Earth's surface in 2 dimensions! [#](https://www.kaggle.com/alexisbcook/coordinate-reference-systems)*
