@@ -2564,6 +2564,33 @@ sum(regions["geometry"].to_crs(epsg=3035).area) / 10**6
 
 -  [ESPG 3035](https://epsg.io/3035) Scope: Statistical mapping at all scales and other purposes where **true area** representation is required.
 
+### Techniques from the Exercise
+
+```python
+# load data
+import pandas as pd
+birds_df = pd.read_csv(
+    "../input/geospatial-learn-course-data/purple_martin.csv", parse_dates=["timestamp"]
+)
+
+# create the GeoDataFrame
+import geopandas as gpd
+birds = gpd.GeoDataFrame(
+    birds_df, geometry=gpd.points_from_xy(birds_df["location-long"], birds_df["location-lat"])
+)
+
+# create GeoDataFrame showing path for each bird
+from shapely.geometry import LineString
+path_df = (
+    birds.groupby("tag-local-identifier")["geometry"]
+    .apply(list)
+    .apply(lambda x: LineString(x))
+    .reset_index()
+)
+path_gdf = gpd.GeoDataFrame(path_df, geometry=path_df["geometry"])
+path_gdf.crs = {"init": "epsg:4326"}
+```
+
 ## Interactive Maps
 *Learn how to make interactive heatmaps, choropleth maps, and more! [#](https://www.kaggle.com/alexisbcook/interactive-maps)*
 
