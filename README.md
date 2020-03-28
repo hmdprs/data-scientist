@@ -2488,6 +2488,82 @@ phl_loans.plot(ax=ax_ph, color="black", markersize=2)
 ## Coordinate Reference Systems
 *It's pretty amazing that we can represent the Earth's surface in 2 dimensions! [#](https://www.kaggle.com/alexisbcook/coordinate-reference-systems)*
 
+### Introduction
+
+The world is a three-dimensional globe. So we have to use a map projection method to render it as a flat surface. Map projections can't be 100% accurate. Each projection distorts the surface of the Earth in some way, while retaining some useful property.
+
+- The equal-area projections preserve **area**.
+- The equidistant projections preserve **distance**.
+
+We use a coordinate reference system (CRS) to show how the projected points correspond to real locations on Earth. CRSs are referenced by [European Petroleum Survey Group (EPSG)](http://www.epsg.org/) codes.
+
+### Setting the CRS
+
+When we create a GeoDataFrame from a shapefile, the CRS is already imported for us. But when creating a GeoDataFrame from a CSV file, we have to set the CRS to [EPSG 4326](https://epsg.io/4326), corresponds to coordinates in latitude and longitude.
+
+```python
+# create a DataFrame with health facilities in Ghana
+import pandas as pd
+facilities_df = pd.read_csv("../input/geospatial-learn-course-data/ghana/ghana/health_facilities.csv")
+
+# convert the DataFrame to a GeoDataFrame
+import geopandas as gpd
+facilities = gpd.GeoDataFrame(facilities_df, geometry=gpd.points_from_xy(facilities_df.Longitude, facilities_df.Latitude))
+
+# set the CRS code
+facilities.crs = {"init": "epsg:4326"}
+```
+
+- We begin by creating a DataFrame containing columns with latitude and longitude coordinates.
+- To convert it to a GeoDataFrame, we use `gpd.GeoDataFrame()`.
+- The `gpd.points_from_xy()` function creates Point objects from the latitude and longitude columns.
+
+### Re-projecting
+
+Re-projecting refers to the process of changing the CRS. This is done in GeoPandas with the `to_crs()` method. For example, when plotting multiple GeoDataFrames, it's important that they all use the same CRS.
+
+```python
+# load a GeoDataFrame containing regions in Ghana
+regions = gpd.read_file(
+    "../input/geospatial-learn-course-data/ghana/ghana/Regions/Map_of_Regions_in_Ghana.shp"
+)
+regions.crs
+>>> 32630
+```
+
+```python
+# create a map
+ax = regions.plot(figsize=(8, 8), color="whitesmoke", linestyle=":", edgecolor="black")
+facilities.to_crs(epsg=32630).plot(ax=ax, alpha=0.6, markersize=1, zorder=1)
+```
+
+In case the EPSG code is not available in GeoPandas, we can change the CRS with what's known as the "proj4 string" of the CRS. The proj4 string to convert to latitude/longitude coordinates is:
+
+```python
+# change the CRS to EPSG 4326
+regions.to_crs("+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")
+```
+
+### Attributes of Geometric Objects
+
+For an arbitrary GeoDataFrame, the type in the "geometry" column depends on what we are trying to show: for instance, we might use:
+
+- a `Point` for the epicenter of an earthquake,
+- a `LineString` for a street, or
+- a `Polygon` to show country boundaries.
+
+All three types of geometric objects have built-in attributes that you can use to quickly analyze the dataset.
+
+```python
+# get the x- or y-coordinates of a point from the x and y attributes
+facilities["geometry"].x
+
+# calculate the area (in square kilometers) of all polygons
+sum(regions["geometry"].to_crs(epsg=3035).area) / 10**6
+```
+
+-  [ESPG 3035](https://epsg.io/3035) Scope: Statistical mapping at all scales and other purposes where **true area** representation is required.
+
 ## Interactive Maps
 *Learn how to make interactive heatmaps, choropleth maps, and more! [#](https://www.kaggle.com/alexisbcook/interactive-maps)*
 
