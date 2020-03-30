@@ -2802,6 +2802,160 @@ map_choropleth
 ## Manipulating Geospatial Data
 *Find locations with just the name of a place. And, learn how to join data based on spatial relationships. [#](https://www.kaggle.com/alexisbcook/manipulating-geospatial-data)*
 
+### Geocoding
+
+Geocoding is the process of converting the name of a place or an address to a location on a map. We'll use `geopandas.tools.geocode()` to do all of our geocoding.
+
+```python
+from geopandas.tools import geocode
+geocode("The Great Pyramid of Giza", provider="nominatim")
+```
+
+To use the geocoder, we need:
+
+- the `name` or `address` as a Python string, and
+- the name of the `provider`. To avoid having to provide an API key, we used the [OpenStreetMap Nominatim geocoder](https://nominatim.openstreetmap.org/).
+
+It's often the case that we'll need to geocode many different addresses.
+
+```python
+# load Starbucks locations in California
+import pandas as pd
+starbucks = pd.read_csv("../input/geospatial-learn-course-data/starbucks_locations.csv")
+```
+
+```python
+# define geocoder function
+def my_geocoder(row):
+    try:
+        point = geocode(row, provider="nominatim").geometry[0]
+        return pd.Series({"Latitude": point.y, "Longitude": point.x})
+    except:
+        return None
+```
+
+If the geocoding is successful, it returns a GeoDataFrame with two columns:
+
+- the `geometry` column, which is a `Point` object, and we can get the `Latitude` and `Longitude` from the `y` and `x` attributes, respectively.
+- the `address` column contains the full address.
+
+```python
+# rows with missing locations
+rows_with_missing = starbucks[starbucks["Latitude"].isnull() | starbucks["Longitude"].isnull()]
+```
+
+```python
+# fill missing geo data
+rows_with_missing = rows_with_missing.apply(lambda x: my_geocoder(x["Address"]), axis=1)
+
+# drop rows that were not successfully geocoded
+rows_with_missing.dropna(axis=0, subset=["Latitude", "Longitude"])
+
+# update main DataFrame
+starbucks.update(rows_with_missing)
+```
+
+### Table Joins
+
+We can combine data from different sources.
+
+#### Attribute Join
+
+You already know how to use `pd.DataFrame.join()` to combine information from multiple DataFrames with a shared index. We refer to this way of joining data (by simpling matching values in the index) as an attribute join. We'll work with some DataFrames containing data and a unique id (in the `GEOID` column) for each county in the state of California.
+
+```python
+# create DataFrame contains an estimate of the population of each county
+CA_pop = pd.read_csv(
+    "../input/geospatial-learn-course-data/CA_county_population.csv", index_col="GEOID"
+)
+# create DataFrame contains the number of households with high income
+CA_high_earners = pd.read_csv(
+    "../input/geospatial-learn-course-data/CA_county_high_earners.csv", index_col="GEOID"
+)
+# create DataFrame contains the median age for each county
+CA_median_age = pd.read_csv(
+    "../input/geospatial-learn-course-data/CA_county_median_age.csv", index_col="GEOID"
+)
+```
+
+```python
+# use an attribute join
+cols_to_add = CA_pop.join([CA_high_earners, CA_median_age]).reset_index()
+```
+
+When performing an attribute join with a GeoDataFrame, it's best to use the `gpd.GeoDataFrame.merge()`. We'll work with a GeoDataFrame `CA_counties` containing the name, area (in square kilometers), and a unique id (in the `GEOID` column) for each county in the state of California. The `geometry` column contains a polygon with county boundaries.
+
+```python
+import geopandas as gpd
+CA_counties = gpd.read_file(
+    "../input/geospatial-learn-course-data/CA_county_boundaries/CA_county_boundaries/CA_county_boundaries.shp"
+)
+```
+
+```python
+# use an attribute join
+CA_stats = CA_counties.merge(cols_to_add, on="GEOID")
+```
+
+- The `on` argument is set to the column name that is used to match rows.
+
+Now that we have all of the data in one place, it's much easier to calculate statistics that use a combination of columns.
+
+```python
+CA_stats["density"] = CA_stats["population"] / CA_stats["area_sqkm"]
+```
+
+#### Spatial Join
+
+With a spatial join, we combine GeoDataFrames based on the spatial relationship between the objects in the `geometry` columns. We do this with `gpd.sjoin()`.
+
+So, which counties look promising for **new** Starbucks Reserve Roastery?
+
+```python
+sel_counties = CA_stats[
+    (CA_stats["high_earners"] >= 100000)
+    & (CA_stats["median_age"] <= 38.5)
+    & (CA_stats["density"] >= 285)
+]
+sel_counties.crs = {"init": "epsg:4326"}
+```
+
+```python
+starbucks_gdf = gpd.GeoDataFrame(
+    starbucks, geometry=gpd.points_from_xy(starbucks["Longitude"], starbucks["Latitude"])
+)
+starbucks_gdf.crs = {"init": "epsg:4326"}
+```
+
+```python
+sel_counties_stores = gpd.sjoin(starbucks_gdf, sel_counties)
+```
+
+The spatial join above looks at the `geometry` columns in both GeoDataFrames. If a Point object from the `starbucks_gdf` GeoDataFrame intersects a Polygon object from the `sel_counties` DataFrame, the corresponding rows are combined and added as a single row of the `sel_counties_stores` DataFrame. Otherwise, counties without a matching starbuckses (and starbuckses without a matching county) are omitted from the results.
+
+The `gpd.sjoin()` method is customizable for different types of joins, through the `how` and `op` arguments. For example, you can do the equivalent of a SQL left (or right) join by setting `how='left'` (or `how='right'`).
+
+Let's visualize!
+
+```python
+# define the base map
+from folium import Map
+map_cluser = Map(location=[37, -120], zoom_start=6)
+
+# add points to the map
+import math
+from folium import Marker
+from folium.plugins import MarkerCluster
+mc = MarkerCluster()
+for idx, row in sel_counties_stores.iterrows():
+    mc.add_child(Marker([row["Latitude"], row["Longitude"]]))
+
+map_cluser.add_child(mc)
+
+# display the map
+map_cluser
+```
+
 ## Proximity Analysis
 *Measure distance, and explore neighboring points on a map. [#](https://www.kaggle.com/alexisbcook/proximity-analysis)*
 
