@@ -726,6 +726,9 @@ reviews["points"].unique()
 
 # see a list of unique values and how often they occur
 reviews["points"].value_counts()
+
+# get the titles & points of the 3 highest point
+reviews["points"].nlargest(3)
 ```
 
 ```python
@@ -2593,6 +2596,208 @@ path_gdf.crs = {"init": "epsg:4326"}
 
 ## Interactive Maps
 *Learn how to make interactive heatmaps, choropleth maps, and more! [#](https://www.kaggle.com/alexisbcook/interactive-maps)*
+
+### The Data
+
+```python
+# load data
+import pandas as pd
+crimes = pd.read_csv(
+    "../input/geospatial-learn-course-data/crimes-in-boston/crimes-in-boston/crime.csv",
+    encoding="latin-1",
+)
+
+# drop rows with missing locations
+crimes.dropna(subset=["Lat", "Long", "DISTRICT"], inplace=True)
+
+# focus on major crimes in 2018
+crimes = crimes[
+    crimes["OFFENSE_CODE_GROUP"].isin(
+        [
+            "Larceny",
+            "Auto Theft",
+            "Robbery",
+            "Larceny From Motor Vehicle",
+            "Residential Burglary",
+            "Simple Assault",
+            "Harassment",
+            "Ballistics",
+            "Aggravated Assault",
+            "Other Burglary",
+            "Arson",
+            "Commercial Burglary",
+            "HOME INVASION",
+            "Homicide",
+            "Criminal Harassment",
+            "Manslaughter",
+        ]
+    )
+]
+crimes = crimes[crimes["YEAR"] == 2018]
+
+# focus on daytime robberies
+daytime_robberies = crimes[
+    ((crimes["OFFENSE_CODE_GROUP"] == "Robbery") & (crimes["HOUR"].isin(range(9, 18))))
+]
+```
+
+### Base Map
+
+In this tutorial, you'll learn how to create interactive maps with the `folium` package. We create the base map with `folium.Map()`.
+
+```python
+# create the base map
+from folium import Map
+base_map = Map(location=[42.32, -71.0589], tiles="openstreetmap", zoom_start=10)
+```
+
+- `location` sets the initial center of the map. We use the latitude (42.32° N) and longitude (-71.0589° E) of the city of Boston.
+- `tiles` changes the styling of the map; in this case, we choose the OpenStreetMap style. If you're curious, you can find the other options listed [here](https://github.com/python-visualization/folium/tree/master/folium/templates/tiles).
+- `zoom_start` sets the initial level of zoom of the map, where higher values zoom in closer to the map.
+
+### Markers
+
+We add markers to the map with `folium.Marker()`. Each marker below corresponds to a different robbery.
+
+```python
+# define the base map
+map_marker = map_base
+
+# add points to the map
+from folium import Marker
+for idx, row in daytime_robberies.iterrows():
+    Marker([row["Lat"], row["Long"]], popup=row["HOUR"]).add_to(map_marker)
+
+# display the map
+map_marker
+```
+
+### Markers' Cluster
+
+If we have a lot of markers to add, `folium.plugins.MarkerCluster()` can help to declutter the map. Each marker is added to a `MarkerCluster` object.
+
+```python
+# define the base map
+map_cluser = map_base
+
+# add points to the map
+import math
+from folium import Marker
+from folium.plugins import MarkerCluster
+mc = MarkerCluster()
+for idx, row in daytime_robberies.iterrows():
+    if not math.isnan(row["Long"]) and not math.isnan(row["Lat"]):
+        mc.add_child(Marker([row["Lat"], row["Long"]]))
+
+map_cluser.add_child(mc)
+
+# display the map
+map_cluser
+```
+
+### Bubble Maps
+
+A bubble map uses circles instead of markers. By varying the size and color of each circle, we can also show the relationship between location and two other variables.
+
+We create a bubble map by using `folium.Circle()` to iteratively add circles.
+
+```python
+# define the base map
+map_bubble = map_base
+
+# define color/size producer function
+def color_producer(val):
+    if val <= 12:
+        # robberies that occurred in hours 9-12
+        return "forestgreen"
+    else:
+        # robberies from hours 13-17
+        return "darkred"
+
+# add a bubble map to the base map
+from folium import Circle
+for i in range(len(daytime_robberies)):
+    Circle(
+        location=[daytime_robberies.iloc[i]["Lat"], daytime_robberies.iloc[i]["Long"]],
+        radius=20,
+        color=color_producer(daytime_robberies.iloc[i]["HOUR"]),
+    ).add_to(map_bubble)
+
+# display the map
+map_bubble
+```
+
+- `location` is a list containing the center of the circle, in latitude and longitude.
+- `radius` sets the radius of the circle.
+  - We can implement this by defining a function similar to the `color_producer()` function that is used to vary the color of each circle.
+- `color` sets the color of each circle.
+  - `The color_producer()` function is used to visualize the effect of the hour on robbery location.
+
+
+### Heatmaps
+
+To create a heatmap, we use `folium.plugins.HeatMap()`. This shows the density of crime in different areas of the city, where red areas have relatively more criminal incidents.
+
+```python
+# define the base map
+map_heat = map_base
+
+# add a heatmap to the base map
+from folium.plugins import HeatMap
+HeatMap(data=crimes[["Lat", "Long"]], radius=10).add_to(map_heat)
+
+# display the map
+map_heat
+```
+
+- `data` is a DataFrame containing the locations that we'd like to plot.
+- `radius` controls the smoothness of the heatmap. Higher values make the heatmap look smoother.
+
+### Choropleth Maps
+
+To understand how crime varies by police district, we'll create a choropleth map. To create a choropleth, we use `folium.Choropleth()`.
+
+As a first step, we create a GeoDataFrame where each district is assigned a different row, and the "geometry" column contains the geographical boundaries.
+
+```python
+# create GeoDataFrame with geographical boundaries of districts
+import geopandas as gpd
+districts_full = gpd.read_file(
+    "../input/geospatial-learn-course-data/Police_Districts/Police_Districts/Police_Districts.shp"
+)
+districts = districts_full[["DISTRICT", "geometry"]].set_index("DISTRICT")
+```
+
+```python
+# create a Pandas Series shows the number of crimes in each police district
+plot_dict = crimes["DISTRICT"].value_counts()
+```
+
+- It's very important that `plot_dict` has the same index as districts - this is how the code knows how to match the geographical boundaries with appropriate colors.
+
+```python
+# define the base map
+map_choropleth = map_base
+
+# add a choropleth map to the base map
+from folium import Choropleth
+Choropleth(
+    geo_data=districts.__geo_interface__,
+    data=plot_dict,
+    key_on="feature.id",
+    fill_color="YlGnBu",
+    legend_name="Major Criminal Incidents (Jan-Aug 2018)",
+).add_to(map_choropleth)
+
+# display the map
+map_choropleth
+```
+
+- `geo_data` is a GeoJSON FeatureCollection containing the boundaries of each geographical area.
+  - We convert the districts GeoDataFrame to a GeoJSON FeatureCollection with the `__geo_interface__` attribute.
+- `data` is a Pandas Series containing the values that will be used to color-code each geographical area.
+- `key_on` will always be set to `feature.id`, based on the GeoJSON structure.
+- `fill_color` sets the color scale.
 
 ## Manipulating Geospatial Data
 *Find locations with just the name of a place. And, learn how to join data based on spatial relationships. [#](https://www.kaggle.com/alexisbcook/manipulating-geospatial-data)*
