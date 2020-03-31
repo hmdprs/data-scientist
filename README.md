@@ -1180,6 +1180,677 @@ print(os.listdir("../input"))
 ## Creating Your Own Notebooks
 *How to put your new skills to use for your next personal or work project. [#](https://www.kaggle.com/alexisbcook/creating-your-own-notebooks)*
 
+# Geospatial Analysis
+*Create interactive maps, and discover patterns in geospatial data.*
+
+## Your First Map
+*Get started with plotting in GeoPandas. [#](https://www.kaggle.com/alexisbcook/your-first-map)*
+
+### Introduction
+
+With this course you can find solutions for several real-world problems like:
+
+- Where should a global non-profit expand its reach in remote areas of the Philippines?
+- How do purple martins, a threatened bird species, travel between North and South America? Are the birds travelling to conservation areas?
+- Which areas of Japan could potentially benefit from extra earthquake reinforcement?
+- Which Starbucks stores in California are strong candidates for the next Starbucks Reserve Roastery location?
+- ...
+
+### Reading Data
+
+```python
+import geopandas as gpd
+```
+
+The data was loaded into a (GeoPandas) `GeoDataFrame` object has all of the capabilities of a (Pandas) DataFrame. So, every command that you can use with a DataFrame will work with the data!
+
+There are many, many different geospatial file formats, such as [shapefile](https://en.wikipedia.org/wiki/Shapefile), [GeoJSON](https://en.wikipedia.org/wiki/GeoJSON), [KML](https://en.wikipedia.org/wiki/Keyhole_Markup_Language), and [GPKG](https://en.wikipedia.org/wiki/GeoPackage).
+
+- shapefile is the most common file type that you'll encounter, and
+- all of these file types can be quickly loaded with the `read_file()` function.
+
+Every GeoDataFrame contains a special `geometry` column. It contains all of the geometric objects that are displayed when we call the `plot()` method. While this column can contain a variety of different datatypes, each entry will typically be a `Point`, `LineString`, or `Polygon`.
+
+### Create Your Map
+*Create it layer by layer.*
+
+```python
+# load data
+world_loans = gpd.read_file(
+    "../input/geospatial-learn-course-data/kiva_loans/kiva_loans/kiva_loans.shp"
+)
+
+# define a base map with county boundaries
+world = gpd.read_file(gpd.datasets.get_path("naturalearth_lowres"))
+ax = world.plot(figsize=(20, 20), color="whitesmoke", linestyle=":", edgecolor="lightgray")
+
+# add loans to the base map
+world_loans.plot(ax=ax, color="black", markersize=2)
+```
+
+You can subset the data for more details.
+
+```python
+# subset the data
+phl_loans = world_loans.loc[world_loans["country"] == "Philippines"].copy()
+
+# enable fiona driver & load a KML file containing island boundaries
+gpd.io.file.fiona.drvsupport.supported_drivers["KML"] = "rw"
+phl = gpd.read_file("../input/geospatial-learn-course-data/Philippines_AL258.kml", driver="KML")
+
+# define a base map with county boundaries
+ax_ph = phl.plot(figsize=(20, 20), color="whitesmoke", linestyle=":", edgecolor="lightgray")
+
+# add loans to the base map
+phl_loans.plot(ax=ax_ph, color="black", markersize=2)
+```
+
+## Coordinate Reference Systems
+*It's pretty amazing that we can represent the Earth's surface in 2 dimensions! [#](https://www.kaggle.com/alexisbcook/coordinate-reference-systems)*
+
+### Introduction
+
+The world is a three-dimensional globe. So we have to use a map projection method to render it as a flat surface. Map projections can't be 100% accurate. Each projection distorts the surface of the Earth in some way, while retaining some useful property.
+
+- The equal-area projections preserve **area**.
+- The equidistant projections preserve **distance**.
+
+We use a coordinate reference system (CRS) to show how the projected points correspond to real locations on Earth. CRSs are referenced by [European Petroleum Survey Group (EPSG)](http://www.epsg.org/) codes.
+
+### Setting the CRS
+
+When we create a GeoDataFrame from a shapefile, the CRS is already imported for us. But when creating a GeoDataFrame from a CSV file, we have to set the CRS to [EPSG 4326](https://epsg.io/4326), corresponds to coordinates in latitude and longitude.
+
+```python
+# create a DataFrame with health facilities in Ghana
+import pandas as pd
+facilities_df = pd.read_csv("../input/geospatial-learn-course-data/ghana/ghana/health_facilities.csv")
+
+# convert the DataFrame to a GeoDataFrame
+import geopandas as gpd
+facilities = gpd.GeoDataFrame(facilities_df, geometry=gpd.points_from_xy(facilities_df.Longitude, facilities_df.Latitude))
+
+# set the CRS code
+facilities.crs = {"init": "epsg:4326"}
+```
+
+- We begin by creating a DataFrame containing columns with latitude and longitude coordinates.
+- To convert it to a GeoDataFrame, we use `gpd.GeoDataFrame()`.
+- The `gpd.points_from_xy()` function creates Point objects from the latitude and longitude columns.
+
+### Re-projecting
+
+Re-projecting refers to the process of changing the CRS. This is done in GeoPandas with the `to_crs()` method. For example, when plotting multiple GeoDataFrames, it's important that they all use the same CRS.
+
+```python
+# load a GeoDataFrame containing regions in Ghana
+regions = gpd.read_file(
+    "../input/geospatial-learn-course-data/ghana/ghana/Regions/Map_of_Regions_in_Ghana.shp"
+)
+regions.crs
+>>> 32630
+```
+
+```python
+# create a map
+ax = regions.plot(figsize=(8, 8), color="whitesmoke", linestyle=":", edgecolor="black")
+facilities.to_crs(epsg=32630).plot(ax=ax, alpha=0.6, markersize=1, zorder=1)
+```
+
+In case the EPSG code is not available in GeoPandas, we can change the CRS with what's known as the "proj4 string" of the CRS. The proj4 string to convert to latitude/longitude coordinates is:
+
+```python
+# change the CRS to EPSG 4326
+regions.to_crs("+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")
+```
+
+### Attributes of Geometric Objects
+
+For an arbitrary GeoDataFrame, the type in the `geometry` column depends on what we are trying to show: for instance, we might use:
+
+- a `Point` for the epicenter of an earthquake,
+- a `LineString` for a street, or
+- a `Polygon` to show country boundaries.
+
+All three types of geometric objects have built-in attributes that you can use to quickly analyze the dataset.
+
+```python
+# get the x- or y-coordinates of a point from the x and y attributes
+facilities["geometry"].x
+
+# calculate the area (in square kilometers) of all polygons
+sum(regions["geometry"].to_crs(epsg=3035).area) / 10**6
+```
+
+-  [ESPG 3035](https://epsg.io/3035) Scope: Statistical mapping at all scales and other purposes where **true area** representation is required.
+
+### Techniques from the Exercise
+
+```python
+# load data
+import pandas as pd
+birds_df = pd.read_csv(
+    "../input/geospatial-learn-course-data/purple_martin.csv", parse_dates=["timestamp"]
+)
+
+# create the GeoDataFrame
+import geopandas as gpd
+birds = gpd.GeoDataFrame(
+    birds_df, geometry=gpd.points_from_xy(birds_df["location-long"], birds_df["location-lat"])
+)
+
+# create GeoDataFrame showing path for each bird
+from shapely.geometry import LineString
+path_df = (
+    birds.groupby("tag-local-identifier")["geometry"]
+    .apply(list)
+    .apply(lambda x: LineString(x))
+    .reset_index()
+)
+path_gdf = gpd.GeoDataFrame(path_df, geometry=path_df["geometry"])
+path_gdf.crs = {"init": "epsg:4326"}
+```
+
+## Interactive Maps
+*Learn how to make interactive heatmaps, choropleth maps, and more! [#](https://www.kaggle.com/alexisbcook/interactive-maps)*
+
+### The Data
+
+```python
+# load data
+import pandas as pd
+crimes = pd.read_csv(
+    "../input/geospatial-learn-course-data/crimes-in-boston/crimes-in-boston/crime.csv",
+    encoding="latin-1",
+)
+
+# drop rows with missing locations
+crimes.dropna(subset=["Lat", "Long", "DISTRICT"], inplace=True)
+
+# focus on major crimes in 2018
+crimes = crimes[
+    crimes["OFFENSE_CODE_GROUP"].isin(
+        [
+            "Larceny",
+            "Auto Theft",
+            "Robbery",
+            "Larceny From Motor Vehicle",
+            "Residential Burglary",
+            "Simple Assault",
+            "Harassment",
+            "Ballistics",
+            "Aggravated Assault",
+            "Other Burglary",
+            "Arson",
+            "Commercial Burglary",
+            "HOME INVASION",
+            "Homicide",
+            "Criminal Harassment",
+            "Manslaughter",
+        ]
+    )
+]
+crimes = crimes[crimes["YEAR"] == 2018]
+
+# focus on daytime robberies
+daytime_robberies = crimes[
+    ((crimes["OFFENSE_CODE_GROUP"] == "Robbery") & (crimes["HOUR"].isin(range(9, 18))))
+]
+```
+
+### Base Map
+
+In this tutorial, you'll learn how to create interactive maps with the `folium` package. We create the base map with `folium.Map()`.
+
+```python
+# create the base map
+from folium import Map
+base_map = Map(location=[42.32, -71.0589], tiles="openstreetmap", zoom_start=10)
+```
+
+- `location` sets the initial center of the map. We use the latitude (42.32° N) and longitude (-71.0589° E) of the city of Boston.
+- `tiles` changes the styling of the map; in this case, we choose the OpenStreetMap style. If you're curious, you can find the other options listed [here](https://github.com/python-visualization/folium/tree/master/folium/templates/tiles).
+- `zoom_start` sets the initial level of zoom of the map, where higher values zoom in closer to the map.
+
+### Markers
+
+We add markers to the map with `folium.Marker()`. Each marker below corresponds to a different robbery.
+
+```python
+# define the base map
+map_marker = map_base
+
+# add points to the map
+from folium import Marker
+for idx, row in daytime_robberies.iterrows():
+    Marker([row["Lat"], row["Long"]], popup=row["HOUR"]).add_to(map_marker)
+
+# display the map
+map_marker
+```
+
+### Markers' Cluster
+
+If we have a lot of markers to add, `folium.plugins.MarkerCluster()` can help to declutter the map. Each marker is added to a `MarkerCluster` object.
+
+```python
+# define the base map
+map_cluser = map_base
+
+# add points to the map
+from folium.plugins import MarkerCluster
+mc = MarkerCluster()
+from folium import Marker
+import math
+for idx, row in daytime_robberies.iterrows():
+    if not math.isnan(row["Lat"]) and not math.isnan(row["Long"]):
+        mc.add_child(Marker([row["Lat"], row["Long"]]))
+
+map_cluser.add_child(mc)
+
+# display the map
+map_cluser
+```
+
+- We used `math.isnan()` because `row["Lat"]` or `row["Long"]` are `float`.
+
+### Bubble Maps
+
+A bubble map uses circles instead of markers. By varying the size and color of each circle, we can also show the relationship between location and two other variables.
+
+We create a bubble map by using `folium.Circle()` to iteratively add circles.
+
+```python
+# define the base map
+map_bubble = map_base
+
+# define color/size producer function
+def color_producer(val):
+    if val <= 12:
+        # robberies that occurred in hours 9-12
+        return "forestgreen"
+    else:
+        # robberies from hours 13-17
+        return "darkred"
+
+# add a bubble map to the base map
+from folium import Circle
+for i in range(len(daytime_robberies)):
+    Circle(
+        location=[daytime_robberies.iloc[i]["Lat"], daytime_robberies.iloc[i]["Long"]],
+        radius=20,
+        color=color_producer(daytime_robberies.iloc[i]["HOUR"]),
+    ).add_to(map_bubble)
+
+# display the map
+map_bubble
+```
+
+- `location` is a list containing the center of the circle, in latitude and longitude.
+- `radius` sets the radius of the circle.
+  - We can implement this by defining a function similar to the `color_producer()` function that is used to vary the color of each circle.
+- `color` sets the color of each circle.
+  - `The color_producer()` function is used to visualize the effect of the hour on robbery location.
+
+
+### Heatmaps
+
+To create a heatmap, we use `folium.plugins.HeatMap()`. This shows the density of crime in different areas of the city, where red areas have relatively more criminal incidents.
+
+```python
+# define the base map
+map_heat = map_base
+
+# add a heatmap to the base map
+from folium.plugins import HeatMap
+HeatMap(data=crimes[["Lat", "Long"]], radius=10).add_to(map_heat)
+
+# display the map
+map_heat
+```
+
+- `data` is a DataFrame containing the locations that we'd like to plot.
+- `radius` controls the smoothness of the heatmap. Higher values make the heatmap look smoother.
+
+### Choropleth Maps
+
+To understand how crime varies by police district, we'll create a choropleth map. To create a choropleth, we use `folium.Choropleth()`.
+
+As a first step, we create a GeoDataFrame where each district is assigned a different row, and the `geometry` column contains the geographical boundaries.
+
+```python
+# create GeoDataFrame with geographical boundaries of districts
+import geopandas as gpd
+districts_full = gpd.read_file(
+    "../input/geospatial-learn-course-data/Police_Districts/Police_Districts/Police_Districts.shp"
+)
+districts = districts_full[["DISTRICT", "geometry"]].set_index("DISTRICT")
+```
+
+```python
+# create a Pandas Series shows the number of crimes in each police district
+plot_dict = crimes["DISTRICT"].value_counts()
+```
+
+- It's very important that `plot_dict` has the same index as districts - this is how the code knows how to match the geographical boundaries with appropriate colors.
+
+```python
+# define the base map
+map_choropleth = map_base
+
+# add a choropleth map to the base map
+from folium import Choropleth
+Choropleth(
+    geo_data=districts.__geo_interface__,
+    data=plot_dict,
+    key_on="feature.id",
+    fill_color="YlGnBu",
+    legend_name="Major Criminal Incidents (Jan-Aug 2018)",
+).add_to(map_choropleth)
+
+# display the map
+map_choropleth
+```
+
+- `geo_data` is a GeoJSON FeatureCollection containing the boundaries of each geographical area.
+  - We convert the districts GeoDataFrame to a GeoJSON FeatureCollection with the `__geo_interface__` attribute.
+- `data` is a Pandas Series containing the values that will be used to color-code each geographical area.
+- `key_on` will always be set to `feature.id`, based on the GeoJSON structure.
+- `fill_color` sets the color scale.
+
+## Manipulating Geospatial Data
+*Find locations with just the name of a place. And, learn how to join data based on spatial relationships. [#](https://www.kaggle.com/alexisbcook/manipulating-geospatial-data)*
+
+### Geocoding
+
+Geocoding is the process of converting the name of a place or an address to a location on a map. We'll use `geopandas.tools.geocode()` to do all of our geocoding.
+
+```python
+from geopandas.tools import geocode
+geocode("The Great Pyramid of Giza", provider="nominatim")
+```
+
+To use the geocoder, we need:
+
+- the `name` or `address` as a Python string, and
+- the name of the `provider`. To avoid having to provide an API key, we used the [OpenStreetMap Nominatim geocoder](https://nominatim.openstreetmap.org/).
+
+It's often the case that we'll need to geocode many different addresses.
+
+```python
+# load Starbucks locations in California
+import pandas as pd
+starbucks = pd.read_csv("../input/geospatial-learn-course-data/starbucks_locations.csv")
+```
+
+```python
+# define geocoder function
+def my_geocoder(row):
+    try:
+        point = geocode(row, provider="nominatim")["geometry"][0]
+        return pd.Series({"Latitude": point.y, "Longitude": point.x})
+    except:
+        return None
+```
+
+If the geocoding is successful, it returns a GeoDataFrame with two columns:
+
+- the `geometry` column, which is a `Point` object, and we can get the `Latitude` and `Longitude` from the `y` and `x` attributes, respectively.
+- the `address` column contains the full address.
+
+When geocoding a large dataframe, you might encounter an error when geocoding.
+
+- In case you get a time out error, try first using the `timeout` parameter (allow the service a bit more time to respond).
+- In case of Too Many Requests error, you have hit the rate-limit of the service, and you should slow down your requests. `GeoPy` provides additional tools for taking into account rate limits in geocoding services. [More info](https://automating-gis-processes.github.io/site/notebooks/L3/geocoding_in_geopandas.html).
+
+```python
+# rows with missing locations
+rows_with_missing = starbucks[starbucks["Latitude"].isnull() | starbucks["Longitude"].isnull()]
+```
+
+```python
+# fill missing geo data
+rows_with_missing = rows_with_missing.apply(lambda x: my_geocoder(x["Address"]), axis=1)
+
+# drop rows that were not successfully geocoded
+rows_with_missing.dropna(axis=0, subset=["Latitude", "Longitude"])
+
+# update main DataFrame
+starbucks.update(rows_with_missing)
+```
+
+### Table Joins
+
+We can combine data from different sources.
+
+#### Attribute Join
+
+You already know how to use `pd.DataFrame.join()` to combine information from multiple DataFrames with a shared index. We refer to this way of joining data (by simpling matching values in the index) as an attribute join. We'll work with some DataFrames containing data and a unique id (in the `GEOID` column) for each county in the state of California.
+
+```python
+# create DataFrame contains an estimate of the population of each county
+CA_pop = pd.read_csv(
+    "../input/geospatial-learn-course-data/CA_county_population.csv", index_col="GEOID"
+)
+# create DataFrame contains the number of households with high income
+CA_high_earners = pd.read_csv(
+    "../input/geospatial-learn-course-data/CA_county_high_earners.csv", index_col="GEOID"
+)
+# create DataFrame contains the median age for each county
+CA_median_age = pd.read_csv(
+    "../input/geospatial-learn-course-data/CA_county_median_age.csv", index_col="GEOID"
+)
+```
+
+```python
+# use an attribute join
+cols_to_add = CA_pop.join([CA_high_earners, CA_median_age]).reset_index()
+```
+
+When performing an attribute join with a GeoDataFrame, it's best to use the `gpd.GeoDataFrame.merge()`. We'll work with a GeoDataFrame `CA_counties` containing the name, area (in square kilometers), and a unique id (in the `GEOID` column) for each county in the state of California. The `geometry` column contains a polygon with county boundaries.
+
+```python
+import geopandas as gpd
+CA_counties = gpd.read_file(
+    "../input/geospatial-learn-course-data/CA_county_boundaries/CA_county_boundaries/CA_county_boundaries.shp"
+)
+```
+
+```python
+# use an attribute join
+CA_stats = CA_counties.merge(cols_to_add, on="GEOID")
+```
+
+- The `on` argument is set to the column name that is used to match rows.
+
+Now that we have all of the data in one place, it's much easier to calculate statistics that use a combination of columns.
+
+```python
+CA_stats["density"] = CA_stats["population"] / CA_stats["area_sqkm"]
+```
+
+#### Spatial Join
+
+With a spatial join, we combine GeoDataFrames based on the spatial relationship between the objects in the `geometry` columns. We do this with `gpd.sjoin()`.
+
+So, which counties look promising for **new** Starbucks Reserve Roastery?
+
+```python
+sel_counties = CA_stats[
+    (CA_stats["high_earners"] >= 100000)
+    & (CA_stats["median_age"] <= 38.5)
+    & (CA_stats["density"] >= 285)
+]
+sel_counties.crs = {"init": "epsg:4326"}
+```
+
+```python
+starbucks_gdf = gpd.GeoDataFrame(
+    starbucks, geometry=gpd.points_from_xy(starbucks["Longitude"], starbucks["Latitude"])
+)
+starbucks_gdf.crs = {"init": "epsg:4326"}
+```
+
+```python
+sel_counties_stores = gpd.sjoin(starbucks_gdf, sel_counties)
+```
+
+The spatial join above looks at the `geometry` columns in both GeoDataFrames. If a Point object from the `starbucks_gdf` GeoDataFrame intersects a Polygon object from the `sel_counties` DataFrame, the corresponding rows are combined and added as a single row of the `sel_counties_stores` DataFrame. Otherwise, counties without a matching starbuckses (and starbuckses without a matching county) are omitted from the results.
+
+The `gpd.sjoin()` method is customizable for different types of joins, through the `how` and `op` arguments. For example, you can do the equivalent of a SQL left (or right) join by setting `how='left'` (or `how='right'`).
+
+Let's visualize!
+
+```python
+# define the base map
+from folium import Map
+map_cluser = Map(location=[37, -120], zoom_start=6)
+
+# add points to the map
+from folium.plugins import MarkerCluster
+mc = MarkerCluster()
+from folium import Marker
+for idx, row in sel_counties_stores.iterrows():
+    mc.add_child(Marker([row["Latitude"], row["Longitude"]]))
+
+map_cluser.add_child(mc)
+
+# display the map
+map_cluser
+```
+
+## Proximity Analysis
+*Measure distance, and explore neighboring points on a map. [#](https://www.kaggle.com/alexisbcook/proximity-analysis)*
+
+### Introduction
+
+We'll explore several techniques for proximity analysis, such as:
+
+- Measuring the distance between points on a map, and
+- Selecting all points within some radius of a feature.
+
+We want to identify how hospitals have been responding to crash collisions in New York City. We'll work with GeoDataFrame `collisions` tracking major motor vehicle collisions in 2013-2018.
+
+```python
+import geopandas as gpd
+collisions = gpd.read_file(
+    "../input/geospatial-learn-course-data/NYPD_Motor_Vehicle_Collisions/NYPD_Motor_Vehicle_Collisions/NYPD_Motor_Vehicle_Collisions.shp"
+)
+hospitals = gpd.read_file(
+    "../input/geospatial-learn-course-data/nyu_2451_34494/nyu_2451_34494/nyu_2451_34494.shp"
+)
+```
+
+### Measuring Distance
+
+To measure distances between points from two different GeoDataFrames, we first have to make sure that they use the same CRS.
+
+```python
+collisions.crs == hospitals.crs
+```
+
+- We also check the CRS to see which units it uses (meters, feet, or something else). In this case, EPSG 2263 has units of meters.
+
+Then, we use the `distance()` method, returns a `Series` containing the distance to the others.
+
+```python
+# measure distance from a relatively recent collision to each hospital
+distances = hospitals["geometry"].distance(collisions.iloc[-1]["geometry"])
+```
+
+```python
+# calculate mean distance to hospitals
+distances.mean()
+
+# find the closest hospital
+hospitals.iloc[distances.idxmin()][["ADDRESS", "LATITUDE", "LONGITUDE"]]
+```
+
+### Creating a Buffer
+
+If we want to understand all points on a map that are some radius away from a point, the simplest way is to create a buffer. It's a `GeoSeries` containing multiple `Polygon` objects. Each polygon is a buffer around a different spot.
+
+We'll create a DataFrame `outside_range` containing all rows from `collisions` with crashes that occurred more than 10 kilometers from the closest hospital.
+
+```python
+# create a GeoSeries buffer
+ten_km_buffer = hospitals["geometry"].buffer(10000)
+```
+
+To test if a collision occurred within 10 kilometers of any hospital, we could run different tests for each polygon. But a more efficient way is to first collapse all of the polygons into a `MultiPolygon` object. We do this with the `unary_union` attribute.
+
+```python
+# turn group of polygons into single multipolygon
+my_union = ten_km_buffer.unary_union
+```
+
+We use the `contains()` method to check if the multipolygon contains a point.
+
+```python
+# is the closest station less than two miles away?
+my_union.contains(collisions.iloc[-1]["geometry"])
+```
+
+```python
+outside_range = collisions.loc[~collisions["geometry"].apply(lambda x: my_union.contains(x))]
+```
+
+```python
+# calculate the percentage of collisions occurred more than 10 km away from the closest hospital
+round(100 * len(outside_range)/len(collisions), 2)
+```
+
+### Make a Recommender
+
+When collisions occur in distant locations, it becomes even more vital that injured persons are transported to the nearest available hospital.
+
+With this in mind, we want to create a recommender that:
+
+- takes the location of the crash as input,
+- finds the closest hospital, and
+- returns the name of the closest hospital.
+
+```python
+def best_hospital(collision_location):
+    idx_min = hospitals["geometry"].distance(collision_location).idxmin()
+    return hospitals.iloc[idx_min]["name"]
+```
+
+```python
+# suggest the closest hospital to the last collision
+best_hospital(outside_range["geometry"].iloc[-1])
+```
+
+```python
+# which hospital is most recommended?
+outside_range["geometry"].apply(best_hospital).value_counts().idxmax()
+```
+
+Where should the city construct new hospitals? Lets visualize!
+
+```python
+# define the base map
+from folium import Map
+m = Map(location=[40.7, -74], zoom_start=11)
+
+# add buffers' Polygon
+from folium import GeoJson
+GeoJson(ten_km_buffer.to_crs(epsg=4326)).add_to(m)
+
+# add the heatmap of collisions, out of 10km buffers
+from folium.plugins import HeatMap
+HeatMap(data=outside_range[["LATITUDE", "LONGITUDE"]], radius=9).add_to(m)
+
+# add (Lat,Long) popup
+from folium import LatLngPopup
+LatLngPopup().add_to(m)
+
+# display the map
+m
+```
+
+- We use `folium.GeoJson()` to plot each `Polygon` on a map. Note that since folium requires coordinates in latitude and longitude, we have to convert the CRS to EPSG 4326 before plotting.
+
 # Intro to Machine Learning
 *Learn the core ideas in machine learning, and build your first models.*
 
@@ -2426,677 +3097,6 @@ cv_scores.mean()
 
 # Advanced SQL
 *Take your SQL skills to the next level.*
-
-# Geospatial Analysis
-*Create interactive maps, and discover patterns in geospatial data.*
-
-## Your First Map
-*Get started with plotting in GeoPandas. [#](https://www.kaggle.com/alexisbcook/your-first-map)*
-
-### Introduction
-
-With this course you can find solutions for several real-world problems like:
-
-- Where should a global non-profit expand its reach in remote areas of the Philippines?
-- How do purple martins, a threatened bird species, travel between North and South America? Are the birds travelling to conservation areas?
-- Which areas of Japan could potentially benefit from extra earthquake reinforcement?
-- Which Starbucks stores in California are strong candidates for the next Starbucks Reserve Roastery location?
-- ...
-
-### Reading Data
-
-```python
-import geopandas as gpd
-```
-
-The data was loaded into a (GeoPandas) GeoDataFrame object has all of the capabilities of a (Pandas) DataFrame. So, every command that you can use with a DataFrame will work with the data!
-
-There are many, many different geospatial file formats, such as [shapefile](https://en.wikipedia.org/wiki/Shapefile), [GeoJSON](https://en.wikipedia.org/wiki/GeoJSON), [KML](https://en.wikipedia.org/wiki/Keyhole_Markup_Language), and [GPKG](https://en.wikipedia.org/wiki/GeoPackage).
-
-- shapefile is the most common file type that you'll encounter, and
-- all of these file types can be quickly loaded with the `read_file()` function.
-
-Every GeoDataFrame contains a special `geometry` column. It contains all of the geometric objects that are displayed when we call the `plot()` method. While this column can contain a variety of different datatypes, each entry will typically be a `Point`, `LineString`, or `Polygon`.
-
-### Create Your Map
-*Create it layer by layer.*
-
-```python
-# load data
-world_loans = gpd.read_file(
-    "../input/geospatial-learn-course-data/kiva_loans/kiva_loans/kiva_loans.shp"
-)
-
-# define a base map with county boundaries
-world = gpd.read_file(gpd.datasets.get_path("naturalearth_lowres"))
-ax = world.plot(figsize=(20, 20), color="whitesmoke", linestyle=":", edgecolor="lightgray")
-
-# add loans to the base map
-world_loans.plot(ax=ax, color="black", markersize=2)
-```
-
-You can subset the data for more details.
-
-```python
-# subset the data
-phl_loans = world_loans.loc[world_loans["country"] == "Philippines"].copy()
-
-# enable fiona driver & load a KML file containing island boundaries
-gpd.io.file.fiona.drvsupport.supported_drivers["KML"] = "rw"
-phl = gpd.read_file("../input/geospatial-learn-course-data/Philippines_AL258.kml", driver="KML")
-
-# define a base map with county boundaries
-ax_ph = phl.plot(figsize=(20, 20), color="whitesmoke", linestyle=":", edgecolor="lightgray")
-
-# add loans to the base map
-phl_loans.plot(ax=ax_ph, color="black", markersize=2)
-```
-
-## Coordinate Reference Systems
-*It's pretty amazing that we can represent the Earth's surface in 2 dimensions! [#](https://www.kaggle.com/alexisbcook/coordinate-reference-systems)*
-
-### Introduction
-
-The world is a three-dimensional globe. So we have to use a map projection method to render it as a flat surface. Map projections can't be 100% accurate. Each projection distorts the surface of the Earth in some way, while retaining some useful property.
-
-- The equal-area projections preserve **area**.
-- The equidistant projections preserve **distance**.
-
-We use a coordinate reference system (CRS) to show how the projected points correspond to real locations on Earth. CRSs are referenced by [European Petroleum Survey Group (EPSG)](http://www.epsg.org/) codes.
-
-### Setting the CRS
-
-When we create a GeoDataFrame from a shapefile, the CRS is already imported for us. But when creating a GeoDataFrame from a CSV file, we have to set the CRS to [EPSG 4326](https://epsg.io/4326), corresponds to coordinates in latitude and longitude.
-
-```python
-# create a DataFrame with health facilities in Ghana
-import pandas as pd
-facilities_df = pd.read_csv("../input/geospatial-learn-course-data/ghana/ghana/health_facilities.csv")
-
-# convert the DataFrame to a GeoDataFrame
-import geopandas as gpd
-facilities = gpd.GeoDataFrame(facilities_df, geometry=gpd.points_from_xy(facilities_df.Longitude, facilities_df.Latitude))
-
-# set the CRS code
-facilities.crs = {"init": "epsg:4326"}
-```
-
-- We begin by creating a DataFrame containing columns with latitude and longitude coordinates.
-- To convert it to a GeoDataFrame, we use `gpd.GeoDataFrame()`.
-- The `gpd.points_from_xy()` function creates Point objects from the latitude and longitude columns.
-
-### Re-projecting
-
-Re-projecting refers to the process of changing the CRS. This is done in GeoPandas with the `to_crs()` method. For example, when plotting multiple GeoDataFrames, it's important that they all use the same CRS.
-
-```python
-# load a GeoDataFrame containing regions in Ghana
-regions = gpd.read_file(
-    "../input/geospatial-learn-course-data/ghana/ghana/Regions/Map_of_Regions_in_Ghana.shp"
-)
-regions.crs
->>> 32630
-```
-
-```python
-# create a map
-ax = regions.plot(figsize=(8, 8), color="whitesmoke", linestyle=":", edgecolor="black")
-facilities.to_crs(epsg=32630).plot(ax=ax, alpha=0.6, markersize=1, zorder=1)
-```
-
-In case the EPSG code is not available in GeoPandas, we can change the CRS with what's known as the "proj4 string" of the CRS. The proj4 string to convert to latitude/longitude coordinates is:
-
-```python
-# change the CRS to EPSG 4326
-regions.to_crs("+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")
-```
-
-### Attributes of Geometric Objects
-
-For an arbitrary GeoDataFrame, the type in the `geometry` column depends on what we are trying to show: for instance, we might use:
-
-- a `Point` for the epicenter of an earthquake,
-- a `LineString` for a street, or
-- a `Polygon` to show country boundaries.
-
-All three types of geometric objects have built-in attributes that you can use to quickly analyze the dataset.
-
-```python
-# get the x- or y-coordinates of a point from the x and y attributes
-facilities["geometry"].x
-
-# calculate the area (in square kilometers) of all polygons
-sum(regions["geometry"].to_crs(epsg=3035).area) / 10**6
-```
-
--  [ESPG 3035](https://epsg.io/3035) Scope: Statistical mapping at all scales and other purposes where **true area** representation is required.
-
-### Techniques from the Exercise
-
-```python
-# load data
-import pandas as pd
-birds_df = pd.read_csv(
-    "../input/geospatial-learn-course-data/purple_martin.csv", parse_dates=["timestamp"]
-)
-
-# create the GeoDataFrame
-import geopandas as gpd
-birds = gpd.GeoDataFrame(
-    birds_df, geometry=gpd.points_from_xy(birds_df["location-long"], birds_df["location-lat"])
-)
-
-# create GeoDataFrame showing path for each bird
-from shapely.geometry import LineString
-path_df = (
-    birds.groupby("tag-local-identifier")["geometry"]
-    .apply(list)
-    .apply(lambda x: LineString(x))
-    .reset_index()
-)
-path_gdf = gpd.GeoDataFrame(path_df, geometry=path_df["geometry"])
-path_gdf.crs = {"init": "epsg:4326"}
-```
-
-## Interactive Maps
-*Learn how to make interactive heatmaps, choropleth maps, and more! [#](https://www.kaggle.com/alexisbcook/interactive-maps)*
-
-### The Data
-
-```python
-# load data
-import pandas as pd
-crimes = pd.read_csv(
-    "../input/geospatial-learn-course-data/crimes-in-boston/crimes-in-boston/crime.csv",
-    encoding="latin-1",
-)
-
-# drop rows with missing locations
-crimes.dropna(subset=["Lat", "Long", "DISTRICT"], inplace=True)
-
-# focus on major crimes in 2018
-crimes = crimes[
-    crimes["OFFENSE_CODE_GROUP"].isin(
-        [
-            "Larceny",
-            "Auto Theft",
-            "Robbery",
-            "Larceny From Motor Vehicle",
-            "Residential Burglary",
-            "Simple Assault",
-            "Harassment",
-            "Ballistics",
-            "Aggravated Assault",
-            "Other Burglary",
-            "Arson",
-            "Commercial Burglary",
-            "HOME INVASION",
-            "Homicide",
-            "Criminal Harassment",
-            "Manslaughter",
-        ]
-    )
-]
-crimes = crimes[crimes["YEAR"] == 2018]
-
-# focus on daytime robberies
-daytime_robberies = crimes[
-    ((crimes["OFFENSE_CODE_GROUP"] == "Robbery") & (crimes["HOUR"].isin(range(9, 18))))
-]
-```
-
-### Base Map
-
-In this tutorial, you'll learn how to create interactive maps with the `folium` package. We create the base map with `folium.Map()`.
-
-```python
-# create the base map
-from folium import Map
-base_map = Map(location=[42.32, -71.0589], tiles="openstreetmap", zoom_start=10)
-```
-
-- `location` sets the initial center of the map. We use the latitude (42.32° N) and longitude (-71.0589° E) of the city of Boston.
-- `tiles` changes the styling of the map; in this case, we choose the OpenStreetMap style. If you're curious, you can find the other options listed [here](https://github.com/python-visualization/folium/tree/master/folium/templates/tiles).
-- `zoom_start` sets the initial level of zoom of the map, where higher values zoom in closer to the map.
-
-### Markers
-
-We add markers to the map with `folium.Marker()`. Each marker below corresponds to a different robbery.
-
-```python
-# define the base map
-map_marker = map_base
-
-# add points to the map
-from folium import Marker
-for idx, row in daytime_robberies.iterrows():
-    Marker([row["Lat"], row["Long"]], popup=row["HOUR"]).add_to(map_marker)
-
-# display the map
-map_marker
-```
-
-### Markers' Cluster
-
-If we have a lot of markers to add, `folium.plugins.MarkerCluster()` can help to declutter the map. Each marker is added to a `MarkerCluster` object.
-
-```python
-# define the base map
-map_cluser = map_base
-
-# add points to the map
-from folium.plugins import MarkerCluster
-mc = MarkerCluster()
-from folium import Marker
-import math
-for idx, row in daytime_robberies.iterrows():
-    if not math.isnan(row["Lat"]) and not math.isnan(row["Long"]):
-        mc.add_child(Marker([row["Lat"], row["Long"]]))
-
-map_cluser.add_child(mc)
-
-# display the map
-map_cluser
-```
-
-- We used `math.isnan()` because `row["Lat"]` or `row["Long"]` are `float`.
-
-### Bubble Maps
-
-A bubble map uses circles instead of markers. By varying the size and color of each circle, we can also show the relationship between location and two other variables.
-
-We create a bubble map by using `folium.Circle()` to iteratively add circles.
-
-```python
-# define the base map
-map_bubble = map_base
-
-# define color/size producer function
-def color_producer(val):
-    if val <= 12:
-        # robberies that occurred in hours 9-12
-        return "forestgreen"
-    else:
-        # robberies from hours 13-17
-        return "darkred"
-
-# add a bubble map to the base map
-from folium import Circle
-for i in range(len(daytime_robberies)):
-    Circle(
-        location=[daytime_robberies.iloc[i]["Lat"], daytime_robberies.iloc[i]["Long"]],
-        radius=20,
-        color=color_producer(daytime_robberies.iloc[i]["HOUR"]),
-    ).add_to(map_bubble)
-
-# display the map
-map_bubble
-```
-
-- `location` is a list containing the center of the circle, in latitude and longitude.
-- `radius` sets the radius of the circle.
-  - We can implement this by defining a function similar to the `color_producer()` function that is used to vary the color of each circle.
-- `color` sets the color of each circle.
-  - `The color_producer()` function is used to visualize the effect of the hour on robbery location.
-
-
-### Heatmaps
-
-To create a heatmap, we use `folium.plugins.HeatMap()`. This shows the density of crime in different areas of the city, where red areas have relatively more criminal incidents.
-
-```python
-# define the base map
-map_heat = map_base
-
-# add a heatmap to the base map
-from folium.plugins import HeatMap
-HeatMap(data=crimes[["Lat", "Long"]], radius=10).add_to(map_heat)
-
-# display the map
-map_heat
-```
-
-- `data` is a DataFrame containing the locations that we'd like to plot.
-- `radius` controls the smoothness of the heatmap. Higher values make the heatmap look smoother.
-
-### Choropleth Maps
-
-To understand how crime varies by police district, we'll create a choropleth map. To create a choropleth, we use `folium.Choropleth()`.
-
-As a first step, we create a GeoDataFrame where each district is assigned a different row, and the `geometry` column contains the geographical boundaries.
-
-```python
-# create GeoDataFrame with geographical boundaries of districts
-import geopandas as gpd
-districts_full = gpd.read_file(
-    "../input/geospatial-learn-course-data/Police_Districts/Police_Districts/Police_Districts.shp"
-)
-districts = districts_full[["DISTRICT", "geometry"]].set_index("DISTRICT")
-```
-
-```python
-# create a Pandas Series shows the number of crimes in each police district
-plot_dict = crimes["DISTRICT"].value_counts()
-```
-
-- It's very important that `plot_dict` has the same index as districts - this is how the code knows how to match the geographical boundaries with appropriate colors.
-
-```python
-# define the base map
-map_choropleth = map_base
-
-# add a choropleth map to the base map
-from folium import Choropleth
-Choropleth(
-    geo_data=districts.__geo_interface__,
-    data=plot_dict,
-    key_on="feature.id",
-    fill_color="YlGnBu",
-    legend_name="Major Criminal Incidents (Jan-Aug 2018)",
-).add_to(map_choropleth)
-
-# display the map
-map_choropleth
-```
-
-- `geo_data` is a GeoJSON FeatureCollection containing the boundaries of each geographical area.
-  - We convert the districts GeoDataFrame to a GeoJSON FeatureCollection with the `__geo_interface__` attribute.
-- `data` is a Pandas Series containing the values that will be used to color-code each geographical area.
-- `key_on` will always be set to `feature.id`, based on the GeoJSON structure.
-- `fill_color` sets the color scale.
-
-## Manipulating Geospatial Data
-*Find locations with just the name of a place. And, learn how to join data based on spatial relationships. [#](https://www.kaggle.com/alexisbcook/manipulating-geospatial-data)*
-
-### Geocoding
-
-Geocoding is the process of converting the name of a place or an address to a location on a map. We'll use `geopandas.tools.geocode()` to do all of our geocoding.
-
-```python
-from geopandas.tools import geocode
-geocode("The Great Pyramid of Giza", provider="nominatim")
-```
-
-To use the geocoder, we need:
-
-- the `name` or `address` as a Python string, and
-- the name of the `provider`. To avoid having to provide an API key, we used the [OpenStreetMap Nominatim geocoder](https://nominatim.openstreetmap.org/).
-
-It's often the case that we'll need to geocode many different addresses.
-
-```python
-# load Starbucks locations in California
-import pandas as pd
-starbucks = pd.read_csv("../input/geospatial-learn-course-data/starbucks_locations.csv")
-```
-
-```python
-# define geocoder function
-def my_geocoder(row):
-    try:
-        point = geocode(row, provider="nominatim")["geometry"][0]
-        return pd.Series({"Latitude": point.y, "Longitude": point.x})
-    except:
-        return None
-```
-
-If the geocoding is successful, it returns a GeoDataFrame with two columns:
-
-- the `geometry` column, which is a `Point` object, and we can get the `Latitude` and `Longitude` from the `y` and `x` attributes, respectively.
-- the `address` column contains the full address.
-
-When geocoding a large dataframe, you might encounter an error when geocoding.
-
-- In case you get a time out error, try first using the `timeout` parameter (allow the service a bit more time to respond).
-- In case of Too Many Requests error, you have hit the rate-limit of the service, and you should slow down your requests. `GeoPy` provides additional tools for taking into account rate limits in geocoding services. [More info](https://automating-gis-processes.github.io/site/notebooks/L3/geocoding_in_geopandas.html).
-
-```python
-# rows with missing locations
-rows_with_missing = starbucks[starbucks["Latitude"].isnull() | starbucks["Longitude"].isnull()]
-```
-
-```python
-# fill missing geo data
-rows_with_missing = rows_with_missing.apply(lambda x: my_geocoder(x["Address"]), axis=1)
-
-# drop rows that were not successfully geocoded
-rows_with_missing.dropna(axis=0, subset=["Latitude", "Longitude"])
-
-# update main DataFrame
-starbucks.update(rows_with_missing)
-```
-
-### Table Joins
-
-We can combine data from different sources.
-
-#### Attribute Join
-
-You already know how to use `pd.DataFrame.join()` to combine information from multiple DataFrames with a shared index. We refer to this way of joining data (by simpling matching values in the index) as an attribute join. We'll work with some DataFrames containing data and a unique id (in the `GEOID` column) for each county in the state of California.
-
-```python
-# create DataFrame contains an estimate of the population of each county
-CA_pop = pd.read_csv(
-    "../input/geospatial-learn-course-data/CA_county_population.csv", index_col="GEOID"
-)
-# create DataFrame contains the number of households with high income
-CA_high_earners = pd.read_csv(
-    "../input/geospatial-learn-course-data/CA_county_high_earners.csv", index_col="GEOID"
-)
-# create DataFrame contains the median age for each county
-CA_median_age = pd.read_csv(
-    "../input/geospatial-learn-course-data/CA_county_median_age.csv", index_col="GEOID"
-)
-```
-
-```python
-# use an attribute join
-cols_to_add = CA_pop.join([CA_high_earners, CA_median_age]).reset_index()
-```
-
-When performing an attribute join with a GeoDataFrame, it's best to use the `gpd.GeoDataFrame.merge()`. We'll work with a GeoDataFrame `CA_counties` containing the name, area (in square kilometers), and a unique id (in the `GEOID` column) for each county in the state of California. The `geometry` column contains a polygon with county boundaries.
-
-```python
-import geopandas as gpd
-CA_counties = gpd.read_file(
-    "../input/geospatial-learn-course-data/CA_county_boundaries/CA_county_boundaries/CA_county_boundaries.shp"
-)
-```
-
-```python
-# use an attribute join
-CA_stats = CA_counties.merge(cols_to_add, on="GEOID")
-```
-
-- The `on` argument is set to the column name that is used to match rows.
-
-Now that we have all of the data in one place, it's much easier to calculate statistics that use a combination of columns.
-
-```python
-CA_stats["density"] = CA_stats["population"] / CA_stats["area_sqkm"]
-```
-
-#### Spatial Join
-
-With a spatial join, we combine GeoDataFrames based on the spatial relationship between the objects in the `geometry` columns. We do this with `gpd.sjoin()`.
-
-So, which counties look promising for **new** Starbucks Reserve Roastery?
-
-```python
-sel_counties = CA_stats[
-    (CA_stats["high_earners"] >= 100000)
-    & (CA_stats["median_age"] <= 38.5)
-    & (CA_stats["density"] >= 285)
-]
-sel_counties.crs = {"init": "epsg:4326"}
-```
-
-```python
-starbucks_gdf = gpd.GeoDataFrame(
-    starbucks, geometry=gpd.points_from_xy(starbucks["Longitude"], starbucks["Latitude"])
-)
-starbucks_gdf.crs = {"init": "epsg:4326"}
-```
-
-```python
-sel_counties_stores = gpd.sjoin(starbucks_gdf, sel_counties)
-```
-
-The spatial join above looks at the `geometry` columns in both GeoDataFrames. If a Point object from the `starbucks_gdf` GeoDataFrame intersects a Polygon object from the `sel_counties` DataFrame, the corresponding rows are combined and added as a single row of the `sel_counties_stores` DataFrame. Otherwise, counties without a matching starbuckses (and starbuckses without a matching county) are omitted from the results.
-
-The `gpd.sjoin()` method is customizable for different types of joins, through the `how` and `op` arguments. For example, you can do the equivalent of a SQL left (or right) join by setting `how='left'` (or `how='right'`).
-
-Let's visualize!
-
-```python
-# define the base map
-from folium import Map
-map_cluser = Map(location=[37, -120], zoom_start=6)
-
-# add points to the map
-from folium.plugins import MarkerCluster
-mc = MarkerCluster()
-from folium import Marker
-for idx, row in sel_counties_stores.iterrows():
-    mc.add_child(Marker([row["Latitude"], row["Longitude"]]))
-
-map_cluser.add_child(mc)
-
-# display the map
-map_cluser
-```
-
-## Proximity Analysis
-*Measure distance, and explore neighboring points on a map. [#](https://www.kaggle.com/alexisbcook/proximity-analysis)*
-
-### Introduction
-
-We'll explore several techniques for proximity analysis, such as:
-
-- Measuring the distance between points on a map, and
-- Selecting all points within some radius of a feature.
-
-We want to identify how hospitals have been responding to crash collisions in New York City. We'll work with GeoDataFrame `collisions` tracking major motor vehicle collisions in 2013-2018.
-
-```python
-import geopandas as gpd
-collisions = gpd.read_file(
-    "../input/geospatial-learn-course-data/NYPD_Motor_Vehicle_Collisions/NYPD_Motor_Vehicle_Collisions/NYPD_Motor_Vehicle_Collisions.shp"
-)
-hospitals = gpd.read_file(
-    "../input/geospatial-learn-course-data/nyu_2451_34494/nyu_2451_34494/nyu_2451_34494.shp"
-)
-```
-
-### Measuring Distance
-
-To measure distances between points from two different GeoDataFrames, we first have to make sure that they use the same CRS.
-
-```python
-collisions.crs == hospitals.crs
-```
-
-- We also check the CRS to see which units it uses (meters, feet, or something else). In this case, EPSG 2263 has units of meters.
-
-Then, we use the `distance()` method, returns a `Series` containing the distance to the others.
-
-```python
-# measure distance from a relatively recent collision to each hospital
-distances = hospitals["geometry"].distance(collisions.iloc[-1]["geometry"])
-```
-
-```python
-# calculate mean distance to hospitals
-distances.mean()
-
-# find the closest hospital
-hospitals.iloc[distances.idxmin()][["ADDRESS", "LATITUDE", "LONGITUDE"]]
-```
-
-### Creating a Buffer
-
-If we want to understand all points on a map that are some radius away from a point, the simplest way is to create a buffer. It's a `GeoSeries` containing multiple `Polygon` objects. Each polygon is a buffer around a different spot.
-
-We'll create a DataFrame `outside_range` containing all rows from `collisions` with crashes that occurred more than 10 kilometers from the closest hospital.
-
-```python
-# create a GeoSeries buffer
-ten_km_buffer = hospitals["geometry"].buffer(10000)
-```
-
-To test if a collision occurred within 10 kilometers of any hospital, we could run different tests for each polygon. But a more efficient way is to first collapse all of the polygons into a `MultiPolygon` object. We do this with the `unary_union` attribute.
-
-```python
-# turn group of polygons into single multipolygon
-my_union = ten_km_buffer.unary_union
-```
-
-We use the `contains()` method to check if the multipolygon contains a point.
-
-```python
-# is the closest station less than two miles away?
-my_union.contains(collisions.iloc[-1]["geometry"])
-```
-
-```python
-outside_range = collisions.loc[~collisions["geometry"].apply(lambda x: my_union.contains(x))]
-```
-
-```python
-# calculate the percentage of collisions occurred more than 10 km away from the closest hospital
-round(100 * len(outside_range)/len(collisions), 2)
-```
-
-### Make a Recommender
-
-When collisions occur in distant locations, it becomes even more vital that injured persons are transported to the nearest available hospital.
-
-With this in mind, we want to create a recommender that:
-
-- takes the location of the crash as input,
-- finds the closest hospital, and
-- returns the name of the closest hospital.
-
-```python
-def best_hospital(collision_location):
-    idx_min = hospitals["geometry"].distance(collision_location).idxmin()
-    return hospitals.iloc[idx_min]["name"]
-```
-
-```python
-# suggest the closest hospital to the last collision
-best_hospital(outside_range["geometry"].iloc[-1])
-```
-
-```python
-# which hospital is most recommended?
-outside_range["geometry"].apply(best_hospital).value_counts().idxmax()
-```
-
-Where should the city construct new hospitals? Lets visualize!
-
-```python
-# define the base map
-from folium import Map
-m = Map(location=[40.7, -74], zoom_start=11)
-
-# add buffers' Polygon
-from folium import GeoJson
-GeoJson(ten_km_buffer.to_crs(epsg=4326)).add_to(m)
-
-# add the heatmap of collisions, out of 10km buffers
-from folium.plugins import HeatMap
-HeatMap(data=outside_range[["LATITUDE", "LONGITUDE"]], radius=9).add_to(m)
-
-# add (Lat,Long) popup
-from folium import LatLngPopup
-LatLngPopup().add_to(m)
-
-# display the map
-m
-```
-
-- We use `folium.GeoJson()` to plot each `Polygon` on a map. Note that since folium requires coordinates in latitude and longitude, we have to convert the CRS to EPSG 4326 before plotting.
 
 # Microchallenges
 *Solve ultra-short challenges to build and test your skill.*
