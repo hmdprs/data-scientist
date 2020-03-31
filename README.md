@@ -2842,6 +2842,11 @@ If the geocoding is successful, it returns a GeoDataFrame with two columns:
 - the `geometry` column, which is a `Point` object, and we can get the `Latitude` and `Longitude` from the `y` and `x` attributes, respectively.
 - the `address` column contains the full address.
 
+When geocoding a large dataframe, you might encounter an error when geocoding.
+
+- In case you get a time out error, try first using the `timeout` parameter (allow the service a bit more time to respond).
+- In case of Too Many Requests error, you have hit the rate-limit of the service, and you should slow down your requests. `GeoPy` provides additional tools for taking into account rate limits in geocoding services. [More info](https://automating-gis-processes.github.io/site/notebooks/L3/geocoding_in_geopandas.html).
+
 ```python
 # rows with missing locations
 rows_with_missing = starbucks[starbucks["Latitude"].isnull() | starbucks["Longitude"].isnull()]
