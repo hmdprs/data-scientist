@@ -2688,8 +2688,9 @@ map_cluser = map_base
 from folium.plugins import MarkerCluster
 mc = MarkerCluster()
 from folium import Marker
+import math
 for idx, row in daytime_robberies.iterrows():
-    if row["Long"].notna() and row["Lat"].notna():
+    if not math.isnan(row["Lat"]) and not math.isnan(row["Long"]):
         mc.add_child(Marker([row["Lat"], row["Long"]]))
 
 map_cluser.add_child(mc)
@@ -2697,6 +2698,8 @@ map_cluser.add_child(mc)
 # display the map
 map_cluser
 ```
+
+- We used `math.isnan()` because `row["Lat"]` or `row["Long"]` are `float`.
 
 ### Bubble Maps
 
