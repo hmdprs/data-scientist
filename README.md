@@ -2456,7 +2456,7 @@ There are many, many different geospatial file formats, such as [shapefile](http
 - shapefile is the most common file type that you'll encounter, and
 - all of these file types can be quickly loaded with the `read_file()` function.
 
-Every GeoDataFrame contains a special "geometry" column. It contains all of the geometric objects that are displayed when we call the `plot()` method. While this column can contain a variety of different datatypes, each entry will typically be a `Point`, `LineString`, or `Polygon`.
+Every GeoDataFrame contains a special `geometry` column. It contains all of the geometric objects that are displayed when we call the `plot()` method. While this column can contain a variety of different datatypes, each entry will typically be a `Point`, `LineString`, or `Polygon`.
 
 ### Create Your Map
 *Create it layer by layer.*
@@ -2553,7 +2553,7 @@ regions.to_crs("+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")
 
 ### Attributes of Geometric Objects
 
-For an arbitrary GeoDataFrame, the type in the "geometry" column depends on what we are trying to show: for instance, we might use:
+For an arbitrary GeoDataFrame, the type in the `geometry` column depends on what we are trying to show: for instance, we might use:
 
 - a `Point` for the epicenter of an earthquake,
 - a `LineString` for a street, or
@@ -2760,7 +2760,7 @@ map_heat
 
 To understand how crime varies by police district, we'll create a choropleth map. To create a choropleth, we use `folium.Choropleth()`.
 
-As a first step, we create a GeoDataFrame where each district is assigned a different row, and the "geometry" column contains the geographical boundaries.
+As a first step, we create a GeoDataFrame where each district is assigned a different row, and the `geometry` column contains the geographical boundaries.
 
 ```python
 # create GeoDataFrame with geographical boundaries of districts
@@ -2831,7 +2831,7 @@ starbucks = pd.read_csv("../input/geospatial-learn-course-data/starbucks_locatio
 # define geocoder function
 def my_geocoder(row):
     try:
-        point = geocode(row, provider="nominatim").geometry[0]
+        point = geocode(row, provider="nominatim")["geometry"][0]
         return pd.Series({"Latitude": point.y, "Longitude": point.x})
     except:
         return None
