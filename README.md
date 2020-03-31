@@ -2969,6 +2969,135 @@ map_cluser
 ## Proximity Analysis
 *Measure distance, and explore neighboring points on a map. [#](https://www.kaggle.com/alexisbcook/proximity-analysis)*
 
+### Introduction
+
+We'll explore several techniques for proximity analysis, such as:
+
+- Measuring the distance between points on a map, and
+- Selecting all points within some radius of a feature.
+
+We want to identify how hospitals have been responding to crash collisions in New York City. We'll work with GeoDataFrame `collisions` tracking major motor vehicle collisions in 2013-2018.
+
+```python
+import geopandas as gpd
+collisions = gpd.read_file(
+    "../input/geospatial-learn-course-data/NYPD_Motor_Vehicle_Collisions/NYPD_Motor_Vehicle_Collisions/NYPD_Motor_Vehicle_Collisions.shp"
+)
+hospitals = gpd.read_file(
+    "../input/geospatial-learn-course-data/nyu_2451_34494/nyu_2451_34494/nyu_2451_34494.shp"
+)
+```
+
+### Measuring Distance
+
+To measure distances between points from two different GeoDataFrames, we first have to make sure that they use the same CRS.
+
+```python
+collisions.crs == hospitals.crs
+```
+
+- We also check the CRS to see which units it uses (meters, feet, or something else). In this case, EPSG 2263 has units of meters.
+
+Then, we use the `distance()` method, returns a `Series` containing the distance to the others.
+
+```python
+# measure distance from a relatively recent collision to each hospital
+distances = hospitals["geometry"].distance(collisions.iloc[-1]["geometry"])
+```
+
+```python
+# calculate mean distance to hospitals
+distances.mean()
+
+# find the closest hospital
+hospitals.iloc[distances.idxmin()][["ADDRESS", "LATITUDE", "LONGITUDE"]]
+```
+
+### Creating a Buffer
+
+If we want to understand all points on a map that are some radius away from a point, the simplest way is to create a buffer. It's a `GeoSeries` containing multiple `Polygon` objects. Each polygon is a buffer around a different spot.
+
+We'll create a DataFrame `outside_range` containing all rows from `collisions` with crashes that occurred more than 10 kilometers from the closest hospital.
+
+```python
+# create a GeoSeries buffer
+ten_km_buffer = hospitals["geometry"].buffer(10000)
+```
+
+To test if a collision occurred within 10 kilometers of any hospital, we could run different tests for each polygon. But a more efficient way is to first collapse all of the polygons into a `MultiPolygon` object. We do this with the `unary_union` attribute.
+
+```python
+# turn group of polygons into single multipolygon
+my_union = ten_km_buffer.unary_union
+```
+
+We use the `contains()` method to check if the multipolygon contains a point.
+
+```python
+# is the closest station less than two miles away?
+my_union.contains(collisions.iloc[-1]["geometry"])
+```
+
+```python
+outside_range = collisions.loc[~collisions["geometry"].apply(lambda x: my_union.contains(x))]
+```
+
+```python
+# calculate the percentage of collisions occurred more than 10 km away from the closest hospital
+round(100 * len(outside_range)/len(collisions), 2)
+```
+
+### Make a Recommender
+
+When collisions occur in distant locations, it becomes even more vital that injured persons are transported to the nearest available hospital.
+
+With this in mind, we want to create a recommender that:
+
+- takes the location of the crash as input,
+- finds the closest hospital, and
+- returns the name of the closest hospital.
+
+```python
+def best_hospital(collision_location):
+    idx_min = hospitals["geometry"].distance(collision_location).idxmin()
+    return hospitals.iloc[idx_min]["name"]
+```
+
+```python
+# suggest the closest hospital to the last collision
+best_hospital(outside_range["geometry"].iloc[-1])
+```
+
+```python
+# which hospital is most recommended?
+outside_range["geometry"].apply(best_hospital).value_counts().idxmax()
+```
+
+Where should the city construct new hospitals? Lets visualize!
+
+```python
+# define the base map
+from folium import Map
+m = Map(location=[40.7, -74], zoom_start=11)
+
+# add buffers' Polygon
+from folium import GeoJson
+GeoJson(ten_km_buffer.to_crs(epsg=4326)).add_to(m)
+
+# add the heatmap of collisions, out of 10km buffers
+from folium.plugins import HeatMap
+HeatMap(data=outside_range[["LATITUDE", "LONGITUDE"]], radius=9).add_to(m)
+
+# add (Lat,Long) popup
+from folium import LatLngPopup
+LatLngPopup().add_to(m)
+
+# display the map
+m
+```
+
+- We use `folium.GeoJson()` to plot each `Polygon` on a map. Note that since folium requires coordinates in latitude and longitude, we have to convert the CRS to EPSG 4326 before plotting.
+
 # Microchallenges
 *Solve ultra-short challenges to build and test your skill.*
 
