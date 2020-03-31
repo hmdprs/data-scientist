@@ -682,12 +682,14 @@ reviews.loc[cond1 & cond2]
 reviews.loc[reviews["country"].isin(["Italy", "France"])]
 ```
 
-`isnull()` and `notnull()` let you highlight values which are (or are not) empty (NaN).
+`isna()` and `notna()` let you highlight values which are (or are not) empty (NaN).
 
 ```python
 # filter out wines lacking a price tag in the dataset
-reviews.loc[reviews["price"].notnull()]
+reviews.loc[reviews["price"].notna()]
 ```
+
+- `isnull()` is an alias for `isna()`, same as `notnull()` for `notna()`.
 
 ### Assigning Data
 
@@ -904,18 +906,20 @@ reviews["points"].astype("float64")
 
 ### Missing Values (NaNs)
 
-#### `isnull()`, `notnull()`
+#### `isna()`, `notna()`
 
 ```python
 # get a series of True & False, based on where NaNs are
-reviews["price"].isnull()
+reviews["price"].isna()
 
 # find the number of NaNs
-reviews["price"].isnull().sum()
+reviews["price"].isna().sum()
 
 # create a dataframe of rows with missing country
-reviews[reviews["country"].isnull()]
+reviews[reviews["country"].isna()]
 ```
+
+- `isnull()` is an alias for `isna()`, same as `notnull()` for `notna()`.
 
 #### `fillna()`
 
@@ -2681,12 +2685,11 @@ If we have a lot of markers to add, `folium.plugins.MarkerCluster()` can help to
 map_cluser = map_base
 
 # add points to the map
-import math
-from folium import Marker
 from folium.plugins import MarkerCluster
 mc = MarkerCluster()
+from folium import Marker
 for idx, row in daytime_robberies.iterrows():
-    if not math.isnan(row["Long"]) and not math.isnan(row["Lat"]):
+    if row["Long"].notna() and row["Lat"].notna():
         mc.add_child(Marker([row["Lat"], row["Long"]]))
 
 map_cluser.add_child(mc)
@@ -2943,10 +2946,9 @@ from folium import Map
 map_cluser = Map(location=[37, -120], zoom_start=6)
 
 # add points to the map
-import math
-from folium import Marker
 from folium.plugins import MarkerCluster
 mc = MarkerCluster()
+from folium import Marker
 for idx, row in sel_counties_stores.iterrows():
     mc.add_child(Marker([row["Latitude"], row["Longitude"]]))
 
