@@ -3089,6 +3089,18 @@ cv_scores.mean()
 # Feature Engineering
 *Discover the most effective way to improve your models.*
 
+## Baseline Model
+*Building a baseline model as a starting point for feature engineering. [#](https://www.kaggle.com/matleonard/baseline-model)*
+
+## Categorical Encodings
+*There are many ways to encode categorical data for modeling. Some are pretty clever. [#](https://www.kaggle.com/matleonard/categorical-encodings)*
+
+## Feature Generation
+*The frequently useful case where you can combine data from multiple rows into useful features. [#](https://www.kaggle.com/matleonard/feature-generation)*
+
+## Feature Selection
+*You can make a lot of features. Here's how to get the best set of features for your model. [#](https://www.kaggle.com/matleonard/feature-selection)*
+
 # Deep Learning
 *Use TensorFlow to take machine learning to the next level. Your new skills will amaze you.*
 
