@@ -1605,7 +1605,7 @@ When geocoding a large dataframe, you might encounter an error when geocoding.
 
 ```python
 # rows with missing locations
-rows_with_missing = starbucks[starbucks["Latitude"].isnull() | starbucks["Longitude"].isnull()]
+rows_with_missing = starbucks[starbucks["Latitude"].isna() | starbucks["Longitude"].isna()]
 ```
 
 ```python
@@ -2155,7 +2155,7 @@ Most machine learning libraries (including scikit-learn) give an error if you tr
 ```python
 # show number of missing values in each column
 def missing_val_count(data):
-    missing_val_count_by_column = data.isnull().sum()
+    missing_val_count_by_column = data.isna().sum()
     return missing_val_count_by_column[missing_val_count_by_column > 0]
 ```
 
@@ -2200,7 +2200,7 @@ X_train, X_valid, y_train, y_valid = train_test_split(
 
 ```python
 # get names of columns with missing values
-cols_with_missing = [col for col in X_train.columns if X_train[col].isnull().any()]
+cols_with_missing = [col for col in X_train.columns if X_train[col].isna().any()]
 ```
 
 ```python
@@ -2329,9 +2329,7 @@ X_train_full, X_valid_full, y_train, y_valid = train_test_split(
 
 ```python
 # handle missing values (simplest approach)
-cols_with_missing = [
-    col for col in X_train_full.columns if X_train_full[col].isnull().any()
-]
+cols_with_missing = [col for col in X_train_full.columns if X_train_full[col].isna().any()]
 X_train_full.drop(cols_with_missing, axis=1, inplace=True)
 X_valid_full.drop(cols_with_missing, axis=1, inplace=True)
 ```
