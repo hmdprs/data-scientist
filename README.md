@@ -3087,8 +3087,156 @@ cv_scores.mean()
 # Feature Engineering
 *Discover the most effective way to improve your models.*
 
+In this micro-course, you will learn a practical approach to feature engineering:
+
+- Develop a baseline model for comparing performance on models with more features
+- Encode categorical features so the model can make better use of the information
+- Generate new features to provide more information for the model
+- Select features to reduce overfitting and increase prediction speed
+
 ## Baseline Model
 *Building a baseline model as a starting point for feature engineering. [#](https://www.kaggle.com/matleonard/baseline-model)*
+
+### Introduction
+
+We'll apply the techniques using data from Kickstarter projects. What we can do here is predict if a Kickstarter project will succeed. We get the outcome from the `state` column. To predict the outcome we can use features such as category, currency, funding goal, country, and when it was launched.
+
+```python
+import pandas as pd
+ks = pd.read_csv(
+    "../input/kickstarter-projects/ks-projects-201801.csv", parse_dates=["deadline", "launched"]
+)
+```
+
+### Preparing Target Column
+
+We'll convert the column into something can be used as targets in a model.
+
+```python
+# look at project states
+ks["state"].unique()
+
+# how many records of each?
+ks.groupby("state")["ID"].count()
+```
+
+```python
+# drop live projects
+ks = ks.query('state != "live"')
+
+# add outcome column, "successful" = 1, others are 0
+ks = ks.assign(outcome=(ks["state"] == "successful").astype(int))
+```
+
+### Converting Timestamps
+
+We can convert timestamp features into numeric catagorical features we can use in a model. If we loaded a column as timestamp data, we access date and time values through the `.dt` attribute on that column.
+
+```python
+ks = ks.assign(
+    hour=ks["launched"].dt.hour,
+    day=ks["launched"].dt.day,
+    month=ks["launched"].dt.month,
+    year=ks["launched"].dt.year,
+)
+```
+
+### Preparing Categorical Variables
+
+Now for the categorical variables (`category`, `currency`, and `country`), we'll need to convert them into integers so our model can use the data. For this we'll use scikit-learn's `LabelEncoder`.
+
+- One-Hot encoding in high cardinality features will create an extremely **sparse** matrix, and will make your model run very slow, so in general you want to avoid one-hot encoding features with many levels. In addition, LightGBM models work with label encoded features, so you don't actually need to one-hot encode the categorical features.
+
+```python
+# choose catagorical features
+cat_features = ["category", "currency", "country"]
+```
+
+```python
+# create the encoder
+from sklearn.preprocessing import LabelEncoder
+le = LabelEncoder()
+
+# encode catagorical features
+encoded = ks[cat_features].apply(le.fit_transform)
+```
+
+```python
+# join `ks` and `encoded`. since they have the same index, we can easily join them
+data = ks[["goal", "hour", "day", "month", "year", "outcome"]].join(encoded)
+```
+
+### Creating Training, Validation, and Test Splits
+
+This is a **timeseries** dataset. Is there any special consideration when creating train/test splits for timeseries?
+
+- Since our model is meant to predict events in the future, we must also validate the model on events in the future. If the data is mixed up between the training and test sets, then future data will **leak** in to the model and our validation results will overestimate the performance on new data.
+
+We'll use a fairly simple approach and split the data using slices. We'll use 10% of the data as a validation set, 10% for testing, and the other 80% for training.
+
+```python
+# split data
+valid_fraction = 0.1
+valid_size = int(len(ks) * valid_fraction)
+train = data[: -2 * valid_size]
+valid = data[-2 * valid_size : -valid_size]
+test = data[-valid_size:]
+```
+
+In general we want to be careful that each data set has the same proportion of target classes. A good way to do this automatically is with `sklearn.model_selection.StratifiedShuffleSplit`.
+
+```python
+# test of target classes distribution
+for each in [train, valid, test]:
+    # because outcome is 1 or 0
+    print(each["outcome"].mean())
+```
+
+### Training a LightGBM Model
+
+For this course we'll be using a LightGBM model. This is a tree-based model that typically provides the best performance, even compared to XGBoost. It's also relatively fast to train. We won't do hyperparameter optimization because that isn't the goal of this course. So, our models won't be the absolute best performance you can get. But you'll still see model performance improve as we do feature engineering.
+
+```python
+# define features
+feature_cols = train.columns.drop("outcome")
+
+# define train and valid datasets
+import lightgbm as lgb
+train_data = lgb.Dataset(train[feature_cols], label=train["outcome"])
+valid_data = lgb.Dataset(valid[feature_cols], label=valid["outcome"])
+```
+
+```python
+# fit model
+param = {"num_leaves": 64, "objective": "binary", "metric": ["auc"], "seed": 7}
+bst = lgb.train(
+    param,
+    train_data,
+    num_boost_round=1000,
+    valid_sets=[valid_data],
+    early_stopping_rounds=10,
+    verbose_eval=False,
+)
+```
+
+- `metric`(s) will be used to evaluate on the evaluation set(s).
+  - `auc` stands for [Area Under the Curve](https://en.wikipedia.org/wiki/Receiver_operating_characteristic#Area_under_the_curve).
+- If you have a validation set, you can use early stopping to find the optimal number of boosting rounds. Early stopping requires at least one set in `valid_sets`. If there is more than one, it will use all of them except the training data. The model will train until the validation score stops improving. Validation score needs to improve at least every `early_stopping_rounds` to continue training.
+- More info about [Python Quick Start](https://lightgbm.readthedocs.io/en/latest/Python-Intro.html), [Parameters](https://lightgbm.readthedocs.io/en/latest/Parameters.html) & [Parameters Tuning](https://lightgbm.readthedocs.io/en/latest/Parameters-Tuning.html)
+
+### Making Predictions
+
+```python
+# make predictions
+y_pred = bst.predict(test[feature_cols])
+```
+
+```python
+# evalutae the model, based on metric(s)
+from sklearn.metrics import roc_auc_score
+roc_auc_score(test["outcome"], y_pred)
+>>> 0.7476
+```
 
 ## Categorical Encodings
 *There are many ways to encode categorical data for modeling. Some are pretty clever. [#](https://www.kaggle.com/matleonard/categorical-encodings)*
