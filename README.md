@@ -3241,6 +3241,119 @@ roc_auc_score(test["outcome"], y_pred)
 ## Categorical Encodings
 *There are many ways to encode categorical data for modeling. Some are pretty clever. [#](https://www.kaggle.com/matleonard/categorical-encodings)*
 
+### Introduction
+
+Now that we've built a baseline model, we are ready to improve it with some clever ways to convert categorical variables into numerical features. The most basic encodings are one-hot encoding and label encoding. Here, we'll learn count encoding, target encoding (and variations), and singular value decomposition. We'll use the `categorical-encodings` package to get these encodings. These encoders work like scikit-learn transformers with `.fit` and `.transform` methods. We'll compare our encodings with the baseline model from the first tutorial.
+
+```python
+# function that splits data
+def get_data_splits(data, valid_fraction=0.1):
+    valid_size = int(len(data) * valid_fraction)
+    train = data[: -valid_size * 2]
+    valid = data[-valid_size * 2 : -valid_size]
+    test = data[-valid_size:]
+    return train, valid, test
+```
+
+```python
+# function that trains a model
+def train_model(train, valid, test=None, feature_cols=None):
+    # define features
+    if feature_cols is None:
+        feature_cols = train.columns.drop("outcome")
+
+    # define train and valid datasets
+    import lightgbm as lgb
+    train_data = lgb.Dataset(train[feature_cols], label=train["outcome"])
+    valid_data = lgb.Dataset(valid[feature_cols], label=valid["outcome"])
+
+    # fit model
+    param = {"num_leaves": 64, "objective": "binary", "metric": ["auc"], "seed": 7}
+    bst = lgb.train(
+        param,
+        train_data,
+        num_boost_round=1000,
+        valid_sets=[valid_data],
+        early_stopping_rounds=10,
+        verbose_eval=False,
+    )
+
+    # make predictions
+    valid_pred = bst.predict(valid[feature_cols])
+
+    # evaluate the model
+    from sklearn.metrics import roc_auc_score
+    valid_score = roc_auc_score(valid["outcome"], valid_pred)
+
+    if test is not None:
+        test_pred = bst.predict(test[feature_cols])
+        test_score = roc_auc_score(test["outcome"], test_pred)
+        return bst, valid_score, test_score
+    else:
+        return bst, valid_score
+```
+
+```python
+# split data
+train, valid, test = get_data_splits(baseline_data)
+
+# train a model on the baseline data
+bst = train_model(train, valid)
+>>> 0.7467
+```
+
+### Count Encoding, Target Encoding & CatBoost Encoding
+
+`CountEncoder` replaces each categorical value with the number of times it appears in the dataset. So, rare values tend to have similar counts (with values like 1 or 2), so we can classify rare values together at prediction time. Common values with large counts are unlikely to have the same exact count as other values. So, the common/important values get their own grouping.
+
+`TargetEncoder` replaces a categorical value with the average value of the target for that value of the feature. This is often blended with the target probability over the entire dataset to reduce the variance of values with few occurences. This technique uses the targets to create new features. So including the validation or test data in the target encodings would be a form of **target leakage**. Instead, we should learn the target encodings from the training dataset only and apply it to the other datasets.
+
+`CatBoostEncoder`, similar to `TargetEncoder`, is based on the target probablity for a given value. However with CatBoost, for each row, the target probability is calculated only from the rows before it.
+
+```python
+# split data
+train, valid, test = get_data_splits(baseline_data)
+```
+
+```python
+# choose catagorical features
+cat_features = ["category", "currency", "country"]
+```
+
+```python
+# create the encoder
+from category_encoders import CountEncoder
+ce = CountEncoder(cols=cat_features)
+```
+
+- `TargetEncoder`, `CatBoostEncoder` are the same.
+
+```python
+# learn encoding from the training features
+ce.fit(train[cat_features])
+```
+
+- `TargetEncoder`, `CatBoostEncoder` are the same, but also target must be set in `fit()` method too. For instance `te.fit(train[cat_features], train["outcome"])`.
+
+```python
+# apply encoding to the train and validation sets as new columns with a suffix
+train_encoded = train.join(ce.transform(train[cat_features]).add_suffix("_ce"))
+valid_encoded = valid.join(ce.transform(valid[cat_features]).add_suffix("_ce"))
+```
+
+```python
+# fit & evaluate a model on the encoded data
+bst = train_model(train_encoded, valid_encoded)
+```
+
+We'll keep those work best. For instance `CatBoostEncoder` is that one.
+
+```python
+encoded = cb.transform(baseline_data[cat_features])
+for col in encoded:
+    baseline_data.insert(len(baseline_data.columns), col + "_cb", encoded[col])
+```
+
 ## Feature Generation
 *The frequently useful case where you can combine data from multiple rows into useful features. [#](https://www.kaggle.com/matleonard/feature-generation)*
 
