@@ -3499,26 +3499,6 @@ Some models work better when the features are **normally distributed**. Common c
 
 Other transformations include squares and other powers, exponentials, etc. These might help the model discriminate, like the kernel trick for SVMs. But again, it takes a bit of experimentation to see what works.
 
-```python
-%matplotlib inline
-import matplotlib.pyplot as plt
-from pandas.plotting import register_matplotlib_converters
-register_matplotlib_converters()
-import numpy as np
-```
-
-```python
-plt.hist(ks["goal"], range=(0, 100000), bins=50)
-```
-
-```python
-plt.hist(np.log(ks["goal"]), range=(0, 25), bins=50)
-```
-
-```python
-plt.hist(np.sqrt(ks["goal"]), range=(0, 400), bins=50)
-```
-
 ## Feature Selection
 *You can make a lot of features. Here's how to get the best set of features for your model. [#](https://www.kaggle.com/matleonard/feature-selection)*
 
