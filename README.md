@@ -3357,6 +3357,168 @@ for col in encoded:
 ## Feature Generation
 *The frequently useful case where you can combine data from multiple rows into useful features. [#](https://www.kaggle.com/matleonard/feature-generation)*
 
+### Introduction
+
+Creating new features from the raw data is one of the best ways to improve your model. The features you create are different for every dataset, so it takes a bit of creativity and experimentation.
+
+```python
+# load data
+import pandas as pd
+ks = pd.read_csv(
+    "../input/kickstarter-projects/ks-projects-201801.csv", parse_dates=["deadline", "launched"]
+)
+
+# drop live projects
+ks = ks.query('state != "live"')
+
+# add outcome column, "successful" = 1, others are 0
+ks = ks.assign(outcome=(ks["state"] == "successful").astype(int))
+
+# timestamp features
+ks = ks.assign(
+    hour=ks["launched"].dt.hour,
+    day=ks["launched"].dt.day,
+    month=ks["launched"].dt.month,
+    year=ks["launched"].dt.year,
+)
+
+# choose catagorical features
+cat_features = ["category", "currency", "country"]
+
+# create the encoder
+from sklearn.preprocessing import LabelEncoder
+le = LabelEncoder()
+
+# encode catagorical features
+encoded = ks[cat_features].apply(le.fit_transform)
+
+# join `ks` and `encoded`
+baseline_data = ks[["goal", "hour", "day", "month", "year", "outcome"]].join(encoded)
+```
+
+### Interactions
+
+One of the easiest ways to create new features is by combining categorical variables. For example, if one record has the country `CA` and category `Music`, you can create a new value `CA_Music`. This is a new categorical feature that can provide information about **correlations** between categorical variables. This type of feature is typically called an interaction.
+
+The easiest way to iterate through the pairs of features is with `itertools.combinations`.
+
+```python
+# choose catagorical features
+cat_features = ["category", "currency", "country"]
+```
+
+```python
+# create an empty DataFrame with same index
+interactions = pd.DataFrame(index=ks.index)
+
+# iterate through each pair of features & combine them
+from itertools import combinations
+for cname1, cname2 in combinations(cat_features, 2):
+    # create new cname
+    new_cname = "_".join([cname1, cname2])
+
+    # convert to strings and combine
+    new_values = ks[cname1].map(str) + "_" + ks[cname2].map(str)
+
+    # encode the interaction feature
+    le = LabelEncoder()
+    interactions[new_cname] = le.fit_transform(new_values)
+```
+
+```python
+# join interaction features to the data
+baseline_data = baseline_data.join(interactions)
+```
+
+### Number of Projects in the Last Week
+
+We'll count the number of projects launched in the preceeding week for each record. With a timeseries index, you can use `.rolling` to select time periods as the **window**. For example `.rolling('7d')` creates a rolling window that contains all the data in the previous 7 days. The window contains the current record, so if we want to count all the previous projects but not the current one, we'll need to subtract 1.
+
+We'll use the `.rolling` method on a series with the `launched` column as the index. We'll create the series, using `ks["launched"]` as the index and `ks.index` as the values, then sort the times. Using a time series as the index allows us to define the rolling window size in terms of hours, days, weeks, etc.
+
+```python
+# function takes a timestamps Series, returns another Series with the number of events in time periods
+def count_past_events(series, time_window):
+    # create a Series with a timestamp index
+    series = pd.Series(series.index, index=series).sort_index()
+    
+    # subtract 1 so the current event isn't counted
+    past_events = series.rolling(time_window).count() - 1
+
+    # adjust the index, so we can join it to the other training data
+    past_events.index = series.values
+    past_events = past_events.reindex(series.index)
+    
+    return past_events
+```
+
+```python
+# count past events, in the previous 7 days
+count_7_days = count_past_events(ks["launched"], time_window="7d")
+```
+
+```python
+# join new features to the data
+baseline_data.join(count_7_days)
+```
+
+### Time since the Last Project in the Same Category
+
+Do projects in the same category compete for donors? We can capture this by calculating the time since the last launch project in the same category.
+
+A handy method for performing operations within groups is to use `.groupby` then `.transform`. The `.transform` method takes a function then passes a series or dataframe to that function for each group. This returns a dataframe with the same indices as the original dataframe.
+
+```python
+# function calculates the time differences (in hours)
+def time_since_last_project(series):
+    return series.diff().dt.total_seconds() / 3600
+
+# calculate the time differences for each category
+df = ks[["category", "launched"]].sort_values("launched")
+timedeltas = df.groupby("category").transform(time_since_last_project)
+```
+
+We get `NaN`s here for projects that are the first in their category.
+
+```python
+timedeltas = timedeltas.fillna(timedeltas.median()).reindex(baseline_data.index)
+```
+
+```python
+# join new features to the data
+baseline_data.join(timedeltas)
+```
+
+### Transforming Numerical Features: Tree-based vs Neural Network Models
+
+So far we've been using LightGBM, a tree-based model. Would these features we've generated work well for neural networks as well as tree-based models?
+
+The features themselves will work for either model. However, numerical inputs to neural networks need to be standardized first. So, the features need to be scaled such that they have 0 mean and a standard deviation of 1. This can be done using `sklearn.preprocessing.StandardScaler`.
+
+Some models work better when the features are **normally distributed**. Common choices for this are the **log** and **power** transformations. The log transformation won't help tree-based models because they are scale invariant. However, this should help if we had a linear model or neural network.
+
+Other transformations include squares and other powers, exponentials, etc. These might help the model discriminate, like the kernel trick for SVMs. But again, it takes a bit of experimentation to see what works.
+
+```python
+%matplotlib inline
+import matplotlib.pyplot as plt
+from pandas.plotting import register_matplotlib_converters
+register_matplotlib_converters()
+import numpy as np
+```
+
+```python
+plt.hist(ks["goal"], range=(0, 100000), bins=50)
+```
+
+```python
+plt.hist(np.log(ks["goal"]), range=(0, 25), bins=50)
+```
+
+```python
+plt.hist(np.sqrt(ks["goal"]), range=(0, 400), bins=50)
+```
+
 ## Feature Selection
 *You can make a lot of features. Here's how to get the best set of features for your model. [#](https://www.kaggle.com/matleonard/feature-selection)*
 
