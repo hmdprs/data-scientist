@@ -3472,7 +3472,9 @@ A handy method for performing operations within groups is to use `.groupby` then
 # function calculates the time differences (in hours)
 def time_since_last_project(series):
     return series.diff().dt.total_seconds() / 3600
+```
 
+```python
 # calculate the time differences for each category
 df = ks[["category", "launched"]].sort_values("launched")
 timedeltas = df.groupby("category").transform(time_since_last_project)
@@ -3501,6 +3503,108 @@ Other transformations include squares and other powers, exponentials, etc. These
 
 ## Feature Selection
 *You can make a lot of features. Here's how to get the best set of features for your model. [#](https://www.kaggle.com/matleonard/feature-selection)*
+
+### Introduction
+
+Now that we've generated hundreds or thousands of features after various encodings and feature generation, we should remove some of them to:
+
+- Reduce the size of the model and speed up **model-training** and **hyperparameters-optimizing**, especially when building user-facing products.
+- Prevent **overfitting** the model to the training and validation sets and improve the performance.
+
+### Univariate Feature Selection
+
+The simplest and fastest methods are based on univariate statistical tests. For each feature, measure how strongly the target depends on the feature using a statistical test like Ⲭ² or ANOVA.
+
+From the `sklearn.feature_selection` module, `SelectKBest` returns the K-best features given some scoring function. For our classification problem, the module provides three different scoring functions: Ⲭ², ANOVA F-value, and the mutual information score.
+
+- The F-value measures the linear dependency between the feature variable and the target. This means the score might underestimate the relation between a feature and the target if the relationship is nonlinear.
+- The mutual information score is nonparametric and so can capture nonlinear relationships.
+
+With `SelectKBest`, we define the number of features to keep, based on the score from the scoring function. Using `.fit_transform` we get back an array with only the selected features.
+
+```python
+# split data
+train, valid, test = get_data_splits(baseline_data)
+```
+
+```python
+# choose features
+feature_cols = baseline_data.columns.drop("outcome")
+
+# seperate predictors (X) and target (y)
+X, y = train[feature_cols], train["outcome"]
+```
+
+```python
+# keep 5-best features
+from sklearn.feature_selection import SelectKBest, f_classif
+selector = SelectKBest(f_classif, k=5)
+
+X_new = selector.fit_transform(X, y)
+```
+
+Now we have our selected features. To drop the rejected features, we need to figure out which columns in the dataset were kept with `SelectKBest`. To do this, we can use `.inverse_transform` to get back an array with the shape of the original data. This returns a DataFrame with the same index and columns as the training set, but all the dropped columns are filled with zeros. We can find the selected columns by choosing features where the variance is non-zero.
+
+```python
+# get back the features we've kept
+selected_features = pd.DataFrame(
+    selector.inverse_transform(X_new), index=X.index, columns=feature_cols
+)
+
+# drop columns have values of all 0s
+selected_columns = selected_features.columns[selected_features.var() != 0]
+```
+
+With this method we can choose the best K features, but we still have to choose K ourselves. How would we find the "best" value of K?
+
+- To find the best value of K, we can fit multiple models with increasing values of K, then choose the smallest K with validation score above some threshold or some other criteria. That is, we're keeping the best features w/o degrading the model's performance.
+
+### L1 Regularization
+
+Univariate methods consider only one feature at a time when making a selection decision. Instead, we can make our selection using all of the features by including them in a linear model with L1 (Lasso) regularization which penalizes the absolute magnitude of the coefficients, or L2 (Ridge) regression which penalizes the square of the coefficients.
+
+In general, feature selection with L1 regularization is more powerful the univariate tests, but it can also be very slow when you have a lot of data and a lot of features. As the strength of regularization is increased, features which are less important for predicting the target are set to 0.
+
+From `sklearn.linear_model` module, you can use `Lasso` for regression problems, or `LogisticRegression` for classification. These can be used along with `sklearn.feature_selection.SelectFromModel` to select the non-zero coefficients. Otherwise, the code is similar to the univariate tests.
+
+```python
+# split data
+train, valid, test = get_data_splits(baseline_data)
+```
+
+```python
+# choose features
+feature_cols = baseline_data.columns.drop("outcome")
+
+# seperate predictors (X) and target (y)
+X, y = train[feature_cols], train["outcome"]
+```
+
+```python
+from sklearn.linear_model import LogisticRegression
+from sklearn.feature_selection import SelectFromModel
+logistic = LogisticRegression(C=1, penalty="l1", random_state=7).fit(X, y)
+selector = SelectFromModel(logistic, prefit=True)
+
+X_new = selector.transform(X)
+```
+
+- `C` is the inverse of regularization strength, which leads to some number of features being dropped. However, by setting C we aren't able to choose a certain number of features to keep. To find the regularization parameter that leaves the desired number of features, we can iterate over models with different regularization parameters from low to high and choose the one that leaves K features.
+- `prefit` determines a model to be passed into the constructor directly or not. If True, `transform` must be called directly and `SelectFromModel` cannot be used with `cross_val_score`, `GridSearchCV` and similar utilities that clone the estimator. Otherwise train the model using `fit` and then `transform` to do feature selection.
+
+```python
+# get back the features we've kept
+selected_features = pd.DataFrame(
+    selector.inverse_transform(X_new), index=X.index, columns=feature_cols
+)
+
+# drop columns have values of all 0s
+selected_columns = selected_features.columns[selected_features.var() != 0]
+```
+
+### Feature Selection with Trees
+
+Since we're using a tree-based model, using another tree-based model for feature selection might produce better results. We could use something like `RandomForestClassifier` or `ExtraTreesClassifier` to find feature importances. `SelectFromModel` can use the feature importances to find the best features.
 
 # Deep Learning
 *Use TensorFlow to take machine learning to the next level. Your new skills will amaze you.*
