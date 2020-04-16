@@ -3609,6 +3609,30 @@ Since we're using a tree-based model, using another tree-based model for feature
 # Deep Learning
 *Use TensorFlow to take machine learning to the next level. Your new skills will amaze you.*
 
+## Intro to DL for Computer Vision
+*A quick overview of how models work on images. [#](https://www.kaggle.com/dansbecker/intro-to-dl-for-computer-vision)*
+
+## Building Models From Convolutions
+*Scale up from simple building blocks to models with beyond human capabilities. [#](https://www.kaggle.com/dansbecker/building-models-from-convolutions)*
+
+## TensorFlow Programming
+*Start writing code using TensorFlow and Keras. [#](https://www.kaggle.com/dansbecker/tensorflow-programming)*
+
+## Transfer Learning
+*A powerful technique to build highly accurate models even with limited data. [#](https://www.kaggle.com/dansbecker/transfer-learning)*
+
+## Data Augmentation
+*Learn a simple trick that effectively increases amount of data available for model training. [#](https://www.kaggle.com/dansbecker/data-augmentation)*
+
+## A Deeper Understanding of Deep Learning
+*How Stochastic Gradient Descent and Back-Propagation train your deep learning model. [#](https://www.kaggle.com/dansbecker/a-deeper-understanding-of-deep-learning)*
+
+## Deep Learning From Scratch
+*Build models without transfer learning. Especially important for uncommon image types. [#](https://www.kaggle.com/dansbecker/deep-learning-from-scratch)*
+
+## Dropout and Strides for Larger Models
+*Make your models faster and reduce overfitting. [#](https://www.kaggle.com/dansbecker/dropout-and-strides-for-larger-models)*
+
 # Intro to SQL
 *Learn SQL for working with databases, using Google BigQuery to scale to massive datasets.*
 
