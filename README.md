@@ -3612,6 +3612,43 @@ Since we're using a tree-based model, using another tree-based model for feature
 ## Intro to DL for Computer Vision
 *A quick overview of how models work on images. [#](https://www.kaggle.com/dansbecker/intro-to-dl-for-computer-vision)*
 
+### Intro
+
+Deep Learning has revolutionized computer vision and it is the core technology behind capabilities like self driving cars.
+
+For this series, we will use tensorflow and the tensorflow implementation of keras. Tensorflow is the most popular tool for deep learning and keras is a popular api or for specifying deep learning models. This allows you to specify models with the elegant of keras while taking greater advantage of some powerful tensorflow features.
+
+Your machine learning experience so far has probably focused on tabular data like you would work with in pandas. We will be doing deep learning with images so we will start an overview of how images are stored for machine learning.
+
+Images are composed of pixels.
+
+- In b/w images, some pixels are completely black, some are completely white, and some are varying shades of grey. The pixels are arranged in rows and columns so it is natural to store them in a matrix. Each value represents the darkness of the pixel in the image
+- Colour images have an extra dimension. For each pixel we store how red that pixel is, how green it is, and how blue it is. It's like a stack of three matrices.
+
+**Tensor** is the word for something that is like a matrix but which can have any number of dimensions.
+
+Today's deep learning models apply something called **convolutions** to this type of tensor. A convolution is a small tensor that can be multiplied over little sections of the main image. Convolutions are also called filters because depending on the values in that convolutional array, you can pick out the percific **patterns** from the image, like horizontal or vertical lines. The numerical values in the convolution determine what pattern it detects.
+
+![](img/tensor.png)
+
+You don't directly choose the numbers to go into your convolutions for deep learning... instead the deep learning technique determines what convolutions will be useful from the data (as part of model-training). But looking closely at convolutions and how they are applied to your image will improve your intuition for these models, how they work, and how to debug them when they don't work.
+
+For example, a convolution that detected horizontal lines:
+
+```python
+horizontal_line_conv = [[1, 1], 
+                        [-1, -1]]
+```
+
+or, a vertical line detector:
+
+```python
+vertical_line_conv = [[1, -1],
+                      [1, -1]]
+```
+
+While any one convolution measures only a single pattern, there are more possible convolutions that can be created with large sizes. So there are also more patterns that can be captured with large convolutions. Does this mean powerful models require extremely large convolutions? Not necessarily.
+
 ## Building Models From Convolutions
 *Scale up from simple building blocks to models with beyond human capabilities. [#](https://www.kaggle.com/dansbecker/building-models-from-convolutions)*
 
