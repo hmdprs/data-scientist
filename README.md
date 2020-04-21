@@ -3649,8 +3649,26 @@ vertical_line_conv = [[1, -1],
 
 While any one convolution measures only a single pattern, there are more possible convolutions that can be created with large sizes. So there are also more patterns that can be captured with large convolutions. Does this mean powerful models require extremely large convolutions? Not necessarily.
 
-## Building Models From Convolutions
+## Building Models from Convolutions
 *Scale up from simple building blocks to models with beyond human capabilities. [#](https://www.kaggle.com/dansbecker/building-models-from-convolutions)*
+
+Once we create a filter, we applied it to each part of the image and map the output. This gave us a map showing where the associative pattern shows up in the image. Different convolutions or filters capture different aspects of the original image. In practice, we won't mainly pick the numbers in our filters. We using training process like gradient descent and back propagation to automatically create filters, which means we can have a lot of filters to capture many different patterns.
+
+We represent an image as a matrix, or a 2d tensor. Each convolution we apply to that tensor creates a new 2d tensor. We stack all those 2d tensors into a single 3d tensor. For example, we might have a 2d tensor showing where the horizontal lines are. And we stack it on top of a 2d tensor showing where the vertical lines are and keep stacking with any other tensors from other convolutions that we have. The result is a representation of the image in three dimensions. This last dimension is called the channel dimension.
+
+We're going to apply an another set or a layer of convolution. But we won't apply them to the raw pixel intensities. Instead, we applied this layer of convolutions to that 3d tensor, we got as the output of the first layer of convolutions. Our second layer convolutions takes that map of pattern locations as input and multiplies them with 3d convolution to find more interesting patterns.
+
+Modern networks apply a lot of these layers. Some research papers have used over 1000 layers. After enough layers and the right numbers and the compositions are filtered, we have a 3d tensor with a very rich summary of the image content.
+
+What can you do with the summary of the image content? We'll start with something called object detection. Your model will take a photo as input, and it returns a prediction for what type of object is in the photo. Is it a dog or a kangaroo or a robot, or whatever.
+
+Many breakthroughs in computer vision and AI have come through an object detection competition called ImageNet. Competitors receive a training set with millions of images, each image is labelled with its content coming from 1000 different possible labels.
+
+Competitors use this training data to build a model that classifies images into those thousand options. The best models get it right with their top prediction about 80% of the time. If each model gets five predictions, the true image label is in those top five predictions about 95% of the time. This is especially impressive because there are many similar options that the model must choose between. So labelling an image correctly requires not only that, you know, it's a picture of a shark, but you have to know that it is a hammerhead shark or a tiger shark or a great white shark. So when those best models are right on our first guest 80% of the time, that's better than most people could do.
+
+Some models using the ImageNet competition are also available as pre trained models. So, even before you learn to train a model for yourself, you can start with powerful models that classify images into one of 1000 different categories.
+
+As a very first step programming with Keras and TensorFlow, we will start by using a pre trained model from the ImageNet competition. Once you can run these models, we'll move on to something called transfer learning, which allows you to apply the same level of power to most other problems you might be interested in.
 
 ## TensorFlow Programming
 *Start writing code using TensorFlow and Keras. [#](https://www.kaggle.com/dansbecker/tensorflow-programming)*
