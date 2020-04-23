@@ -3652,13 +3652,19 @@ While any one convolution measures only a single pattern, there are more possibl
 ## Building Models from Convolutions
 *Scale up from simple building blocks to models with beyond human capabilities. [#](https://www.kaggle.com/dansbecker/building-models-from-convolutions)*
 
+### Intro
+
 Once we create a filter, we applied it to each part of the image and map the output. This gave us a map showing where the associative pattern shows up in the image. Different convolutions or filters capture different aspects of the original image. In practice, we won't mainly pick the numbers in our filters. We using training process like gradient descent and back propagation to automatically create filters, which means we can have a lot of filters to capture many different patterns.
+
+### Convolutions
 
 We represent an image as a matrix, or a 2d tensor. Each convolution we apply to that tensor creates a new 2d tensor. We stack all those 2d tensors into a single 3d tensor. For example, we might have a 2d tensor showing where the horizontal lines are. And we stack it on top of a 2d tensor showing where the vertical lines are and keep stacking with any other tensors from other convolutions that we have. The result is a representation of the image in three dimensions. This last dimension is called the channel dimension.
 
 We're going to apply an another set or a layer of convolution. But we won't apply them to the raw pixel intensities. Instead, we applied this layer of convolutions to that 3d tensor, we got as the output of the first layer of convolutions. Our second layer convolutions takes that map of pattern locations as input and multiplies them with 3d convolution to find more interesting patterns.
 
 Modern networks apply a lot of these layers. Some research papers have used over 1000 layers. After enough layers and the right numbers and the compositions are filtered, we have a 3d tensor with a very rich summary of the image content.
+
+### Object Detection
 
 What can you do with the summary of the image content? We'll start with something called object detection. Your model will take a photo as input, and it returns a prediction for what type of object is in the photo. Is it a dog or a kangaroo or a robot, or whatever.
 
@@ -3672,6 +3678,8 @@ As a very first step programming with Keras and TensorFlow, we will start by usi
 
 ## TensorFlow Programming
 *Start writing code using TensorFlow and Keras. [#](https://www.kaggle.com/dansbecker/tensorflow-programming)*
+
+### Intro
 
 As the first step with Keras and TensorFlow, we will use a pre trained deep learning model to classify what's in a photo. Pre trained models are saved on kaggle, you can attach them to your kernel workspace, the same way you would attach a data set.
 
@@ -3691,6 +3699,8 @@ img_paths = [
     ]
 ]
 ```
+
+### Pre-processing
 
 We'll use a type of model called the `ResNet50` model (in the excercise, we'll use `VGG16`). But first, we need to do a little bit of pre processing to go from the image file path to something we can run through our model.
 
@@ -3717,6 +3727,8 @@ def read_and_prep_images(img_paths, img_height=image_size, img_width=image_size)
 - The `img_to_array` function creates the 3d tensor for each image, combining multiple images cause us to stack those in a new dimension, so we end up with a four dimensional tensor or array.
 - The `pre_process_input` function does some arithmetic on the pixel values, specifically, dividing the values in the input, so they're all between minus one and one. This was done when the model was first built, so we have to do it again here to be consistent.
 
+### Using pre-trained Models
+
 ```python
 # specify the model
 from tensorflow.python.keras.applications import ResNet50
@@ -3734,6 +3746,8 @@ test_data = read_and_prep_images(img_paths)
 # make predictions
 preds = my_model.predict(test_data)
 ```
+
+### Decode Predictions
 
 We have predictions about what's in each image. We had four photographs and our model gave 1000 probabilities for each photo. It's convenient to focus on the probabilities for what the model thinks is in the image rather than what all the things it says are not in the image.
 
@@ -3771,7 +3785,7 @@ for i, img_path in enumerate(img_paths):
     print(most_likely_labels[i])
 ```
 
-This may still feel like magic right now, but it will come familiar as we play with a couple of examples. Then we'll be ready for transfer learning and quickly apply these models to new applications. 
+This may still feel like magic right now, but it will come familiar as we play with a couple of examples. Then we'll be ready for transfer learning and quickly apply these models to new applications.
 
 ## Transfer Learning
 *A powerful technique to build highly accurate models even with limited data. [#](https://www.kaggle.com/dansbecker/transfer-learning)*
