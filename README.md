@@ -3673,6 +3673,106 @@ As a very first step programming with Keras and TensorFlow, we will start by usi
 ## TensorFlow Programming
 *Start writing code using TensorFlow and Keras. [#](https://www.kaggle.com/dansbecker/tensorflow-programming)*
 
+As the first step with Keras and TensorFlow, we will use a pre trained deep learning model to classify what's in a photo. Pre trained models are saved on kaggle, you can attach them to your kernel workspace, the same way you would attach a data set.
+
+We will work with dog pictures and try to tell each dog's breed from its picture that data is in this directory. To keep things simple, we'll make prediction with just a few of those images.
+
+```python
+# load data
+from os.path import join
+image_dir = "../input/dog-breed-identification/train/"
+img_paths = [
+    join(image_dir, filename)
+    for filename in [
+        "0c8fe33bd89646b678f6b2891df8a1c6.jpg",
+        "0c3b282ecbed1ca9eb17de4cb1b6e326.jpg",
+        "04fb4d719e9fe2b6ffe32d9ae7be8a22.jpg",
+        "0e79be614f12deb4f7cae18614b7391b.jpg",
+    ]
+]
+```
+
+We'll use a type of model called the `ResNet50` model (in the excercise, we'll use `VGG16`). But first, we need to do a little bit of pre processing to go from the image file path to something we can run through our model.
+
+```python
+# function to read and prep images for modeling
+image_size = 224
+def read_and_prep_images(img_paths, img_height=image_size, img_width=image_size):
+    # load images
+    from tensorflow.python.keras.preprocessing.image import load_img
+    imgs = [load_img(img_path, target_size=(img_height, img_width)) for img_path in img_paths]
+    
+    # convert each image to an array
+    import numpy as np
+    from tensorflow.python.keras.preprocessing.image import img_to_array
+    img_array = np.array([img_to_array(img) for img in imgs])
+    
+    # preprocess on images' array
+    from tensorflow.python.keras.applications.resnet50 import preprocess_input
+    output = preprocess_input(img_array)
+    return output
+```
+
+- The `target_size` argument specifies the size or pixel resolution we want the images to be in when we model with them. The model will use was trained with 224 by 224 resolution images. So, we'll make them have the same resolution here.
+- The `img_to_array` function creates the 3d tensor for each image, combining multiple images cause us to stack those in a new dimension, so we end up with a four dimensional tensor or array.
+- The `pre_process_input` function does some arithmetic on the pixel values, specifically, dividing the values in the input, so they're all between minus one and one. This was done when the model was first built, so we have to do it again here to be consistent.
+
+```python
+# specify the model
+from tensorflow.python.keras.applications import ResNet50
+
+# load a pre-trained model's weights (values in the convolution filters)
+my_model = ResNet50(weights="../input/resnet50/resnet50_weights_tf_dim_ordering_tf_kernels.h5")
+```
+
+```python
+# preprocess the data
+test_data = read_and_prep_images(img_paths)
+```
+
+```python
+# make predictions
+preds = my_model.predict(test_data)
+```
+
+We have predictions about what's in each image. We had four photographs and our model gave 1000 probabilities for each photo. It's convenient to focus on the probabilities for what the model thinks is in the image rather than what all the things it says are not in the image.
+
+```python
+# function extracts the highest probabilities for each image
+def decode_predictions(preds, top=5, class_list_path="../input/resnet50/imagenet_class_index.json"):
+    """Decodes the prediction of an ImageNet model"""
+    if len(preds.shape) != 2 or preds.shape[1] != 1000:
+        raise ValueError(
+            "`decode_predictions` expects a batch of predictions"
+            "(i.e. a 2D array of shape (samples, 1000)). "
+            "Found array with shape: " + str(preds.shape)
+        )
+    import json
+    class_index = json.load(open(class_list_path))
+    results = []
+    for pred in preds:
+        top_indices = pred.argsort()[-top:][::-1]
+        result = [tuple(class_index[str(i)]) + (pred[i],) for i in top_indices]
+        result.sort(key=lambda x: x[2], reverse=True)
+        results.append(result)
+    return results
+```
+
+```python
+# extract the highest probabilities
+most_likely_labels = decode_predictions(
+    preds, top=3, class_list_path="../input/resnet50/imagenet_class_index.json"
+)
+
+# display
+from IPython.display import Image, display
+for i, img_path in enumerate(img_paths):
+    display(Image(img_path))
+    print(most_likely_labels[i])
+```
+
+This may still feel like magic right now, but it will come familiar as we play with a couple of examples. Then we'll be ready for transfer learning and quickly apply these models to new applications. 
+
 ## Transfer Learning
 *A powerful technique to build highly accurate models even with limited data. [#](https://www.kaggle.com/dansbecker/transfer-learning)*
 
