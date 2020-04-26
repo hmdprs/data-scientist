@@ -3441,14 +3441,14 @@ We'll use the `.rolling` method on a series with the `launched` column as the in
 def count_past_events(series, time_window):
     # create a Series with a timestamp index
     series = pd.Series(series.index, index=series).sort_index()
-    
+
     # subtract 1 so the current event isn't counted
     past_events = series.rolling(time_window).count() - 1
 
     # adjust the index, so we can join it to the other training data
     past_events.index = series.values
     past_events = past_events.reindex(series.index)
-    
+
     return past_events
 ```
 
@@ -3636,7 +3636,7 @@ You don't directly choose the numbers to go into your convolutions for deep lear
 For example, a convolution that detected horizontal lines:
 
 ```python
-horizontal_line_conv = [[1, 1], 
+horizontal_line_conv = [[1, 1],
                         [-1, -1]]
 ```
 
@@ -3711,12 +3711,12 @@ def read_and_prep_images(img_paths, img_height=image_size, img_width=image_size)
     # load images
     from tensorflow.python.keras.preprocessing.image import load_img
     imgs = [load_img(img_path, target_size=(img_height, img_width)) for img_path in img_paths]
-    
+
     # convert each image to an array
     import numpy as np
     from tensorflow.python.keras.preprocessing.image import img_to_array
     img_array = np.array([img_to_array(img) for img in imgs])
-    
+
     # preprocess on images' array
     from tensorflow.python.keras.applications.resnet50 import preprocess_input
     output = preprocess_input(img_array)
@@ -3789,6 +3789,128 @@ This may still feel like magic right now, but it will come familiar as we play w
 
 ## Transfer Learning
 *A powerful technique to build highly accurate models even with limited data. [#](https://www.kaggle.com/dansbecker/transfer-learning)*
+
+### Intro
+
+Using a pre trained model to make predictions, gives you great result if you want to classify images into the categories used by the original models. But what if you have a new use case, and you don't categorise images in exactly the same way as the categories for the pre trained model?
+
+For example, I might want a model that can tell if a photo was taken in an urban area, or a rural area. My pre trained model doesn't classify images into those two specific categories. We could build a new model from scratch for this specific purpose, but to get good results, we need thousands of photos with labels for which are urban, and which are rural. Something called transfer learning, will give us good results with far less data. Transfer learning takes what a model learned while solving one problem, and applies it to a new application.
+
+![](img/seqmodel.png)
+
+Early layers of a deep learning model identify simple shapes. Later layers identify more complex visual patterns, and the very last layer makes predictions. So most layers from a pre trained model are useful in new applications because most computer vision problems involve similar low level visual patterns. So we'll reuse most of the pre trained ResNet model and just replace that final layer that was used to make predictions.
+
+After removing the prediction layer, the last layer of what's left has information about our photo content stored as a series of numbers in a tensor. It should be a one dimensional tensor, which is also called a vector. The vector can be shown as a series of dots. Each dot is called a node and represents a **feature**.
+
+We want to classify the image into two categories, urban and rural. So after the last layer of the pre trained model, we add a new layer with two nodes, one node to capture how urban the photo is and another to capture how rural it is. In theory, any node (feature) in the last layer before prediction layer might inform the predictions. So, urban measurment can depend on all the nodes in this layer. When this happens, we describe the last layer as being a **dense** layer.
+
+### Specify Model
+
+```python
+# define a sequential model, which is a sequence of layers
+from tensorflow.python.keras.models import Sequential
+my_new_model = Sequential()
+```
+
+```python
+# use a pre trained ResNet50 model without prediction layer
+from tensorflow.python.keras.applications import ResNet50
+my_new_model.add(
+    ResNet50(
+        include_top=False,
+        weights="../input/resnet50/resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5",
+        pooling="avg",
+    )
+)
+```
+
+- `include_top=False` is how we specify that we want to exclude the prediction layer, that makes predictions into the thousands of categories used in the ImageNet competition.
+- We'll also use a file that doesn't include the weights for that last layer (`..notop.h5`).
+- `pooling='avg'` says that if we had extra channels in our tensor at the end of this step, we want to collapse them into a 1d tensor by taking an average across channels.
+
+```python
+# specify the number of prediction classes
+num_classes = 2
+
+# add a dense layer to make predictions
+from tensorflow.python.keras.layers import Dense, Flatten, GlobalAveragePooling2D
+my_new_model.add(Dense(num_classes, activation="softmax"))
+```
+
+- After making predictions, we'll get a score for each category. We'll apply the `softmax` function to transform the scores into probabilities.
+
+We'll tell TensorFlow not to train the first layer, which is the `ResNet50` model, because that's the model that was already pre trained with the ImageNet data.
+
+```python
+# tell TF not to train first layer (ResNet) model
+my_new_model.layers[0].trainable = False
+```
+
+### Compile Model
+
+In general, the `compile` command tells TensorFlow how to update the relationships in the dense connections, when we're doing the training with our data. We'll give a more complete explanation of the underlying theory later.
+
+```python
+my_new_model.compile(optimizer="sgd", loss="categorical_crossentropy", metrics=["accuracy"])
+```
+
+- `optimizer` determines how we minimise the loss function. We used an algorithm called stochastic gradient descent (`sgd`).
+- `loss` determines what goal we optimize. We used a measure of loss (inaccuracy) called `categorical_crossentropy`, another term for log loss.
+- `metrics` determines what we print out while the model is being built. `accuracy` is what fraction of our predictions were correct (FC). This is easier to interpret than categorical cross entropy scores.
+
+The compiling step doesn't change the values in any convolutions, because the model has not even received an argument with data yet. So, it runs so quickly.
+
+### Fit Model
+
+Our raw data is broken into a directory of training data, and a directory of validation data. Within each of those, we have one sub directory for the urban pictures, and another for the world pictures. Keras provides a great tool for working with images grouped into directories by their label. This is the `ImageDataGenerator`. The It is especially valuable when working with large datasets, because we don't need to hold the whole dataset in memory at once.
+
+There's two steps to using `ImageDataGenerator`. First, we create the generator object in the abstract. We'll tell it that we want to apply the ResNet preprocessing function (`preprocess_input`) every time it reads an image, which is used when ResNet model was created.
+
+```python
+# define data generator
+from tensorflow.python.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.python.keras.applications.resnet50 import preprocess_input
+data_generator = ImageDataGenerator(preprocessing_function=preprocess_input)
+image_size = 224
+```
+
+Then we use the `flow_from_directory` command. We tell it what directory that data is in, what size image we want, how many images to read in at a time, and we tell it we're classifying data into different categories.
+
+```python
+# generate train data
+train_generator = data_generator.flow_from_directory(
+    directory="../input/urban-and-rural-photos/rural_and_urban_photos/train",
+    target_size=(image_size, image_size),
+    batch_size=24,
+    class_mode="categorical",
+)
+```
+
+```python
+# generate validation data
+validation_generator = data_generator.flow_from_directory(
+    directory="../input/urban-and-rural-photos/rural_and_urban_photos/val",
+    target_size=(image_size, image_size),
+    batch_size=20,
+    class_mode="categorical",
+)
+```
+
+```python
+# fit model
+my_new_model.fit_generator(
+    train_generator, steps_per_epoch=3, validation_data=validation_generator, validation_steps=1
+)
+```
+
+- `train_generator` reads 24 images at a time (`batch_size=24`), and we have 72 images. So we'll fit model through 3 `steps_per_epoch`.
+- `validation_generator` reads 20 images at a time (`batch_size=20`), and we have 20 images of validation data. So we can use just 1 `validation_step`.
+
+As the model training is running, we'll see progress updates showing with our loss function and the accuracy. It updates the connections in the dense layer that is the models impression of what makes an urban photo and what makes a rural photo, and it makes us update in 3 steps. When it's done, it got 73% of the train data right. Then it examines the validation data, which gets 85% of those right, 17 out of 20.
+
+- The printed validation accuracy can be meaningfully better than the training accuracy at this stage. This can be puzzling at first. It occurs because the training accuracy was calculated at multiple points as the network was improving (the numbers in the convolutions were being updated to make the model more accurate). The network was inaccurate when the model saw the first training images, since the weights hadn't been trained/improved much yet. Those first training results were averaged into the measure above. The validation loss and accuracy measures were calculated **after** the model had gone through all the data. So the network had been fully trained when these scores were calculated.
+
+We trained on 72 photos. You could easily take that many photos on your phone, upload them to kaggle and build a very accurate model to distinguish almost anything you care about. This is incredibly COOL!
 
 ## Data Augmentation
 *Learn a simple trick that effectively increases amount of data available for model training. [#](https://www.kaggle.com/dansbecker/data-augmentation)*
