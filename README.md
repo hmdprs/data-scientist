@@ -3915,6 +3915,72 @@ We trained on 72 photos. You could easily take that many photos on your phone, u
 ## Data Augmentation
 *Learn a simple trick that effectively increases amount of data available for model training. [#](https://www.kaggle.com/dansbecker/data-augmentation)*
 
+### Intro
+
+What about one of those urban images? If we flip the image horizontally, taking the photos mirror image, it would still look like an urban scene. So we can train our model with both images. At some point, we may have so many raw images that we don't need this, but it's usually valuable, even with hundreds of thousands of images.
+
+We do these kind of triks with some arguments in `ImageDataGenerator` function. These techniques are listed in the documentation, which you can see in kernels by using `ImageDataGenerator?` command.
+
+```python
+# define data generator with augmentation
+from tensorflow.python.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.python.keras.applications.resnet50 import preprocess_input
+data_generator_with_aug = ImageDataGenerator(
+    preprocessing_function=preprocess_input,
+    horizontal_flip=True,
+    width_shift_range=0.2,
+    height_shift_range=0.2,
+)
+image_size = 224
+```
+
+- If we set `horizontal_flip=True`, the `ImageDataGenerator` will randomly decide whether or not to flip an image, every time it sends the image to the model for training. We need to judge whether this makes sense on a case by case basis. For instance, the mirror image of stop sign shouldn't be classified the same as the original image.
+- We could slightly crop the photo, effectively shifting it slightly horizontally or vertically, and I'll add commands to randomly shift part of the image that we train on 20% further to either side, and 20% further up or down. I do that by setting `width_shift_range`, and `height_shift_range` to 0.2.
+
+```python
+# generate train data
+train_generator = data_generator_with_aug.flow_from_directory(
+    directory="../input/urban-and-rural-photos/rural_and_urban_photos/train",
+    target_size=(image_size, image_size),
+    batch_size=24,
+    class_mode="categorical",
+)
+```
+
+We want to do data augmentation when fitting the model for the reasons, including a reduction in overfitting, by giving us more data to work with. But we don't want to change how we test the model. So the validation generator will use an `ImageDataGenerator` without augmentation or manipulation. That allows a straightforward comparison between different training procedures (e.g. training with augmentation and without it).
+
+```python
+# define data generator w/o augmentation
+data_generator_no_aug = ImageDataGenerator(preprocessing_function=preprocess_input)
+```
+
+```python
+# generate validation data
+validation_generator = data_generator_no_aug.flow_from_directory(
+    directory="../input/urban-and-rural-photos/rural_and_urban_photos/val",
+    target_size=(image_size, image_size),
+    batch_size=20,
+    class_mode="categorical",
+)
+```
+
+Now we're ready to fit the model.
+
+```python
+# fit model
+my_new_model.fit_generator(
+    train_generator,
+    epochs=2,
+    steps_per_epoch=3,
+    validation_data=validation_generator,
+    validation_steps=1,
+)
+```
+
+- `epochs=2` means it goes through each raw image file, two times, since we get different versions of the images, each time we see them. Data augmentation allows us to use more epochs before we start overfitting, and seeing validation scores get worse.
+
+Validation scores are more reliable on bigger validation datasets. In this particular case, our validation data is so small that there's a little bit of noise or luck in a score from any given model.
+
 ## A Deeper Understanding of Deep Learning
 *How Stochastic Gradient Descent and Back-Propagation train your deep learning model. [#](https://www.kaggle.com/dansbecker/a-deeper-understanding-of-deep-learning)*
 
