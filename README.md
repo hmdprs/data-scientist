@@ -3984,6 +3984,42 @@ Validation scores are more reliable on bigger validation datasets. In this parti
 ## A Deeper Understanding of Deep Learning
 *How Stochastic Gradient Descent and Back-Propagation train your deep learning model. [#](https://www.kaggle.com/dansbecker/a-deeper-understanding-of-deep-learning)*
 
+### Intro
+
+We will loop back to some technical details and understand how we use stochastic gradient descent and back-propagation to set the numeric values in both dense and convolutional layers, as well as how arguments like batch size and number of epochs affects this model training process.
+
+### Forward Propagation, Softmax, ReLU
+
+To simplify the explanation, we'll start with an example using tabular data, the type of data we might manipulate with pandas or SQL database. Imagine we want to assess someone's risk of developing diabetes in the next year. We have data about their age, weight and a blood sugar measure. We could draw a layer with one node for each variable. Since this layer represents raw data, we call this the **input** layer. Let's connect these directly to the **prediction** layer. Each person either develops diabetes in the next year or they don't. So there are two possible outcomes, and that's two nodes in a prediction or output layer. We'll connect these as a dense layer, where each input is connected to each output. Each connection will have a number associated with it. The numbers are called **weights**.
+
+Let's consider a single person. We can calculate the values in the next layer using a process called **forward propagation**. For each node, we multiply the weight of connections by the value at the node that connection comes from, similar to the calculations we did with convolutions. Then we sum those to get a score. For the predictions, the **softmax** function converts those scores into probabilities.
+
+When working with tabular data, it's common to have many dense layers between the input and the output. The same way we had many layers of convolutions when working with images. The layers between the input and output are called **hidden layers**. The forward propagation process remains the same, filling in the values from left to right.
+
+In practice, we'll apply some **nonlinear function** at each node in the hidden layers. Including a nonlinear function helps the model capture both **nonlinearities** and **interaction impacts** between the variables better. The most common function to apply is the **[ReLU](https://www.kaggle.com/dansbecker/rectified-linear-units-relu-in-deep-learning)** or rectified linear activation function.
+
+### Loss Functions, (Stochastic) Gradient Descent
+
+Though, we covered forward propagation to make predictions, we want to understand where the weights on the connections come from, because changing the weights will change the predictions. So good weights are the key to good predictions.
+
+The **loss function** measures how good a models predictions are. The loss functions argument are the actual values of the **target** that we want to predict. If the predicted values are close to the actual values of the target, the loss function will give a low value. the numeric value of the loss function will change if we change the models weights. This is the key to our model **optimization procedure**, **(stochastic) gradient descent**.
+
+We'll use stochastic gradient descent to set the weights that minimise our loss function. The weights affect our predictions and thus they affect the loss function. We could plot the loss function against those weights. In this plot, if we had a model with only two weights, we have the loss function on the Z axis, and weights on the other axes (3D contour plot). We want to find the low point on that surface. How would we do it? We look at data and see which way we can change the weights to get a little lower loss function and we change the weights slightly in that direction. Then we repeat this to improve the weight slightly again. This is basically how gradient descent works.
+
+In gradient descent, we generally don't use all of our data to calculate each step. Doing so would require a lot of calculations, so it would be slow. Instead, we look at some of the data at a time. The **batch size** is the number of rows of the tablet data, or the number of images, we use to calculate each step. We take one small batch, and then the next until we've used all of our data. One time through the data is called an **epoch**. We incrementally improve weights from multiple epochs. So each image or data point would be used to improve weight more than once.
+
+### Back Propagation, Learning Rate
+
+**Back propagation** is the process by which we find out which way to change the weights at each step of gradient descent to improve the loss function.
+
+We use forward propagation to go from input data to values in the hidden layer, and then to predictions. For each person in our training data, if we predicted the right output, our loss function would take a low value with little ability to improve further. If we predicted the wrong output, we would have a lot of room to improve. But how do we change the weights to improve? We'll go back one layer at a time. Consider a node feeding into the right prediction value with a positive value. The higher that weight is, the more likely we are to predict that node. That means the model that has a better loss function for this person. So we can increase the value of this weight and then improve the loss function, but it also might cause us to be very wrong for other people in the data set. Lowering the weights from this hidden node to the wrong prediction has a similar effect.
+
+The value in the hidden node may have contributed to making our predictions either more or less accurate. That is, raising or lowering the value in that node might improve our predictive probabilities. We can change the value in that node by changing the weight that feed into it. If we had many layers, we would continually iterate back from right to left until we got to the leftmost set of weights.
+
+The size of weight changes is determined by something called the **learning rate**. Low learning rates mean that your model may take a long time training before it gets accurate. High learning rates mean your model may take huge steps around in that field, jumping over the best weights and never getting very accurate. We can use the argument `optimizer="adam"` in `fit` (or `fit_generator`) function that automatically figures out the best learning rate throughout the gradient descent process.
+
+While we've demonstrated this with dense layers, it works the same with convolutional layers.
+
 ## Deep Learning From Scratch
 *Build models without transfer learning. Especially important for uncommon image types. [#](https://www.kaggle.com/dansbecker/deep-learning-from-scratch)*
 
