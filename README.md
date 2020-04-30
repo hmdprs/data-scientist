@@ -3709,16 +3709,16 @@ We'll use a type of model called the `ResNet50` model (in the excercise, we'll u
 image_size = 224
 def read_and_prep_images(img_paths, img_height=image_size, img_width=image_size):
     # load images
-    from tensorflow.python.keras.preprocessing.image import load_img
+    from tensorflow.keras.preprocessing.image import load_img
     imgs = [load_img(img_path, target_size=(img_height, img_width)) for img_path in img_paths]
 
     # convert each image to an array
     import numpy as np
-    from tensorflow.python.keras.preprocessing.image import img_to_array
+    from tensorflow.keras.preprocessing.image import img_to_array
     img_array = np.array([img_to_array(img) for img in imgs])
 
     # preprocess on images' array
-    from tensorflow.python.keras.applications.resnet50 import preprocess_input
+    from tensorflow.keras.applications.resnet50 import preprocess_input
     output = preprocess_input(img_array)
     return output
 ```
@@ -3731,7 +3731,7 @@ def read_and_prep_images(img_paths, img_height=image_size, img_width=image_size)
 
 ```python
 # specify the model
-from tensorflow.python.keras.applications import ResNet50
+from tensorflow.keras.applications import ResNet50
 
 # load a pre-trained model's weights (values in the convolution filters)
 my_model = ResNet50(weights="../input/resnet50/resnet50_weights_tf_dim_ordering_tf_kernels.h5")
@@ -3808,14 +3808,14 @@ We want to classify the image into two categories, urban and rural. So after the
 
 ```python
 # define a sequential model, which is a sequence of layers
-from tensorflow.python.keras.models import Sequential
-my_new_model = Sequential()
+from tensorflow.keras.models import Sequential
+model = Sequential()
 ```
 
 ```python
 # use a pre trained ResNet50 model without prediction layer
-from tensorflow.python.keras.applications import ResNet50
-my_new_model.add(
+from tensorflow.keras.applications import ResNet50
+model.add(
     ResNet50(
         include_top=False,
         weights="../input/resnet50/resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5",
@@ -3832,9 +3832,9 @@ my_new_model.add(
 # specify the number of prediction classes
 num_classes = 2
 
-# add a dense layer to make predictions
-from tensorflow.python.keras.layers import Dense, Flatten, GlobalAveragePooling2D
-my_new_model.add(Dense(num_classes, activation="softmax"))
+# add a Dense layer to make predictions
+from tensorflow.keras.layers import Dense
+model.add(Dense(num_classes, activation="softmax"))
 ```
 
 - After making predictions, we'll get a score for each category. We'll apply the `softmax` function to transform the scores into probabilities.
@@ -3843,7 +3843,7 @@ We'll tell TensorFlow not to train the first layer, which is the `ResNet50` mode
 
 ```python
 # tell TF not to train first layer (ResNet) model
-my_new_model.layers[0].trainable = False
+model.layers[0].trainable = False
 ```
 
 ### Compile Model
@@ -3851,11 +3851,12 @@ my_new_model.layers[0].trainable = False
 In general, the `compile` command tells TensorFlow how to update the relationships in the dense connections, when we're doing the training with our data. We'll give a more complete explanation of the underlying theory later.
 
 ```python
-my_new_model.compile(optimizer="sgd", loss="categorical_crossentropy", metrics=["accuracy"])
+from tensorflow.keras.losses import categorical_crossentropy
+model.compile(loss="categorical_crossentropy", optimizer="sgd", metrics=["accuracy"])
 ```
 
-- `optimizer` determines how we minimise the loss function. We used an algorithm called stochastic gradient descent (`sgd`).
 - `loss` determines what goal we optimize. We used a measure of loss (inaccuracy) called `categorical_crossentropy`, another term for log loss.
+- `optimizer` determines how we minimise the loss function. We used an algorithm called stochastic gradient descent (`sgd`).
 - `metrics` determines what we print out while the model is being built. `accuracy` is what fraction of our predictions were correct (FC). This is easier to interpret than categorical cross entropy scores.
 
 The compiling step doesn't change the values in any convolutions, because the model has not even received an argument with data yet. So, it runs so quickly.
@@ -3868,8 +3869,8 @@ There's two steps to using `ImageDataGenerator`. First, we create the generator 
 
 ```python
 # define data generator
-from tensorflow.python.keras.preprocessing.image import ImageDataGenerator
-from tensorflow.python.keras.applications.resnet50 import preprocess_input
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.applications.resnet50 import preprocess_input
 data_generator = ImageDataGenerator(preprocessing_function=preprocess_input)
 image_size = 224
 ```
@@ -3898,7 +3899,7 @@ validation_generator = data_generator.flow_from_directory(
 
 ```python
 # fit model
-my_new_model.fit_generator(
+model.fit_generator(
     train_generator, steps_per_epoch=3, validation_data=validation_generator, validation_steps=1
 )
 ```
@@ -3923,8 +3924,8 @@ We do these kind of triks with some arguments in `ImageDataGenerator` function. 
 
 ```python
 # define data generator with augmentation
-from tensorflow.python.keras.preprocessing.image import ImageDataGenerator
-from tensorflow.python.keras.applications.resnet50 import preprocess_input
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.applications.resnet50 import preprocess_input
 data_generator_with_aug = ImageDataGenerator(
     preprocessing_function=preprocess_input,
     horizontal_flip=True,
@@ -3968,7 +3969,7 @@ Now we're ready to fit the model.
 
 ```python
 # fit model
-my_new_model.fit_generator(
+model.fit_generator(
     train_generator,
     epochs=2,
     steps_per_epoch=3,
@@ -4020,8 +4021,129 @@ The size of weight changes is determined by something called the **learning rate
 
 While we've demonstrated this with dense layers, it works the same with convolutional layers.
 
-## Deep Learning From Scratch
+## Deep Learning from Scratch
 *Build models without transfer learning. Especially important for uncommon image types. [#](https://www.kaggle.com/dansbecker/deep-learning-from-scratch)*
+
+### Intro
+
+The deep learning models you've built so far have used transfer learning. Transfer learning is great because it allows you to quickly build accurate models, even with relatively little data. But transfer learning isn't necessary on large data sets. And it only works when your use case has similar visual patterns to the data used in the pre trained model. So, if you want to be versatile with deep learning, you'll need to learn to build models from scratch.
+
+### Data Preparation
+
+Now, we'll use the MNIST data set, which contains handwritten digits. In the exercise, we'll build a model to identify different types of clothing from low resolution images using a data set called MNIST for fashion. Both data sets contain 28 by 28 pixel images. We can load them from a CSV file containing all the data for all the images. This is the the first time we load all the image data from a single file, rather than using `ImageDataGenerator` to load many separate image files.
+
+```python
+# load data
+import pandas as pd
+raw_data = pd.read_csv("../input/digit-recognizer/train.csv")
+```
+
+To store all the images in a single CSV, each image is represented as a row of the CSV. The first column has the label. The rest of the columns represent pixel intensities. The pixels are represented in the CSV as a row of 784 pixel intensities, even though the image is started as a two dimensional grid, that's 28 by 28. We'll use a `data_prep` function to extract labels and reshape the pixel intensity data back to a 28 by 28 grid, before applying our model.
+
+```python
+# specify the images' dimentions
+img_rows, img_cols = 28, 28
+
+# specify the number of prediction classes
+num_classes = 10
+```
+
+```python
+import numpy as np
+from tensorflow.keras.utils import to_categorical
+
+def data_prep(raw):
+    # one-hot encode the catagorical data
+    out_y = to_categorical(raw["label"], num_classes)
+
+    # get the number of images
+    num_images = raw.shape[0]
+    # get data as a NumPy array, except the 1st column, it's the label
+    x_as_array = raw.values[:, 1:]
+    # reshape data
+    x_shaped_array = x_as_array.reshape(num_images, img_rows, img_cols, 1)
+    # normalize data
+    out_x = x_shaped_array / 255
+    
+    return out_x, out_y
+```
+
+- Keras has a `to_categorical` function. We supply the target variable `row["label"]`, as well as the number of different classes `num_classes`. It returns a one-hot encoded version of the target. So it represents the 10 possible values of the target with 10 separate binary columns. This gives us the target in a format that Keras expects it.
+- We'll reshape this into a 4D array which is indexed by the image number, row number, column number, and channel. The images were grayscale rather than colour, so, there's only one channel.
+- We divide the values by 255 so all the data is between zero and one. This improves optimization with a default parameters for the `"adam"` optimizer.
+
+```python
+# get an array of predictors and an array of the target 
+x, y = data_prep(raw_data)
+```
+
+- `x` is the data holding the images.
+- `y` is the data with the class labels to be predicted.
+
+### Specify Model
+
+```python
+# define a sequential model
+from tensorflow.keras.models import Sequential
+model = Sequential()
+```
+
+```python
+# add 2D convolutional first layer
+from tensorflow.keras.layers import Conv2D
+model.add(Conv2D(20, kernel_size=(3, 3), activation="relu", input_shape=(img_rows, img_cols, 1)))
+```
+
+- For each convolution layer, we need to specify the number of convolutions (filters) to include in that layer, the `kernel_size` (size of the filters), and the `activation` function. For the very first layer only, we need to specify the shape of each image (rows, cols, channels).
+
+```python
+# add more layers
+model.add(Conv2D(20, kernel_size=(3, 3), activation="relu"))
+```
+
+```python
+# convert the output of previous layers into a 1D representation
+from tensorflow.keras.layers import Flatten
+model.add(Flatten())
+```
+
+```python
+# for better performance, add a Dense layer in between the Flatten-prediction layers
+from tensorflow.keras.layers import Dense
+model.add(Dense(100, activation="relu"))
+```
+
+- For each dense layer, we need to specify the number of neurons and the `activation` function.
+
+```python
+# add a Dense prediction layer
+model.add(Dense(num_classes, activation="softmax"))
+```
+
+### Compile Model
+
+```python
+from tensorflow.keras.losses import categorical_crossentropy
+model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["accuracy"])
+```
+
+### Fit Model
+
+```python
+from sklearn.model_selection import train_test_split
+model.fit(x, y, batch_size=128, epochs=2, validation_split=0.2)
+```
+
+- Because we have the whole data loaded into arrays already, we used the `fit` command, rather than the `fit_generator` command that we used with `ImageDataGenerator`.
+- We want to get a validation score, so we used the `validation_split` argument to say that 20% of the data should be set aside for validation.
+
+When we run this, we can watch the accuracy go from 10% at the beginning to about 98% pretty quickly. We can experiment with a few things to improve the model slightly:
+
+- Changing the number of convolutions in any layer
+- Adding or removing layers, either adding convolution layers before the flatten, or dense layers after it
+- Changing the filter or kernel size in any layer.
+
+With increase the number of layers or the number of convolutions in a layer, we're increasing the models ability to fit the training data. We call that the **model capacity** that can improve a model. It could cause underfitting or overfitting; So we must use validation scores as the ultimate measure of model quality as we experiment with different model architectures.
 
 ## Dropout and Strides for Larger Models
 *Make your models faster and reduce overfitting. [#](https://www.kaggle.com/dansbecker/dropout-and-strides-for-larger-models)*
