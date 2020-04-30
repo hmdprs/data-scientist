@@ -4148,6 +4148,43 @@ With increase the number of layers or the number of convolutions in a layer, we'
 ## Dropout and Strides for Larger Models
 *Make your models faster and reduce overfitting. [#](https://www.kaggle.com/dansbecker/dropout-and-strides-for-larger-models)*
 
+### Stride Lengths
+
+Stride length is the number of columns/rows we slide a covolution to an image to get some filtered output. Changing it can speed up modelling and reduce memory requirements.
+
+For example, if we moved across two columns at a time instead of one, we would apply each convolution half as many times, and the output from this layer would be half as wide. For the same reason, moving down two rows at a time would make the output half as tall. If we always move in increments of two pixels, we would say the stride length is two. Since the resulting output was half as wide and half as tall, the representation going into the next layer ends up being only a quarter as large. This makes the model much faster. Because the larger stride reduces computational demands, it might help you try using larger models with more layers or more convolutions per layer.
+
+```python
+# add a convolution layer with strides
+model.add(Conv2D(30, kernel_size=(3, 3), strides=2, activation="relu"))
+```
+
+There are alternative ways to achieve the same effective strides including something called **max pooling**. But strides are conceptually, a little cleaner than the alternatives, and there doesn't seem to be a systematic difference in model performance for most applications. For a few advanced applications like generative models, increasing stride length works much better than max pooling.
+
+### Dropout
+
+Dropout is the most popular technique to combat overfitting. With dropout we ignore randomly chosen nodes or convolutions for brief parts of training, and then we'll randomly pick other nodes to ignore for the next part of training. It prevent overfitting. It makes each convolution or node, find information that is useful for predictions in its own right, rather than allowing one node to dominate the prediction, with everything else being small tweaks on that one nodes conclusion.
+
+```python
+# add a Dropout layer
+from tensorflow.keras.layers import Dropout
+model.add(Dropout(0.5))
+```
+
+- It says that each convolution in the preceding layer should be ignored or disconnected from the subsequent layer 50% of the time during model training.
+
+Even when we use dropout as part of model training to get better weights, all nodes and all connections are used when we make predictions.
+
+Before we knew about dropout, researchers addressed overfitting by limiting model capacity. That meant they had fewer layers and fewer nodes or convolutions per layer. But it's common now to build very large networks that could easily overfit, and then address overfitting by adding dropout.
+
+### Have Fun with some COOL Datasets
+
+- [Written letter recognition](https://www.kaggle.com/olgabelitskaya/classification-of-handwritten-letters)
+- [Flower Identification](https://www.kaggle.com/alxmamaev/flowers-recognition)
+- [Cats vs Dogs](https://www.kaggle.com/c/dogs-vs-cats-redux-kernels-edition)
+- [10 Monkeys](https://www.kaggle.com/slothkong/10-monkey-species)
+- [Predict Bone Age from X-Rays](https://www.kaggle.com/kmader/rsna-bone-age)
+
 # Intro to SQL
 *Learn SQL for working with databases, using Google BigQuery to scale to massive datasets.*
 
