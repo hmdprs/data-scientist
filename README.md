@@ -4188,6 +4188,24 @@ Before we knew about dropout, researchers addressed overfitting by limiting mode
 # Intro to SQL
 *Learn SQL for working with databases, using Google BigQuery to scale to massive datasets.*
 
+## Getting Started With SQL and BigQuery
+*Learn the workflow for handling big datasets with BigQuery and SQL. [#](https://www.kaggle.com/dansbecker/getting-started-with-sql-and-bigquery)*
+
+## Select, From & Where
+*The foundational compontents for all SQL queries. [#](https://www.kaggle.com/dansbecker/select-from-where)*
+
+## Group By, Having & Count
+*Get more interesting insights directly from your SQL queries. [#](https://www.kaggle.com/dansbecker/group-by-having-count)*
+
+## Order By
+*Order your results to focus on the most important data for your use case. [#](https://www.kaggle.com/dansbecker/order-by)*
+
+## As & With
+*Organize your query for better readability. This becomes especially important for complex queries. [#](https://www.kaggle.com/dansbecker/as-with)*
+
+## Joining Data
+*Combine data sources. Critical for almost all real-world data problems. [#](https://www.kaggle.com/dansbecker/joining-data)*
+
 # Advanced SQL
 *Take your SQL skills to the next level.*
 
