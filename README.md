@@ -4188,8 +4188,79 @@ Before we knew about dropout, researchers addressed overfitting by limiting mode
 # Intro to SQL
 *Learn SQL for working with databases, using Google BigQuery to scale to massive datasets.*
 
-## Getting Started With SQL and BigQuery
+## Getting Started with SQL and BigQuery
 *Learn the workflow for handling big datasets with BigQuery and SQL. [#](https://www.kaggle.com/dansbecker/getting-started-with-sql-and-bigquery)*
+
+### Intro
+
+SQL programming is an important skill for any data scientist. In this course, we'll build our SQL skills using BigQuery, a web service that lets you apply SQL to huge datasets. To use BigQuery, the first step is to create a `Client` object.
+
+```python
+# create a "Client" object
+from google.cloud import bigquery
+client = bigquery.Client()
+```
+
+In BigQuery, each dataset is contained in a corresponding project. We'll work with a dataset of posts on [Hacker News](https://news.ycombinator.com/), and our `hacker_news` dataset is contained in the `bigquery-public-data` project.
+
+```python
+# construct a reference to the "hacker_news" dataset
+dataset_ref = client.dataset("hacker_news", project="bigquery-public-data")
+
+# fetch the dataset
+dataset = client.get_dataset(dataset_ref)
+```
+
+Every dataset is just a collection of tables.
+
+```python
+# list all the tables in the dataset
+tables = list(client.list_tables(dataset))
+
+# print names of all tables
+for table in tables:
+    print(table.table_id)
+```
+
+Similar to how we fetched a dataset, we can fetch a table.
+
+```python
+# construct a reference to the "full" table
+table_ref = dataset_ref.table("full")
+
+# fetch the table
+table = client.get_table(table_ref)
+```
+
+![](img/client.png)
+
+### Table schema
+
+The structure of a table is called its schema. We need to understand a table's schema to effectively pull out the data we want.
+
+```python
+# print information on all the columns in the "full" table
+table.schema
+```
+
+Each `SchemaField` tells us about a specific column (field):
+
+- The **name** of the column
+- The **field type** (or datatype) in the column
+- The **mode** of the column ('NULLABLE' means that a column allows NULL values, and is the default)
+- A **description** of the data in that column
+
+We can use the `list_rows()` method to check just the first five lines of of the table to make sure this is right. (Sometimes databases have outdated descriptions, so it's good to check.) This returns a BigQuery `RowIterator` object that can quickly be converted to a pandas DataFrame with the `to_dataframe()` method.
+
+```python
+# preview the first five lines of the table
+client.list_rows(table, max_results=5).to_dataframe()
+```
+
+```python
+# Preview the first five entries in the first column of the table
+client.list_rows(table, selected_fields=table.schema[:1], max_results=5).to_dataframe()
+```
 
 ## Select, From & Where
 *The foundational compontents for all SQL queries. [#](https://www.kaggle.com/dansbecker/select-from-where)*
