@@ -4268,6 +4268,108 @@ More info: [this](https://www.kaggle.com/sohier/beyond-queries-exploring-the-big
 ## Select, From & Where
 *The foundational compontents for all SQL queries. [#](https://www.kaggle.com/dansbecker/select-from-where)*
 
+### Setup
+
+We'll use an [OpenAQ](https://openaq.org/) dataset about air quality.
+
+```python
+# create a "Client" object
+from google.cloud import bigquery
+client = bigquery.Client()
+```
+
+```python
+# construct a reference to the "openaq" dataset
+dataset_ref = client.dataset("openaq", project="bigquery-public-data")
+
+# fetch the dataset (API request)
+dataset = client.get_dataset(dataset_ref)
+```
+
+```python
+# print names of all tables
+[table.table_id for table in client.list_tables(dataset)]
+>>> ['global_air_quality']
+```
+
+```python
+# construct a reference to the "global_air_quality" table
+table_ref = dataset_ref.table("global_air_quality")
+
+# fetch the table (API request)
+table = client.get_table(table_ref)
+```
+
+```python
+# preview the first five lines of the "global_air_quality" table
+client.list_rows(table, max_results=5).to_dataframe()
+```
+
+### Define the Query
+
+The most basic SQL query selects a single column from a single table. We do this by specify:
+
+- the column(s) after the word **SELECT**,
+- the table after the word **FROM**,
+- the condition(s) after the word **WHERE**.
+
+```python
+# query to select all the items from the "city" column where the "country" column is 'US'
+# in the project "bigquery-public-data", dataset "openaq", table "global_air_quality".
+query = """
+        SELECT city
+        FROM `bigquery-public-data.openaq.global_air_quality`
+        WHERE country = 'US'
+        """
+```
+
+- The argument we pass to FROM is in backticks (`), not in quotation marks (' or ").
+
+### Submitting the Query to the Dataset
+
+We begin by setting up the query with the `query()` method. We run the method with the default parameters, but this method also allows us to specify more complicated settings.
+
+```python
+# set up the query
+query_job = client.query(query)
+```
+
+```python
+# run the query, and return a pandas DataFrame (API request)
+result_df = query_job.to_dataframe()
+```
+
+### Working with BIG Datasets
+
+BigQuery datasets can be huge. [The biggest dataset currently on Kaggle](https://www.kaggle.com/github/github-repos) is 3TB, so we can go through our 5TB-every-30-day-data-scan limit in a couple queries. We can avoid that with some tricks.
+
+To begin, we can estimate the size of any query before running it. To see how much data a query will scan, we create a `QueryJobConfig` object and use the `dry_run` parameter.
+
+```python
+# create the query config (estimate the size of a query without running it)
+dry_run_config = bigquery.QueryJobConfig(dry_run=True)
+
+# dry run the query to estimate costs (API request)
+dry_run_query_job = client.query(query, job_config=dry_run_config)
+
+# print estimated cost in bytes
+dry_run_query_job.total_bytes_processed
+>>> 386485420
+```
+
+We can also specify a parameter when running the query to limit how much data we're willing to scan. The query will be cancelled if the limit was exceeded.
+
+```python
+# create the query config (run the query if it's less than 1 GB)
+safe_config = bigquery.QueryJobConfig(maximum_bytes_billed=10**9)
+
+# safe run the query, cancel if it exeeds the limit
+safe_query_job = client.query(query, job_config=safe_config)
+
+# try to run the query, and return a pandas DataFrame (API request)
+result_df = safe_query_job.to_dataframe()
+```
+
 ## Group By, Having & Count
 *Get more interesting insights directly from your SQL queries. [#](https://www.kaggle.com/dansbecker/group-by-having-count)*
 
