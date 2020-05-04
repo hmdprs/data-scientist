@@ -4207,7 +4207,7 @@ In BigQuery, each dataset is contained in a corresponding project. We'll work wi
 # construct a reference to the "hacker_news" dataset
 dataset_ref = client.dataset("hacker_news", project="bigquery-public-data")
 
-# fetch the dataset
+# fetch the dataset (API request)
 dataset = client.get_dataset(dataset_ref)
 ```
 
@@ -4229,7 +4229,7 @@ Similar to how we fetched a dataset, we can fetch a table.
 # construct a reference to the "full" table
 table_ref = dataset_ref.table("full")
 
-# fetch the table
+# fetch the table (API request)
 table = client.get_table(table_ref)
 ```
 
@@ -4259,7 +4259,7 @@ client.list_rows(table, max_results=5).to_dataframe()
 ```
 
 ```python
-# Preview the first five entries in the first column of the table
+# preview the first five entries in the first column of the table
 client.list_rows(table, selected_fields=table.schema[:1], max_results=5).to_dataframe()
 ```
 
