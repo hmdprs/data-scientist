@@ -4064,7 +4064,7 @@ def data_prep(raw):
     x_shaped_array = x_as_array.reshape(num_images, img_rows, img_cols, 1)
     # normalize data
     out_x = x_shaped_array / 255
-    
+
     return out_x, out_y
 ```
 
@@ -4073,7 +4073,7 @@ def data_prep(raw):
 - We divide the values by 255 so all the data is between zero and one. This improves optimization with a default parameters for the `"adam"` optimizer.
 
 ```python
-# get an array of predictors and an array of the target 
+# get an array of predictors and an array of the target
 x, y = data_prep(raw_data)
 ```
 
@@ -4216,10 +4216,11 @@ Every dataset is just a collection of tables.
 ```python
 # list all the tables in the dataset
 tables = list(client.list_tables(dataset))
+```
 
+```python
 # print names of all tables
-for table in tables:
-    print(table.table_id)
+[table.table_id for table in client.list_tables(dataset)]
 ```
 
 Similar to how we fetched a dataset, we can fetch a table.
@@ -4261,6 +4262,8 @@ client.list_rows(table, max_results=5).to_dataframe()
 # Preview the first five entries in the first column of the table
 client.list_rows(table, selected_fields=table.schema[:1], max_results=5).to_dataframe()
 ```
+
+More info: [this](https://www.kaggle.com/sohier/beyond-queries-exploring-the-bigquery-api) link
 
 ## Select, From & Where
 *The foundational compontents for all SQL queries. [#](https://www.kaggle.com/dansbecker/select-from-where)*
