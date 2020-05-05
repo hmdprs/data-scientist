@@ -4344,12 +4344,14 @@ To begin, we can estimate the size of any query before running it. To see how mu
 ```python
 # create the query config (estimate the size of a query without running it)
 dry_run_config = bigquery.QueryJobConfig(dry_run=True)
+```
 
+```python
 # dry run the query to estimate costs (API request)
-dry_run_query_job = client.query(query, job_config=dry_run_config)
+query_job = client.query(query, job_config=dry_run_config)
 
 # print estimated cost in bytes
-dry_run_query_job.total_bytes_processed
+query_job.total_bytes_processed
 >>> 386485420
 ```
 
@@ -4358,12 +4360,14 @@ We can also specify a parameter when running the query to limit how much data we
 ```python
 # create the query config (run the query if it's less than 1 GB)
 safe_config = bigquery.QueryJobConfig(maximum_bytes_billed=10**9)
+```
 
+```python
 # safe run the query, cancel if it exeeds the limit
-safe_query_job = client.query(query, job_config=safe_config)
+query_job = client.query(query, job_config=safe_config)
 
 # try to run the query, and return a pandas DataFrame (API request)
-result_df = safe_query_job.to_dataframe()
+result_df = query_job.to_dataframe()
 ```
 
 ## Group By, Having & Count
@@ -4426,12 +4430,14 @@ query = """
 ```python
 # create the query config (run the query if it's less than 1 GB)
 safe_config = bigquery.QueryJobConfig(maximum_bytes_billed=10**9)
+```
 
+```python
 # safe run the query, cancel if it exeeds the limit
-safe_query_job = client.query(query, job_config=safe_config)
+query_job = client.query(query, job_config=safe_config)
 
 # try to run the query, and return a pandas DataFrame (API request)
-popular_comments = safe_query_job.to_dataframe()
+popular_comments = query_job.to_dataframe()
 ```
 
 - Each row in the `popular_comments` DataFrame corresponds to a comment that received more than 10 replies.
@@ -4454,6 +4460,76 @@ query_improved = """
 
 ## Order By
 *Order your results to focus on the most important data for your use case. [#](https://www.kaggle.com/dansbecker/order-by)*
+
+### Setup
+
+Let's use the [US Traffic Fatality Records](https://www.kaggle.com/usdot/nhtsa-traffic-fatalities) database, which contains information on traffic accidents in the US where at least one person died. We'll investigate the `accident_2015` table. We'll want to find which day of the week has the most fatal motor accidents.
+
+```python
+# create a "Client" object
+from google.cloud import bigquery
+client = bigquery.Client()
+```
+
+```python
+# construct a reference to the "nhtsa_traffic_fatalities" dataset
+dataset_ref = client.dataset("nhtsa_traffic_fatalities", project="bigquery-public-data")
+
+# fetch the dataset (API request)
+dataset = client.get_dataset(dataset_ref)
+```
+
+```python
+# construct a reference to the "accident_2015" table
+table_ref = dataset_ref.table("accident_2015")
+
+# fetch the table (API request)
+table = client.get_table(table_ref)
+```
+
+- the `consecutive_number` column contains a unique ID for each accident, and
+- the `timestamp_of_crash` column contains the date of the accident in DATETIME format,
+
+### Define the Query
+
+To change the order of our results,  like applying ordering to dates, we use some techniques.
+
+- `ORDER BY` is usually the last clause in the query, and it sorts the results returned by the rest of the query. We can reverse the order using the `DESC` argument (short for 'descending').
+- Dates come up very frequently in real-world databases. There are two ways that dates can be stored in BigQuery: as a `DATE`, with the format of YYYY-MM-DD, or as a `DATETIME`, with the same format of date but with time added at the end.
+  - Often we'll want to look at part of a date, like the year or the day. We do this with `EXTRACT`. SQL is so clever. So, we can ask for information beyond just extracting part of the cell. For example, `EXTRACT(WEEK from Date)` returns the 1-53 week number for each YYYY-MM-DD in the `Date` column.
+  - More info: [This](https://cloud.google.com/bigquery/docs/reference/legacy-sql#datetimefunctions) link
+
+```python
+# query to find out the number of accidents for each day of the week
+query = """
+        SELECT COUNT(consecutive_number) AS num_accidents,
+               EXTRACT(DAYOFWEEK FROM timestamp_of_crash) AS day_of_week
+        FROM `bigquery-public-data.nhtsa_traffic_fatalities.accident_2015`
+        GROUP BY day_of_week
+        ORDER BY num_accidents DESC
+        """
+```
+
+- We `EXTRACT` the day of the week (as `day_of_week`) from the `timestamp_of_crash` column, and
+- `GROUP BY` the day of the week, before we `COUNT` the `consecutive_number` column to determine the number of accidents for each day of the week.
+
+### Submitting the Query to the Dataset
+
+```python
+# create the query config (run the query if it's less than 1 GB)
+safe_config = bigquery.QueryJobConfig(maximum_bytes_billed=10**9)
+```
+
+```python
+# safe run the query, cancel if it exeeds the limit
+query_job = client.query(query, job_config=safe_config)
+
+# try to run the query, and return a pandas DataFrame (API request)
+accidents_by_day = query_job.to_dataframe()
+```
+
+- Notice that the data is sorted descending by the `num_accidents` column, where the days with more traffic accidents appear first.
+- Based on the [BigQuery documentation](https://cloud.google.com/bigquery/docs/reference/legacy-sql#dayofweek), the `DAYOFWEEK` function returns "an integer between 1 (Sunday) and 7 (Saturday), inclusively".
 
 ## As & With
 *Organize your query for better readability. This becomes especially important for complex queries. [#](https://www.kaggle.com/dansbecker/as-with)*
