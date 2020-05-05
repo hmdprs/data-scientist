@@ -4214,13 +4214,9 @@ dataset = client.get_dataset(dataset_ref)
 Every dataset is just a collection of tables.
 
 ```python
-# list all the tables in the dataset
-tables = list(client.list_tables(dataset))
-```
-
-```python
 # print names of all tables
 [table.table_id for table in client.list_tables(dataset)]
+>>> ['comments', 'full', 'full_201510', 'stories']
 ```
 
 Similar to how we fetched a dataset, we can fetch a table.
@@ -4235,7 +4231,7 @@ table = client.get_table(table_ref)
 
 ![](img/client.png)
 
-### Table schema
+### Table Schema
 
 The structure of a table is called its schema. We need to understand a table's schema to effectively pull out the data we want.
 
@@ -4270,7 +4266,7 @@ More info: [this](https://www.kaggle.com/sohier/beyond-queries-exploring-the-big
 
 ### Setup
 
-We'll use an [OpenAQ](https://openaq.org/) dataset about air quality.
+We'll use the [OpenAQ](https://openaq.org/) dataset about air quality.
 
 ```python
 # create a "Client" object
@@ -4309,9 +4305,9 @@ client.list_rows(table, max_results=5).to_dataframe()
 
 The most basic SQL query selects a single column from a single table. We do this by specify:
 
-- the column(s) after the word **SELECT**,
-- the table after the word **FROM**,
-- the condition(s) after the word **WHERE**.
+- the column(s) after the word `SELECT`,
+- the table after the word `FROM`,
+- the condition(s) after the word `WHERE`.
 
 ```python
 # query to select all the items from the "city" column where the "country" column is 'US'
@@ -4372,6 +4368,89 @@ result_df = safe_query_job.to_dataframe()
 
 ## Group By, Having & Count
 *Get more interesting insights directly from your SQL queries. [#](https://www.kaggle.com/dansbecker/group-by-having-count)*
+
+### Setup
+
+We'll use the [Hacker News](https://news.ycombinator.com/) dataset to find which comments generated the most discussion.
+
+```python
+# create a "Client" object
+from google.cloud import bigquery
+client = bigquery.Client()
+```
+
+```python
+# construct a reference to the "hacker_news" dataset
+dataset_ref = client.dataset("hacker_news", project="bigquery-public-data")
+
+# fetch the dataset (API request)
+dataset = client.get_dataset(dataset_ref)
+```
+
+```python
+# construct a reference to the "comments" table
+table_ref = dataset_ref.table("comments")
+
+# fetch the table (API request)
+table = client.get_table(table_ref)
+```
+
+- the `parent` column indicates the comment that was replied to, and
+- the `id` column has the unique ID used to identify each comment
+
+### Define the Query
+
+To answer more interesting questions, we group data and count things within those groups. We do that by using 3 techniques.
+
+- `COUNT()` returns a count of things. If you pass it the name of a column, it will return the number of entries in that column.
+  - `COUNT()` is an example of an aggregate function, which takes many values and returns one. (Other examples of aggregate functions include `SUM()`, `AVG()`, `MIN()`, and `MAX()`.)
+- `GROUP BY` takes the name of one or more columns, and treats all rows with the same value in that column as a single group when you apply **aggregate functions** like `COUNT()`.
+  - In SQL, it doesn't make sense to use `GROUP BY` without an aggregate function. So, if we have any `GROUP BY` clause, then all variables must be passed to either a `GROUP BY` command, or an aggregation function.
+- `HAVING` is used in combination with `GROUP BY` to ignore groups that don't meet certain criteria.
+
+```python
+# query to select comments that received more than 10 replies
+query = """
+        SELECT parent, COUNT(id)
+        FROM `bigquery-public-data.hacker_news.comments`
+        GROUP BY parent
+        HAVING COUNT(id) > 10
+        """
+```
+
+- We `GROUP BY` the `parent` column and `COUNT()` the `id` column in order to figure out the number of comments that were made as responses to a specific comment.
+- Furthermore, since we're only interested in popular comments, we'll look at comments with more than ten replies. So, we'll only return groups HAVING more than ten ID's.
+
+### Submitting the Query to the Dataset
+
+```python
+# create the query config (run the query if it's less than 1 GB)
+safe_config = bigquery.QueryJobConfig(maximum_bytes_billed=10**9)
+
+# safe run the query, cancel if it exeeds the limit
+safe_query_job = client.query(query, job_config=safe_config)
+
+# try to run the query, and return a pandas DataFrame (API request)
+popular_comments = safe_query_job.to_dataframe()
+```
+
+- Each row in the `popular_comments` DataFrame corresponds to a comment that received more than 10 replies.
+
+### Some Improvements
+
+The column resulting from `COUNT(id)` was called `f0_`. That's not a very descriptive name. We can change the name by adding `AS NumPosts` after the aggregation function. This is called **aliasing**.
+
+If we are ever unsure what to put inside the `COUNT()` function, we can do `COUNT(1)` to count the rows in each group. It is more readable, because we know it's not focusing on other columns. It also scans less data than if supplied column names (making it faster and using less of our data access quota).
+
+```python
+# improved version of earlier query, with aliasing & improved readability
+query_improved = """
+                 SELECT parent, COUNT(1) AS NumPosts
+                 FROM `bigquery-public-data.hacker_news.comments`
+                 GROUP BY parent
+                 HAVING COUNT(1) > 10
+                 """
+```
 
 ## Order By
 *Order your results to focus on the most important data for your use case. [#](https://www.kaggle.com/dansbecker/order-by)*
