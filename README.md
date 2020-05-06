@@ -4313,9 +4313,12 @@ The most basic SQL query selects a single column from a single table. We do this
 # query to select all the items from the "city" column where the "country" column is 'US'
 # in the project "bigquery-public-data", dataset "openaq", table "global_air_quality".
 query = """
-        SELECT city
-        FROM `bigquery-public-data.openaq.global_air_quality`
-        WHERE country = 'US'
+        SELECT
+            city
+        FROM
+            `bigquery-public-data.openaq.global_air_quality`
+        WHERE
+            country = 'US'
         """
 ```
 
@@ -4415,11 +4418,15 @@ To answer more interesting questions, we group data and count things within thos
 ```python
 # query to select comments that received more than 10 replies
 query = """
-        SELECT parent,
-               COUNT(id)
-        FROM `bigquery-public-data.hacker_news.comments`
-        GROUP BY parent
-        HAVING COUNT(id) > 10
+        SELECT
+            parent,
+            COUNT(id)
+        FROM
+            `bigquery-public-data.hacker_news.comments`
+        GROUP BY
+            parent
+        HAVING
+            COUNT(id) > 10
         """
 ```
 
@@ -4452,10 +4459,15 @@ If we are ever unsure what to put inside the `COUNT()` function, we can do `COUN
 ```python
 # improved version of earlier query, with aliasing & improved readability
 query_improved = """
-                 SELECT parent, COUNT(1) AS NumPosts
-                 FROM `bigquery-public-data.hacker_news.comments`
-                 GROUP BY parent
-                 HAVING COUNT(1) > 10
+                 SELECT
+                    parent,
+                    COUNT(1) AS NumPosts
+                 FROM
+                     `bigquery-public-data.hacker_news.comments`
+                 GROUP BY
+                     parent
+                 HAVING
+                     COUNT(1) > 10
                  """
 ```
 
@@ -4503,11 +4515,15 @@ To change the order of our results,  like applying ordering to dates, we use som
 ```python
 # query to find out the number of accidents for each day of the week
 query = """
-        SELECT COUNT(consecutive_number) AS num_accidents,
-               EXTRACT(DAYOFWEEK FROM timestamp_of_crash) AS day_of_week
-        FROM `bigquery-public-data.nhtsa_traffic_fatalities.accident_2015`
-        GROUP BY day_of_week
-        ORDER BY num_accidents DESC
+        SELECT
+            COUNT(consecutive_number) AS num_accidents,
+            EXTRACT(DAYOFWEEK FROM timestamp_of_crash) AS day_of_week
+        FROM
+            `bigquery-public-data.nhtsa_traffic_fatalities.accident_2015`
+        GROUP BY
+            day_of_week
+        ORDER BY
+            num_accidents DESC
         """
 ```
 
@@ -4570,16 +4586,21 @@ It's important to note that CTEs only exist inside the query where we create the
 ```python
 # query to select the number of transactions per date, sorted by date
 query = """
-        WITH time AS
-        (
-            SELECT DATE(block_timestamp) AS trans_date
-            FROM `bigquery-public-data.crypto_bitcoin.transactions`
+        WITH time AS (
+            SELECT
+                DATE(block_timestamp) AS trans_date
+            FROM
+                `bigquery-public-data.crypto_bitcoin.transactions`
         )
-        SELECT COUNT(1) AS transactions,
-               trans_date
-        FROM time
-        GROUP BY trans_date
-        ORDER BY trans_date
+        SELECT
+            COUNT(1) AS transactions,
+            trans_date
+        FROM
+            time
+        GROUP BY
+            trans_date
+        ORDER BY
+            trans_date
         """
 ```
 
@@ -4608,33 +4629,174 @@ Since they're returned sorted, we can easily plot the raw results to show us the
 transactions_by_date.set_index("trans_date").plot()
 ```
 
-### From Exercise
+### From the Exercise
 
 ```python
 # query that shows, for each hour of the day, the corresponding number of trips and average speed
-speeds_query = """
-               WITH RelevantRides AS
-               (
-                   SELECT EXTRACT(HOUR FROM trip_start_timestamp) AS hour_of_day,
-                          trip_miles,
-                          trip_seconds
-                   FROM `bigquery-public-data.chicago_taxi_trips.taxi_trips`
-                   WHERE trip_start_timestamp > '2017-01-01' AND
-                         trip_start_timestamp < '2017-07-01' AND
-                         trip_seconds > 0 AND
-                         trip_miles > 0
-               )
-               SELECT hour_of_day,
-                      COUNT(1) AS num_trips,
-                      3600 * SUM(trip_miles) / SUM(trip_seconds) AS avg_mph
-               FROM RelevantRides
-               GROUP BY hour_of_day
-               ORDER BY hour_of_day
-               """
+query = """
+        WITH RelevantRides AS (
+            SELECT
+                EXTRACT(HOUR FROM trip_start_timestamp) AS hour_of_day,
+                trip_miles,
+                trip_seconds
+            FROM
+                `bigquery-public-data.chicago_taxi_trips.taxi_trips`
+            WHERE
+                trip_start_timestamp > '2017-01-01' AND
+                trip_start_timestamp < '2017-07-01' AND
+                trip_seconds > 0 AND
+                trip_miles > 0
+        )
+        SELECT
+            hour_of_day,
+            COUNT(1) AS num_trips,
+            3600 * SUM(trip_miles) / SUM(trip_seconds) AS avg_mph
+        FROM
+            RelevantRides
+        GROUP BY
+            hour_of_day
+        ORDER BY
+            hour_of_day
+        """
 ```
 
 ## Joining Data
 *Combine data sources. Critical for almost all real-world data problems. [#](https://www.kaggle.com/dansbecker/joining-data)*
+
+### Setup
+
+GitHub is the most popular place to collaborate on software projects. A GitHub repository is a collection of files associated with a specific project. Most repos on GitHub are shared under a specific legal license, which determines the legal restrictions on how they are used. We're going to find how many files are covered by each type of software license. We'll work with two tables in the [database](https://www.kaggle.com/github/github-repos).
+
+```python
+# create a "Client" object
+from google.cloud import bigquery
+client = bigquery.Client()
+```
+
+```python
+# construct a reference to the "github_repos" dataset
+dataset_ref = client.dataset("github_repos", project="bigquery-public-data")
+
+# fetch the dataset (API request)
+dataset = client.get_dataset(dataset_ref)
+```
+
+```python
+# construct a reference to the "licenses" table
+licenses_ref = dataset_ref.table("licenses")
+
+# fetch the table (API request)
+licenses_table = client.get_table(licenses_ref)
+```
+
+- The first table is the `licenses` table, which provides the name of each GitHub repo (in the `repo_name` column) and its corresponding license.
+
+```python
+# construct a reference to the "sample_files" table
+files_ref = dataset_ref.table("sample_files")
+
+# fetch the table (API request)
+files_table = client.get_table(files_ref)
+```
+
+- The second table is the `sample_files` table, which provides the GitHub repo that each file belongs to (in the `repo_name` column).
+
+### Define the Query
+
+We have the tools to obtain data from a single table in whatever format we want it. But what if the data we want is spread across multiple tables? That's where `JOIN` comes in! We combine information from both tables by matching rows where a column in one table matches a column in another table.
+
+```python
+# query to determine the number of files per license, sorted by number of files
+query = """
+        SELECT
+            L.license,
+            COUNT(1) AS number_of_files
+        FROM
+            `bigquery-public-data.github_repos.sample_files` AS sf
+            INNER JOIN `bigquery-public-data.github_repos.licenses` AS L
+                ON sf.repo_name = L.repo_name
+        GROUP BY
+            L.license
+        ORDER BY
+            number_of_files DESC
+        """
+```
+
+- `ON` determines which column in each table to use to combine the tables.
+- There are some types of `JOIN`, but an `INNER JOIN` is very widely used, which means that a row will only be put in the final output table if the value in the columns we're using to combine them shows up in both the tables we're joining.
+
+### Submitting the Query to the Dataset
+
+```python
+# create the query config (run the query if it's less than 1 GB)
+safe_config = bigquery.QueryJobConfig(maximum_bytes_billed=10**9)
+```
+
+```python
+# safe run the query, cancel if it exeeds the limit
+query_job = client.query(query, job_config=safe_config)
+
+# try to run the query, and return a pandas DataFrame (API request)
+file_count_by_license = query_job.to_dataframe()
+```
+
+### Selecting the Specific Rows
+
+A lot of the data are text. There is a great technique we can apply to these texts. A `WHERE` clause can limits out results to rows with certain text using the `LIKE` feature. To select rows with 'bigquery' in `tag` column:
+
+
+```python
+query = """
+        SELECT
+            id,
+            title,
+            owner_user_id
+        FROM
+            `bigquery-public-data.stackoverflow.posts_questions`
+        WHERE
+            tags LIKE '%bigquery%'
+        """
+```
+
+- `%` is a **wildcard** and is used to include rows where there is other text in addition to the word "bigquery" (e.g., if a row has a `tag` "bigquery-sql").
+
+### Query Generalization
+
+```python
+# a general function to get experts on any topic
+def expert_finder(topic, client):
+    """
+    Returns a DataFrame with the user IDs who have written Stack Overflow answers on a topic.
+    """
+    query = """
+            SELECT
+                a.owner_user_id AS user_id,
+                COUNT(1) AS number_of_answers
+            FROM
+                `bigquery-public-data.stackoverflow.posts_questions` AS q
+                INNER JOIN `bigquery-public-data.stackoverflow.posts_answers` AS a
+                    ON q.id = a.parent_Id
+            WHERE
+                q.tags LIKE '%{topic}%'
+            GROUP BY
+                a.owner_user_id
+            """
+
+    # create the query config (run the query if it's less than 1 GB)
+    safe_config = bigquery.QueryJobConfig(maximum_bytes_billed=10**9)
+
+    # safe run the query, cancel if it exeeds the limit
+    my_query_job = client.query(query, job_config=safe_config)
+
+    # try to run the query, and return a pandas DataFrame (API request)
+    results = my_query_job.to_dataframe()
+
+    return results
+```
+
+- We used `{}`.
+
+Practice with Kaggle BigQuery datasets available [here](https://www.kaggle.com/datasets?fileType=bigQuery).
 
 # Advanced SQL
 *Take your SQL skills to the next level.*
