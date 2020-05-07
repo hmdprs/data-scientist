@@ -4313,13 +4313,13 @@ The most basic SQL query selects a single column from a single table. We do this
 # query to select all the items from the "city" column where the "country" column is 'US'
 # in the project "bigquery-public-data", dataset "openaq", table "global_air_quality".
 query = """
-        SELECT
-            city
-        FROM
-            `bigquery-public-data.openaq.global_air_quality`
-        WHERE
-            country = 'US'
-        """
+SELECT
+    city
+FROM
+    `bigquery-public-data.openaq.global_air_quality`
+WHERE
+    country = 'US'
+"""
 ```
 
 - The argument we pass to FROM is in backticks (`), not in quotation marks (' or ").
@@ -4409,16 +4409,16 @@ To answer more interesting questions, we group data and count things within thos
 ```python
 # query to select comments that received more than 10 replies
 query = """
-        SELECT
-            parent,
-            COUNT(id)
-        FROM
-            `bigquery-public-data.hacker_news.comments`
-        GROUP BY
-            parent
-        HAVING
-            COUNT(id) > 10
-        """
+SELECT
+    parent,
+    COUNT(id)
+FROM
+    `bigquery-public-data.hacker_news.comments`
+GROUP BY
+    parent
+HAVING
+    COUNT(id) > 10
+"""
 ```
 
 - We `GROUP BY` the `parent` column and `COUNT()` the `id` column in order to figure out the number of comments that were made as responses to a specific comment.
@@ -4428,21 +4428,21 @@ query = """
 
 The column resulting from `COUNT(id)` was called `f0_`. That's not a very descriptive name. We can change the name by adding `AS NumPosts` after the aggregation function. This is called **aliasing**.
 
-If we are ever unsure what to put inside the `COUNT()` function, we can do `COUNT(1)` to count the rows in each group. It is more readable, because we know it's not focusing on other columns. It also scans less data than if supplied column names (making it faster and using less of our data access quota).
+If we are ever unsure what to put inside the `COUNT()` function, we can do `COUNT(*)` to count the rows in each group. It is more readable, because we know it's not focusing on other columns. It also scans less data than if supplied column names (making it faster and using less of our data access quota).
 
 ```python
 # improved version of earlier query, with aliasing & improved readability
 query_improved = """
-                 SELECT
-                    parent,
-                    COUNT(1) AS NumPosts
-                 FROM
-                     `bigquery-public-data.hacker_news.comments`
-                 GROUP BY
-                     parent
-                 HAVING
-                     COUNT(1) > 10
-                 """
+SELECT
+    parent,
+    COUNT(*) AS NumPosts
+FROM
+    `bigquery-public-data.hacker_news.comments`
+GROUP BY
+    parent
+HAVING
+    COUNT(*) > 10
+"""
 ```
 
 ## Order By
@@ -4489,16 +4489,16 @@ To change the order of our results,  like applying ordering to dates, we use som
 ```python
 # query to find out the number of accidents for each day of the week
 query = """
-        SELECT
-            COUNT(consecutive_number) AS num_accidents,
-            EXTRACT(DAYOFWEEK FROM timestamp_of_crash) AS day_of_week
-        FROM
-            `bigquery-public-data.nhtsa_traffic_fatalities.accident_2015`
-        GROUP BY
-            day_of_week
-        ORDER BY
-            num_accidents DESC
-        """
+SELECT
+    COUNT(consecutive_number) AS num_accidents,
+    EXTRACT(DAYOFWEEK FROM timestamp_of_crash) AS day_of_week
+FROM
+    `bigquery-public-data.nhtsa_traffic_fatalities.accident_2015`
+GROUP BY
+    day_of_week
+ORDER BY
+    num_accidents DESC
+"""
 ```
 
 - We `EXTRACT` the day of the week (as `day_of_week`) from the `timestamp_of_crash` column, and
@@ -4544,22 +4544,22 @@ It's important to note that CTEs only exist inside the query where we create the
 ```python
 # query to select the number of transactions per date, sorted by date
 query = """
-        WITH time AS (
-            SELECT
-                DATE(block_timestamp) AS trans_date
-            FROM
-                `bigquery-public-data.crypto_bitcoin.transactions`
-        )
-        SELECT
-            COUNT(1) AS transactions,
-            trans_date
-        FROM
-            time
-        GROUP BY
-            trans_date
-        ORDER BY
-            trans_date
-        """
+WITH time AS (
+    SELECT
+        EXTRACT(DATE FROM block_timestamp) AS trans_date
+    FROM
+        `bigquery-public-data.crypto_bitcoin.transactions`
+)
+SELECT
+    COUNT(*) AS transactions,
+    trans_date
+FROM
+    time
+GROUP BY
+    trans_date
+ORDER BY
+    trans_date
+"""
 ```
 
 - Since the `block_timestamp` column contains the date of each transaction in DATETIME format, we'll convert these into DATE format using the `DATE()` command. We do that using a CTE.
@@ -4571,29 +4571,28 @@ query = """
 ```python
 # query that shows, for each hour of the day, the corresponding number of trips and average speed
 query = """
-        WITH RelevantRides AS (
-            SELECT
-                EXTRACT(HOUR FROM trip_start_timestamp) AS hour_of_day,
-                trip_miles,
-                trip_seconds
-            FROM
-                `bigquery-public-data.chicago_taxi_trips.taxi_trips`
-            WHERE
-                trip_start_timestamp > '2017-01-01' AND
-                trip_start_timestamp < '2017-07-01' AND
-                trip_seconds > 0 AND
-                trip_miles > 0
-        )
-        SELECT
-            hour_of_day,
-            COUNT(1) AS num_trips,
-            3600 * SUM(trip_miles) / SUM(trip_seconds) AS avg_mph
-        FROM
-            RelevantRides
-        GROUP BY
-            hour_of_day
-        ORDER BY
-            hour_of_day
+WITH RelevantRides AS (
+    SELECT
+        EXTRACT(HOUR FROM trip_start_timestamp) AS hour_of_day,
+        trip_miles,
+        trip_seconds
+    FROM
+        `bigquery-public-data.chicago_taxi_trips.taxi_trips`
+    WHERE
+        EXTRACT(DATE FROM trip_start_timestamp) BETWEEN '2017-01-01' AND '2017-07-01'
+        AND trip_seconds > 0
+        AND trip_miles > 0
+)
+SELECT
+    hour_of_day,
+    COUNT(*) AS num_trips,
+    3600 * SUM(trip_miles) / SUM(trip_seconds) AS avg_mph
+FROM
+    RelevantRides
+GROUP BY
+    hour_of_day
+ORDER BY
+    hour_of_day
         """
 ```
 
@@ -4645,18 +4644,17 @@ We have the tools to obtain data from a single table in whatever format we want 
 ```python
 # query to determine the number of files per license, sorted by number of files
 query = """
-        SELECT
-            L.license,
-            COUNT(1) AS number_of_files
-        FROM
-            `bigquery-public-data.github_repos.sample_files` AS sf
-            INNER JOIN `bigquery-public-data.github_repos.licenses` AS L
-                ON sf.repo_name = L.repo_name
-        GROUP BY
-            L.license
-        ORDER BY
-            number_of_files DESC
-        """
+SELECT
+    L.license,
+    COUNT(*) AS number_of_files
+FROM
+    `bigquery-public-data.github_repos.sample_files` AS sf
+    INNER JOIN `bigquery-public-data.github_repos.licenses` AS L ON sf.repo_name = L.repo_name
+GROUP BY
+    L.license
+ORDER BY
+    number_of_files DESC
+"""
 ```
 
 - `ON` determines which column in each table to use to combine the tables.
@@ -4668,15 +4666,15 @@ A lot of the data are text. There is a great technique we can apply to these tex
 
 ```python
 query = """
-        SELECT
-            id,
-            title,
-            owner_user_id
-        FROM
-            `bigquery-public-data.stackoverflow.posts_questions`
-        WHERE
-            tags LIKE '%bigquery%'
-        """
+SELECT
+    id,
+    title,
+    owner_user_id
+FROM
+    `bigquery-public-data.stackoverflow.posts_questions`
+WHERE
+    tags LIKE '%bigquery%'
+"""
 ```
 
 - `%` is a **wildcard** and is used to include rows where there is other text in addition to the word "bigquery" (e.g., if a row has a `tag` "bigquery-sql").
@@ -4692,18 +4690,17 @@ def expert_finder(topic, client):
     Returns a DataFrame with the user IDs who have written Stack Overflow answers on a topic.
     """
     query = """
-            SELECT
-                a.owner_user_id AS user_id,
-                COUNT(1) AS number_of_answers
-            FROM
-                `bigquery-public-data.stackoverflow.posts_questions` AS q
-                INNER JOIN `bigquery-public-data.stackoverflow.posts_answers` AS a
-                    ON q.id = a.parent_Id
-            WHERE
-                q.tags LIKE '%{topic}%'
-            GROUP BY
-                a.owner_user_id
-            """
+    SELECT
+        a.owner_user_id AS user_id,
+        COUNT(*) AS number_of_answers
+    FROM
+        `bigquery-public-data.stackoverflow.posts_questions` AS q
+        INNER JOIN `bigquery-public-data.stackoverflow.posts_answers` AS a ON q.id = a.parent_Id
+    WHERE
+        q.tags LIKE '%{topic}%'
+    GROUP BY
+        a.owner_user_id
+    """
 
     safe_config = bigquery.QueryJobConfig(maximum_bytes_billed=10**9)
     my_query_job = client.query(query, job_config=safe_config)
