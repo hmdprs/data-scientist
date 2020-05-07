@@ -4714,6 +4714,18 @@ Practice with Kaggle BigQuery datasets available [here](https://www.kaggle.com/d
 # Advanced SQL
 *Take your SQL skills to the next level.*
 
+## JOINs and UNIONs
+*Combine information from multiple tables. [#](https://www.kaggle.com/alexisbcook/joins-and-unions)*
+
+## Analytic Functions
+*Perform complex calculations on groups of rows. [#](https://www.kaggle.com/alexisbcook/analytic-functions)*
+
+## Nested and Repeated Data
+*Learn to query complex datatypes in BigQuery. [#](https://www.kaggle.com/alexisbcook/nested-and-repeated-data)*
+
+## Writing Efficient Queries
+*Write queries to run faster and use less data. [#](https://www.kaggle.com/alexisbcook/writing-efficient-queries)*
+
 # Microchallenges
 *Solve ultra-short challenges to build and test your skill.*
 
