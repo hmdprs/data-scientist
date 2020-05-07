@@ -4301,7 +4301,7 @@ table = client.get_table(table_ref)
 client.list_rows(table, max_results=5).to_dataframe()
 ```
 
-### Define the Query
+### Query
 
 The most basic SQL query selects a single column from a single table. We do this by specify:
 
@@ -4326,49 +4326,40 @@ query = """
 
 ### Submitting the Query to the Dataset
 
-We begin by setting up the query with the `query()` method. We run the method with the default parameters, but this method also allows us to specify more complicated settings.
+We set up the query with the `query()` method.
 
 ```python
 # set up the query
 query_job = client.query(query)
 ```
 
-```python
-# run the query, and return a pandas DataFrame (API request)
-result_df = query_job.to_dataframe()
-```
+This method allows us to specify complicated settings. For example, working with BIG datasets. BigQuery datasets can be huge. [The biggest dataset currently on Kaggle](https://www.kaggle.com/github/github-repos) is 3TB, so we can go through our 5TB-every-30-day-data-scan limit in a couple queries. We can avoid that with some tricks.
 
-### Working with BIG Datasets
-
-BigQuery datasets can be huge. [The biggest dataset currently on Kaggle](https://www.kaggle.com/github/github-repos) is 3TB, so we can go through our 5TB-every-30-day-data-scan limit in a couple queries. We can avoid that with some tricks.
-
-To begin, we can estimate the size of any query before running it. To see how much data a query will scan, we create a `QueryJobConfig` object and use the `dry_run` parameter.
+We can estimate the size of any query before running it. To see how much data a query will scan, we create a `QueryJobConfig` object and use the `dry_run` parameter.
 
 ```python
-# create the query config (estimate the size of a query without running it)
+# setup the query (estimate the size of a query without running it)
 dry_run_config = bigquery.QueryJobConfig(dry_run=True)
+query_job = client.query(query, job_config=dry_run_config)
 ```
 
 ```python
-# dry run the query to estimate costs (API request)
-query_job = client.query(query, job_config=dry_run_config)
-
 # print estimated cost in bytes
 query_job.total_bytes_processed
 >>> 386485420
 ```
 
-We can also specify a parameter when running the query to limit how much data we're willing to scan. The query will be cancelled if the limit was exceeded.
+Or, we can create `QueryJobConfig` object and use the `maximum_bytes_billed` parameter to limit how much data we're willing to scan. The query will be cancelled if the limit was exceeded.
 
 ```python
-# create the query config (run the query if it's less than 1 GB)
+# setup the query (run the query if it's less than 1 GB, cancel if it exeeds)
 safe_config = bigquery.QueryJobConfig(maximum_bytes_billed=10**9)
+query_job = client.query(query, job_config=safe_config)
 ```
 
-```python
-# safe run the query, cancel if it exeeds the limit
-query_job = client.query(query, job_config=safe_config)
+Then, we submit the query to the dataset (API request) and convert the results to a DataFrame.
 
+```python
 # try to run the query, and return a pandas DataFrame (API request)
 result_df = query_job.to_dataframe()
 ```
@@ -4405,7 +4396,7 @@ table = client.get_table(table_ref)
 - the `parent` column indicates the comment that was replied to, and
 - the `id` column has the unique ID used to identify each comment
 
-### Define the Query
+### Query
 
 To answer more interesting questions, we group data and count things within those groups. We do that by using 3 techniques.
 
@@ -4431,24 +4422,7 @@ query = """
 ```
 
 - We `GROUP BY` the `parent` column and `COUNT()` the `id` column in order to figure out the number of comments that were made as responses to a specific comment.
-- Furthermore, since we're only interested in popular comments, we'll look at comments with more than ten replies. So, we'll only return groups HAVING more than ten ID's.
-
-### Submitting the Query to the Dataset
-
-```python
-# create the query config (run the query if it's less than 1 GB)
-safe_config = bigquery.QueryJobConfig(maximum_bytes_billed=10**9)
-```
-
-```python
-# safe run the query, cancel if it exeeds the limit
-query_job = client.query(query, job_config=safe_config)
-
-# try to run the query, and return a pandas DataFrame (API request)
-popular_comments = query_job.to_dataframe()
-```
-
-- Each row in the `popular_comments` DataFrame corresponds to a comment that received more than 10 replies.
+- Furthermore, since we're only interested in popular comments, we'll look at comments with more than 10 replies. So, we'll only return groups `HAVING` more than 10 ID's.
 
 ### Some Improvements
 
@@ -4503,7 +4477,7 @@ table = client.get_table(table_ref)
 - the `consecutive_number` column contains a unique ID for each accident, and
 - the `timestamp_of_crash` column contains the date of the accident in DATETIME format,
 
-### Define the Query
+### Query
 
 To change the order of our results,  like applying ordering to dates, we use some techniques.
 
@@ -4529,22 +4503,6 @@ query = """
 
 - We `EXTRACT` the day of the week (as `day_of_week`) from the `timestamp_of_crash` column, and
 - `GROUP BY` the day of the week, before we `COUNT` the `consecutive_number` column to determine the number of accidents for each day of the week.
-
-### Submitting the Query to the Dataset
-
-```python
-# create the query config (run the query if it's less than 1 GB)
-safe_config = bigquery.QueryJobConfig(maximum_bytes_billed=10**9)
-```
-
-```python
-# safe run the query, cancel if it exeeds the limit
-query_job = client.query(query, job_config=safe_config)
-
-# try to run the query, and return a pandas DataFrame (API request)
-accidents_by_day = query_job.to_dataframe()
-```
-
 - Notice that the data is sorted descending by the `num_accidents` column, where the days with more traffic accidents appear first.
 - Based on the [BigQuery documentation](https://cloud.google.com/bigquery/docs/reference/legacy-sql#dayofweek), the `DAYOFWEEK` function returns "an integer between 1 (Sunday) and 7 (Saturday), inclusively".
 
@@ -4577,7 +4535,7 @@ table_ref = dataset_ref.table("transactions")
 table = client.get_table(table_ref)
 ```
 
-### Define the Query
+### Query
 
 `AS` is a convenient way to clean up the data and rename the columns generated by our query, which is also known as **aliasing**. It's even more powerful when combined with `WITH` in what's called a "**common table expression**" (or CTE), which is a temporary table that it returns within our query. CTEs are helpful for splitting the queries into readable chunks, and writing queries against them. CTEs let us shift a lot of our data cleaning into SQL. That's an especially good thing in the case of BigQuery, because it is vastly faster than doing the work in Pandas.
 
@@ -4606,28 +4564,7 @@ query = """
 
 - Since the `block_timestamp` column contains the date of each transaction in DATETIME format, we'll convert these into DATE format using the `DATE()` command. We do that using a CTE.
 - The next part of the query counts the number of transactions for each date and sorts the table so that earlier dates appear first.
-
-### Submitting the Query to the Dataset
-
-```python
-# create the query config (run the query if it's less than 1 GB)
-safe_config = bigquery.QueryJobConfig(maximum_bytes_billed=10**9)
-```
-
-```python
-# safe run the query, cancel if it exeeds the limit
-query_job = client.query(query, job_config=safe_config)
-
-# try to run the query, and return a pandas DataFrame (API request)
-transactions_by_date = query_job.to_dataframe()
-```
-
-Since they're returned sorted, we can easily plot the raw results to show us the number of Bitcoin transactions per day over the whole timespan of this dataset.
-
-```python
-# plot transactions per date
-transactions_by_date.set_index("trans_date").plot()
-```
+- Since the output returned sorted, we can easily plot the raw results to show us the number of Bitcoin transactions per day over the whole timespan of this dataset.
 
 ### From the Exercise
 
@@ -4701,7 +4638,7 @@ files_table = client.get_table(files_ref)
 
 - The second table is the `sample_files` table, which provides the GitHub repo that each file belongs to (in the `repo_name` column).
 
-### Define the Query
+### Query
 
 We have the tools to obtain data from a single table in whatever format we want it. But what if the data we want is spread across multiple tables? That's where `JOIN` comes in! We combine information from both tables by matching rows where a column in one table matches a column in another table.
 
@@ -4725,25 +4662,9 @@ query = """
 - `ON` determines which column in each table to use to combine the tables.
 - There are some types of `JOIN`, but an `INNER JOIN` is very widely used, which means that a row will only be put in the final output table if the value in the columns we're using to combine them shows up in both the tables we're joining.
 
-### Submitting the Query to the Dataset
-
-```python
-# create the query config (run the query if it's less than 1 GB)
-safe_config = bigquery.QueryJobConfig(maximum_bytes_billed=10**9)
-```
-
-```python
-# safe run the query, cancel if it exeeds the limit
-query_job = client.query(query, job_config=safe_config)
-
-# try to run the query, and return a pandas DataFrame (API request)
-file_count_by_license = query_job.to_dataframe()
-```
-
 ### Selecting the Specific Rows
 
 A lot of the data are text. There is a great technique we can apply to these texts. A `WHERE` clause can limits out results to rows with certain text using the `LIKE` feature. To select rows with 'bigquery' in `tag` column:
-
 
 ```python
 query = """
@@ -4761,6 +4682,8 @@ query = """
 - `%` is a **wildcard** and is used to include rows where there is other text in addition to the word "bigquery" (e.g., if a row has a `tag` "bigquery-sql").
 
 ### Query Generalization
+
+We can generalize the query application by defining a python function and add the parameters in `{}` in our query.
 
 ```python
 # a general function to get experts on any topic
@@ -4782,19 +4705,12 @@ def expert_finder(topic, client):
                 a.owner_user_id
             """
 
-    # create the query config (run the query if it's less than 1 GB)
     safe_config = bigquery.QueryJobConfig(maximum_bytes_billed=10**9)
-
-    # safe run the query, cancel if it exeeds the limit
     my_query_job = client.query(query, job_config=safe_config)
-
-    # try to run the query, and return a pandas DataFrame (API request)
     results = my_query_job.to_dataframe()
 
     return results
 ```
-
-- We used `{}`.
 
 Practice with Kaggle BigQuery datasets available [here](https://www.kaggle.com/datasets?fileType=bigQuery).
 
