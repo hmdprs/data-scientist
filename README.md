@@ -4717,6 +4717,97 @@ Practice with Kaggle BigQuery datasets available [here](https://www.kaggle.com/d
 ## JOINs and UNIONs
 *Combine information from multiple tables. [#](https://www.kaggle.com/alexisbcook/joins-and-unions)*
 
+### Setup
+
+We'll work with the [Hacker News](https://www.kaggle.com/hacker-news/hacker-news) dataset. We want to pull information from the `stories` and `comments` tables.
+
+```python
+# create a "Client" object
+from google.cloud import bigquery
+client = bigquery.Client()
+```
+
+```python
+# construct a reference to the "hacker_news" dataset
+dataset_ref = client.dataset("hacker_news", project="bigquery-public-data")
+
+# fetch the dataset (API request)
+dataset = client.get_dataset(dataset_ref)
+```
+
+- If you are familiar with the data, it's not neccessary to construct references to the tables and fetch them.
+
+### Query
+
+Recall that we can use an `INNER JOIN` to pull rows from both tables where the value in a column of the **left** table has a match in a column of the **right** table ("left" to the table that appears before the `JOIN` in the query). A `LEFT JOIN` returns all rows where the two tables have matching entries, along with all of the rows in the left table (whether there is a match or not). If we instead use a `RIGHT JOIN`, we get the matching rows, along with all rows in the right table (whether there is a match or not). Finally, a `FULL JOIN` returns all rows from both tables. Note that in general, any row that does not have a match in both tables will have `NULL` entries for the missing values.
+
+![](img/joins.png)
+
+As you've seen, `JOIN`s horizontally combine results from different tables. If we instead would like to vertically concatenate columns, we can do so with a `UNION`. Note that with a `UNION`, the **data types** of both columns must be the same. We use `UNION ALL` to include duplicate values in the concatenated results. If we'd like to drop duplicate values, we use `UNION DISTINCT` in the query.
+
+We want to create a table showing all stories posted on January 1, 2012, along with the corresponding number of comments. We use a `LEFT JOIN` so that the results include stories that didn't receive any comments.
+
+```python
+# query to select all stories posted on January 1, 2012, with number of comments
+query = """
+WITH c AS (
+    SELECT
+        parent,
+        COUNT(*) AS num_comments
+    FROM
+        `bigquery-public-data.hacker_news.comments`
+    GROUP BY
+        parent
+)
+SELECT
+    s.id AS story_id,
+    s.by,
+    s.title,
+    c.num_comments
+FROM
+    `bigquery-public-data.hacker_news.stories` AS s
+    LEFT JOIN c ON s.id = c.parent
+WHERE
+    EXTRACT(DATE FROM s.time_ts) = '2012-01-01'
+ORDER BY
+    c.num_comments DESC
+"""
+
+# run the query (if it's less than 1 GB), and return a pandas DataFrame
+safe_config = bigquery.QueryJobConfig(maximum_bytes_billed=10**9)
+join_result = client.query(query, job_config=safe_config).result().to_dataframe()
+```
+
+- Since the results are ordered by the `num_comments` column, stories without comments appear at the end of the DataFrame. (Remember that `NaN` stands for "not a number".)
+
+Next, we write a query to select all usernames corresponding to users who wrote stories or comments on January 1, 2014. We use `UNION DISTINCT` (instead of `UNION ALL`) to ensure that each user appears in the table at most once.
+
+```python
+# query to select all users who posted stories or comments on January 1, 2014
+query = """
+SELECT
+    c.by
+FROM
+    `bigquery-public-data.hacker_news.comments` AS c
+WHERE
+    EXTRACT(DATE FROM c.time_ts) = '2014-01-01'
+UNION
+DISTINCT
+SELECT
+    s.by
+FROM
+    `bigquery-public-data.hacker_news.stories` AS s
+WHERE
+    EXTRACT(DATE FROM s.time_ts) = '2014-01-01'
+"""
+
+# run the query (if it's less than 1 GB), and return a pandas DataFrame
+safe_config = bigquery.QueryJobConfig(maximum_bytes_billed=10**9)
+union_result = client.query(query, job_config=safe_config).result().to_dataframe()
+```
+
+- To get the number of users who posted on January 1, 2014, we need only take the length of the DataFrame.
+
 ## Analytic Functions
 *Perform complex calculations on groups of rows. [#](https://www.kaggle.com/alexisbcook/analytic-functions)*
 
