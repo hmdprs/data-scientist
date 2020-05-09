@@ -4811,6 +4811,162 @@ union_result = client.query(query, job_config=safe_config).result().to_dataframe
 ## Analytic Functions
 *Perform complex calculations on groups of rows. [#](https://www.kaggle.com/alexisbcook/analytic-functions)*
 
+### Syntax
+
+**Analytic functions**, same as **aggregate functions**, operate on a set of rows. However, unlike aggregate functions, analytic functions return a (potentially different) value for each row in the original table.
+
+All analytic functions have an `OVER` clause, which defines the sets of rows used in each calculation. The `OVER` clause has three (optional) parts:
+
+- The `PARTITION BY` clause divides the rows of the table into different groups.
+- The `ORDER BY` clause defines an ordering within each partition.
+- The **window frame** clause identifies the set of rows used in each calculation (Analytic functions are sometimes referred to as **window functions**!).
+
+There are many ways to write window frame clauses. Some examples are:
+
+- `ROWS BETWEEN 1 PRECEDING AND CURRENT ROW` - the previous row and the current row.
+- `ROWS BETWEEN 3 PRECEDING AND 1 FOLLOWING` - the 3 previous rows, the current row, and the following row.
+- `ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING` - all rows in the partition.
+
+### Three Types
+
+BigQuery supports a [wide variety of analytic functions](https://cloud.google.com/bigquery/docs/reference/standard-sql/analytic-function-concepts), and we'll explore a few here.
+
+#### 1. Analytic Aggregate Functions
+
+Aggregate functions take all of the values within the window as input and return a single value. The `OVER` clause is what ensures that it's treated as an analytic (aggregate) function.
+
+- `MIN()` or `MAX()`
+- `AVG()` or `SUM()`
+- `COUNT()`
+
+#### 2. Analytic Navigation Functions
+
+Navigation functions assign a value based on the value in a (usually) different row than the current row.
+
+- `FIRST_VALUE()` (or `LAST_VALUE()`) returns the first (or last) value in the input.
+- `LEAD()` (and `LAG()`) returns the value on a subsequent (or preceding) row.
+
+#### 3. Analytic Numbering Functions
+
+Numbering functions assign integer values to each row based on the ordering.
+
+- `ROW_NUMBER()` returns the order in which rows appear in the input (starting with 1).
+- `RANK()` - All rows with the same value in the ordering column receive the same rank value, where the next row receives a rank value which increments by the number of rows with the previous rank value.
+
+### Setup
+
+We'll work with the [San Francisco Open Data](https://www.kaggle.com/datasf/san-francisco) dataset. We want explore data from the `bikeshare_trips` table.
+
+```python
+# create a "Client" object
+from google.cloud import bigquery
+client = bigquery.Client()
+```
+
+```python
+# construct a reference to the "san_francisco" dataset
+dataset_ref = client.dataset("san_francisco", project="bigquery-public-data")
+
+# fetch the dataset (API request)
+dataset = client.get_dataset(dataset_ref)
+```
+
+### Query
+
+Each row of the table corresponds to a different bike trip, and we can use an analytic function to calculate the cumulative number of trips for each date in 2015.
+
+```python
+# query to count the (cumulative) number of trips per day
+num_trips_query = """
+WITH trips_by_day AS (
+    SELECT
+        DATE(start_date) AS trip_date,
+        COUNT(*) AS num_trips
+    FROM
+        `bigquery-public-data.san_francisco.bikeshare_trips`
+    WHERE
+        EXTRACT(YEAR FROM start_date) = 2015
+    GROUP BY
+        trip_date
+)
+SELECT
+    *,
+    SUM(num_trips) OVER (
+        ORDER BY
+            trip_date ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+    ) AS cumulative_trips
+FROM
+    trips_by_day
+"""
+```
+
+- The query uses a common table expression (CTE) to first calculate the daily number of trips. Then, we use `SUM()` as an aggregate function.
+- Since there is no `PARTITION BY` clause, the entire table is treated as a single partition.
+- The `ORDER BY` clause orders the rows by date, where earlier dates appear first.
+- By setting the window frame clause to `ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW`, we ensure that all rows up to and including the current date are used to calculate the (cumulative) sum. (BTW, This is the default behavior. So, we can skip this part.)
+
+We can track the stations where each bike began (in `start_station_id`) and ended (in `end_station_id`) the day on October 25, 2015.
+
+```python
+# query to track beginning and ending stations on October 25, 2015, for each bike
+start_end_query = """
+SELECT
+    bike_number,
+    TIME(start_date) AS trip_time,
+    FIRST_VALUE(start_station_id) OVER (
+        PARTITION BY bike_number
+        ORDER BY
+            start_date ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
+    ) AS first_station_id,
+    LAST_VALUE(end_station_id) OVER (
+        PARTITION BY bike_number
+        ORDER BY
+            start_date ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
+    ) AS last_station_id,
+    start_station_id,
+    end_station_id
+FROM
+    `bigquery-public-data.san_francisco.bikeshare_trips`
+WHERE
+    DATE(start_date) = '2015-10-25'
+"""
+```
+
+- The query uses both `FIRST_VALUE()` and `LAST_VALUE()` as analytic functions.
+- The `PARTITION BY` clause breaks the data into partitions based on the `bike_number` column. Since this column holds unique identifiers for the bikes, this ensures the calculations are performed separately for each bike.
+- The `ORDER BY` clause puts the rows within each partition in chronological order.
+- Since the window frame clause is `ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING`, for each row, its entire partition is used to perform the calculation. (This ensures the calculated values for rows in the same partition are identical.)
+
+### From the Exercise
+
+We want to know about the length of the break (in minutes) that a driver had before each trip started (this corresponds to the time between `trip_start_timestamp` of the current trip and `trip_end_timestamp` of the previous trip).
+
+```python
+# query to track break time on May 1, 2017, for each taxi driver
+break_time_query = """
+SELECT
+    taxi_id,
+    trip_start_timestamp,
+    trip_end_timestamp,
+    TIMESTAMP_DIFF(
+        trip_start_timestamp,
+        LAG(trip_end_timestamp) OVER (
+            PARTITION BY
+                taxi_id
+            ORDER BY
+                trip_start_timestamp
+        ),
+        MINUTE
+    ) AS prev_break
+FROM
+    `bigquery-public-data.chicago_taxi_trips.taxi_trips`
+WHERE
+    DATE(trip_start_timestamp) = '2017-05-01'
+"""
+```
+
+- The `TIMESTAMP_DIFF()` function takes three arguments. This function provides the time difference of the timestamps in the first two arguments. We should use the `LAG()` function to pull the timestamp corresponding to the end of the previous trip (for the same `taxi_id`).
+
 ## Nested and Repeated Data
 *Learn to query complex datatypes in BigQuery. [#](https://www.kaggle.com/alexisbcook/nested-and-repeated-data)*
 
