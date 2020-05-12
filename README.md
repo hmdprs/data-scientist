@@ -4965,8 +4965,6 @@ Now consider the case where for example a pet can have multiple toys, or multipl
 
 But in the real world examples, we have nested columns with repeated data.
 
-![](img/nested-repeated-table.png)
-
 ### Setup
 
 We'll work with the [Google Analytics Sample](https://www.kaggle.com/bigquery/google-analytics-sample) dataset. It contains information tracking the behavior of visitors to the Google Merchandise store. We work with `ga_sessions_20170801` table, which has many nested fields. For a description of each field, refer to [this](https://support.google.com/analytics/answer/3437719?hl=en) data dictionary.
