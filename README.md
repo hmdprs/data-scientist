@@ -5151,9 +5151,7 @@ FROM
     UNNEST(c.repo_name) AS repo
     INNER JOIN `bigquery-public-data.github_repos.files` AS f ON f.repo_name = repo
 WHERE
-    f.repo_name IN (
-        'tensorflow/tensorflow', 'twbs/bootstrap', 'Microsoft/vscode', 'torvalds/linux'
-    )
+    f.repo_name IN ('tensorflow/tensorflow', 'twbs/bootstrap', 'Microsoft/vscode', 'torvalds/linux')
 GROUP BY
     repo
 ORDER BY
@@ -5173,9 +5171,7 @@ WITH commits AS (
         `bigquery-public-data.github_repos.commits`,
         UNNEST(repo_name) AS repo
     WHERE
-        repo IN (
-            'tensorflow/tensorflow', 'twbs/bootstrap', 'Microsoft/vscode', 'torvalds/linux'
-        )
+        repo IN ('tensorflow/tensorflow', 'twbs/bootstrap', 'Microsoft/vscode', 'torvalds/linux')
     GROUP BY
         repo
 ),
@@ -5186,9 +5182,7 @@ files AS (
     FROM
         `bigquery-public-data.github_repos.files`
     WHERE
-        repo_name IN (
-            'tensorflow/tensorflow', 'twbs/bootstrap', 'Microsoft/vscode', 'torvalds/linux'
-        )
+        repo_name IN ('tensorflow/tensorflow', 'twbs/bootstrap', 'Microsoft/vscode', 'torvalds/linux')
     GROUP BY
         repo
 )
