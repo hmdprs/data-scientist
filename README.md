@@ -5042,6 +5042,170 @@ ORDER BY
 ## Writing Efficient Queries
 *Write queries to run faster and use less data. [#](https://www.kaggle.com/alexisbcook/writing-efficient-queries)*
 
+### Introduction
+
+Sometimes it doesn't matter whether your query is efficient or not. For example, a query you expect to run only once, or it might be working on a small dataset. But what about queries that will be run many times, like a query that feeds data to a website? Or what about queries on huge datasets?
+
+We will use two functions to compare the efficiency of different queries.
+
+```python
+# create a "Client" object
+from google.cloud import bigquery
+client = bigquery.Client()
+```
+
+```python
+# function shows the amount of data the query uses
+def show_amount_of_data_scanned(query):
+    # dry_run lets us see how much data the query uses without running it
+    dry_run_config = bigquery.QueryJobConfig(dry_run=True)
+    query_job = client.query(query, job_config=dry_run_config)
+    print("Data processed: {} GB".format(round(query_job.total_bytes_processed / 10 ** 9, 3)))
+```
+
+```python
+# function shows how long it takes for the query to execute
+from time import time
+def show_time_to_run(query):
+    time_config = bigquery.QueryJobConfig(use_query_cache=False)
+    start = time()
+    query_result = client.query(query, job_config=time_config).result()
+    end = time()
+    print("Time to run: {} seconds".format(round(end - start, 3)))
+```
+
+### SELECT What You Want
+
+It is tempting to start queries with `SELECT * FROM`. This is especially important if there are text fields that you don't need, because text fields tend to be larger than other fields.
+
+```python
+star_query = "SELECT * FROM `bigquery-public-data.github_repos.contents`"
+show_amount_of_data_scanned(star_query)
+>>> Data processed: 2471.537 GB
+```
+
+```python
+basic_query = "SELECT size, binary FROM `bigquery-public-data.github_repos.contents`"
+show_amount_of_data_scanned(basic_query)
+Data processed: 2.371 GB
+```
+
+### Read Less Data
+
+```python
+more_data_query = """
+SELECT
+    MIN(start_station_id) AS start_station_name,
+    MIN(end_station_id) AS end_station_name,
+    AVG(duration_sec) AS avg_duration_sec
+FROM
+    `bigquery-public-data.san_francisco.bikeshare_trips`
+WHERE
+    start_station_id != end_station_id
+GROUP BY
+    start_station_id,
+    end_station_id
+LIMIT
+    10
+"""
+show_amount_of_data_scanned(more_data_query)
+>>> Data processed: 0.076 GB
+```
+
+```python
+less_data_query = """
+SELECT
+    start_station_name,
+    end_station_name,
+    AVG(duration_sec) AS avg_duration_sec
+FROM
+    `bigquery-public-data.san_francisco.bikeshare_trips`
+WHERE
+    start_station_name != end_station_name
+GROUP BY
+    start_station_name,
+    end_station_name
+LIMIT
+    10
+"""
+show_amount_of_data_scanned(less_data_query)
+>>> Data processed: 0.06 GB
+```
+
+- Since there is a 1:1 relationship between the station ID and the station name, we don't need to use the `start_station_id` and `end_station_id` columns in the query. By using only the columns with the station names, we scan less data.
+
+### Avoid N:N JOINs
+
+In **1:1 JOINs**, each row in each table has at most one match in the other table. In **N:1 JOIN**, each row in one table matches potentially many rows in the other table. Finally, in **N:N JOIN**, a group of rows in one table can match a group of rows in the other table.
+
+![](img/nn-join.png)
+
+```python
+big_join_query = """
+SELECT
+    repo,
+    COUNT(DISTINCT c.committer.name) AS num_committers,
+    COUNT(DISTINCT f.id) AS num_files
+FROM
+    `bigquery-public-data.github_repos.commits` AS c,
+    UNNEST(c.repo_name) AS repo
+    INNER JOIN `bigquery-public-data.github_repos.files` AS f ON f.repo_name = repo
+WHERE
+    f.repo_name IN (
+        'tensorflow/tensorflow', 'twbs/bootstrap', 'Microsoft/vscode', 'torvalds/linux'
+    )
+GROUP BY
+    repo
+ORDER BY
+    repo
+"""
+show_time_to_run(big_join_query)
+>>> Time to run: 7.192 seconds
+```
+
+```python
+small_join_query = """
+WITH commits AS (
+    SELECT
+        COUNT(DISTINCT committer.name) AS num_committers,
+        repo
+    FROM
+        `bigquery-public-data.github_repos.commits`,
+        UNNEST(repo_name) AS repo
+    WHERE
+        repo IN (
+            'tensorflow/tensorflow', 'twbs/bootstrap', 'Microsoft/vscode', 'torvalds/linux'
+        )
+    GROUP BY
+        repo
+),
+files AS (
+    SELECT
+        COUNT(DISTINCT id) AS num_files,
+        repo_name AS repo
+    FROM
+        `bigquery-public-data.github_repos.files`
+    WHERE
+        repo_name IN (
+            'tensorflow/tensorflow', 'twbs/bootstrap', 'Microsoft/vscode', 'torvalds/linux'
+        )
+    GROUP BY
+        repo
+)
+SELECT
+    commits.repo,
+    commits.num_committers,
+    files.num_files
+FROM
+    commits
+    INNER JOIN files ON commits.repo = files.repo
+ORDER BY
+    repo
+"""
+show_time_to_run(small_join_query)
+>>> Time to run: 5.245 seconds
+```
+
 # Microchallenges
 *Solve ultra-short challenges to build and test your skill.*
 
