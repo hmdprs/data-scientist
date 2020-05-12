@@ -4957,6 +4957,90 @@ WHERE
 ## Nested and Repeated Data
 *Learn to query complex datatypes in BigQuery. [#](https://www.kaggle.com/alexisbcook/nested-and-repeated-data)*
 
+### Syntax
+
+We can organize our information in many different tables. Another option in BigQuery is to organize all of the information in a single table. In this case, all of the information from related tables is collapsed into a single column in main table. We refer to that column as a nested column. Nested columns have type `RECORD` (or `STRUCT`) in the table schema. Each entry in a nested field is like a **dictionary**. To query a column with nested data, we need to use `.` notation to identify each field in that column.
+
+Now consider the case where for example a pet can have multiple toys, or multiple owners. In this case, to collapse this information into a single column, we need a column contains `REPEATED` (or `ARRAY`) data, because it permits more than one value for each row. Each entry in a repeated field is like an ordered **list** of values with the same datatype. When querying repeated data, we need to put the name of the column containing the repeated data inside an `UNNEST()` function. This flattens the repeated data so that we have one element on each row.
+
+But in the real world examples, we have nested columns with repeated data.
+
+![](img/nested-repeated-table.png)
+
+### Setup
+
+We'll work with the [Google Analytics Sample](https://www.kaggle.com/bigquery/google-analytics-sample) dataset. It contains information tracking the behavior of visitors to the Google Merchandise store. We work with `ga_sessions_20170801` table, which has many nested fields. For a description of each field, refer to [this](https://support.google.com/analytics/answer/3437719?hl=en) data dictionary.
+
+```python
+# create a "Client" object
+from google.cloud import bigquery
+client = bigquery.Client()
+```
+
+```python
+# construct a reference to the "google_analytics_sample" dataset
+dataset_ref = client.dataset("google_analytics_sample", project="bigquery-public-data")
+```
+
+```python
+# construct a reference to the "ga_sessions_20170801" table
+table_ref = dataset_ref.table("ga_sessions_20170801")
+
+# fetch the table (API request)
+table = client.get_table(table_ref)
+```
+
+```python
+# print schema field for the 'device' column
+print(table.schema[7])
+```
+
+### Query
+
+We refer to the `browser` field (which is nested in the `device` column) and the `transactions` field (which is nested inside the `totals` column) to count the number of transactions per browser.
+
+```python
+# query to count the number of transactions per browser
+query = """
+SELECT
+    device.browser AS device_browser,
+    SUM(totals.transactions) AS total_transactions
+FROM
+    `bigquery-public-data.google_analytics_sample.ga_sessions_20170801`
+GROUP BY
+    device_browser
+ORDER BY
+    total_transactions DESC
+"""
+```
+
+- By storing the information in the `device` and `totals` columns as `RECORD`s (as opposed to separate tables), we avoid expensive `JOIN`s. This increases performance and keeps us from having to worry about `JOIN` keys (and which tables have the exact data we need).
+
+Now we'll work with the `hits` column as an example of data that is both nested and repeated. Since:
+
+- `hits` is a `RECORD` (contains nested data) and is `REPEATED`,
+- `hitNumber`, `page`, and `type` are all nested inside the `hits` column, and
+- `pagePath` is nested inside the `page` field,
+
+```python
+# query to determine most popular landing point on the website
+query = """
+SELECT
+    hits.page.pagePath AS path,
+    COUNT(hits.page.pagePath) AS counts
+FROM
+    `bigquery-public-data.google_analytics_sample.ga_sessions_20170801`,
+    UNNEST(hits) AS hits
+WHERE
+    hits.type = "PAGE"
+    AND hits.hitNumber = 1
+GROUP BY
+    path
+ORDER BY
+    counts DESC
+"""
+```
+
 ## Writing Efficient Queries
 *Write queries to run faster and use less data. [#](https://www.kaggle.com/alexisbcook/writing-efficient-queries)*
 
