@@ -4827,31 +4827,18 @@ There are many ways to write window frame clauses. Some examples are:
 - `ROWS BETWEEN 3 PRECEDING AND 1 FOLLOWING` - the 3 previous rows, the current row, and the following row.
 - `ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING` - all rows in the partition.
 
-### Three Types
-
 BigQuery supports a [wide variety of analytic functions](https://cloud.google.com/bigquery/docs/reference/standard-sql/analytic-function-concepts), and we'll explore a few here.
 
-#### 1. Analytic Aggregate Functions
-
-Aggregate functions take all of the values within the window as input and return a single value. The `OVER` clause is what ensures that it's treated as an analytic (aggregate) function.
-
-- `MIN()` or `MAX()`
-- `AVG()` or `SUM()`
-- `COUNT()`
-
-#### 2. Analytic Navigation Functions
-
-Navigation functions assign a value based on the value in a (usually) different row than the current row.
-
-- `FIRST_VALUE()` (or `LAST_VALUE()`) returns the first (or last) value in the input.
-- `LEAD()` (and `LAG()`) returns the value on a subsequent (or preceding) row.
-
-#### 3. Analytic Numbering Functions
-
-Numbering functions assign integer values to each row based on the ordering.
-
-- `ROW_NUMBER()` returns the order in which rows appear in the input (starting with 1).
-- `RANK()` - All rows with the same value in the ordering column receive the same rank value, where the next row receives a rank value which increments by the number of rows with the previous rank value.
+- **Aggregate Functions** take all of the values within the window as input and return a single value. The `OVER` clause is what ensures that it's treated as an analytic (aggregate) function.
+  - `MIN()` or `MAX()`
+  - `AVG()` or `SUM()`
+  - `COUNT()`
+- **Navigation Functions** assign a value based on the value in a (usually) different row than the current row.
+  - `LEAD()` (and `LAG()`) returns the value on a subsequent (or preceding) row.
+  - `FIRST_VALUE()` (or `LAST_VALUE()`) returns the first (or last) value in the input.
+- **Numbering Functions** assign integer values to each row based on the ordering.
+  - `ROW_NUMBER()` returns the order in which rows appear in the input (starting with 1).
+  - `RANK()` - All rows with the same value in the ordering column receive the same rank value, where the next row receives a rank value which increments by the number of rows with the previous rank value.
 
 ### Setup
 
