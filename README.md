@@ -5200,11 +5200,29 @@ show_time_to_run(small_join_query)
 >>> Time to run: 5.245 seconds
 ```
 
-# Microchallenges
-*Solve ultra-short challenges to build and test your skill.*
-
 # Machine Learning Explainability
 *Extract human-understandable insights from any machine learning model.*
 
+## Use Cases for Model Insights
+*Why and when do you need insights? [#](https://www.kaggle.com/dansbecker/use-cases-for-model-insights)*
+
+## Permutation Importance
+*What features does your model think are important? [#](https://www.kaggle.com/dansbecker/permutation-importance)*
+
+## Partial Plots
+*How does each feature affect your predictions? [#](https://www.kaggle.com/dansbecker/partial-plots)*
+
+## SHAP Values
+*Understand individual predictions [#](https://www.kaggle.com/dansbecker/shap-values)*
+
+## Advanced Uses of SHAP Values
+*Aggregate SHAP values for even more detailed model insights [#](https://www.kaggle.com/dansbecker/advanced-uses-of-shap-values)*
+
 # Natural Language Processing
 *Distinguish yourself by learning to work with text data.*
+
+# Intro to Game AI and Reinforcement Learning
+*Build your own video game bots, using classic algorithms and cutting-edge techniques.*
+
+# Microchallenges
+*Solve ultra-short challenges to build and test your skill.*
