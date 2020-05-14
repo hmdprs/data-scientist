@@ -5206,6 +5206,20 @@ show_time_to_run(small_join_query)
 ## Use Cases for Model Insights
 *Why and when do you need insights? [#](https://www.kaggle.com/dansbecker/use-cases-for-model-insights)*
 
+### Possible Types of Insights
+
+- What **features** in the data did the model think are most important?
+- For any single prediction from a model, how did each feature in the data affect that **particular prediction**?
+- How does each feature affect the **model's predictions in a big-picture sense** (what is its typical effect when considered over a large number of possible predictions)?
+
+### Why are these Insights Valuable
+
+- **Debugging** - Dirty data, preprocessing codes, and data leakage are potential sources for bugs. Debugging is one of the most valuable skills in data science. Understanding the patterns a model is finding will help us identify when those are at odds with our knowledge of the real world, and this is typically the first step in tracking down bugs.
+- **Informing Feature Engineering** - Feature engineering is usually the most effective way to improve model accuracy. The techniques we'll learn would make it transparent what features are more important. As an increasing number of datasets start with 100s or 1000s of raw features, this approach is becoming increasingly important.
+- **Directing Future Data Collection** - Collecting new types of data can be expensive, so businesses and organizations only want to do this if they know it will be worthwhile. Model-based insights give us a good understanding of the value of features we currently have, which will help us reason about what new values may be most helpful.
+- **Informing Human Decision-making** - Some decisions are made automatically by models. But many important decisions are made by humans. For these decisions, insights can be more valuable than predictions.
+- **Building Trust** - Many people won't assume they can trust our model for important decisions without verifying some basic facts. Showing insights that fit their general understanding of the problem will help build trust, even among people with little deep knowledge of data science.
+
 ## Permutation Importance
 *What features does your model think are important? [#](https://www.kaggle.com/dansbecker/permutation-importance)*
 
