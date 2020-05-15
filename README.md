@@ -5223,6 +5223,79 @@ show_time_to_run(small_join_query)
 ## Permutation Importance
 *What features does your model think are important? [#](https://www.kaggle.com/dansbecker/permutation-importance)*
 
+### Introduction
+
+What features have the biggest impact on predictions? This concept is called **feature importance**. There are multiple ways to measure feature importance. We'll focus on permutation importance (PI). Compared to most other approaches, PI is:
+
+- fast to calculate,
+- widely used and understood, and
+- consistent with properties we would want a feature importance measure to have.
+
+### How It Works
+
+Our data includes useful features, features with little predictive power, as well as some other features we won't focus on. PI is calculated **after** a model has been fitted. The **key question** is: If I randomly shuffle a single column of the validation data, leaving the target and all other columns in place, how would that affect the accuracy of predictions in that now-shuffled data? Model accuracy especially suffers if we shuffle a column that the model relied on heavily for predictions.
+
+We will use a model that predicts whether a football team will have the ``Man of the Game` winner based on the team's statistics. Model-building isn't our current focus, so the cell below loads the data and builds a rudimentary model.
+
+```python
+# load and prepare data
+import pandas as pd
+data = pd.read_csv("../input/fifa-2018-match-statistics/FIFA 2018 Statistics.csv")
+
+# convert target from string "Yes"/"No" to binary
+y = data["Man of the Match"] == "Yes"
+
+import numpy as np
+feature_names = [i for i in data.columns if data[i].dtype in [np.int64]]
+X = data[feature_names]
+```
+
+```python
+# split train and valid data
+from sklearn.model_selection import train_test_split
+X_train, X_valid, y_train, y_valid = train_test_split(X, y, random_state=1)
+```
+
+```python
+# define & fit model
+from sklearn.ensemble import RandomForestClassifier
+model = RandomForestClassifier(n_estimators=100, random_state=0).fit(X_train, y_train)
+```
+
+We'll use `elib` library to calculate and show importances.
+
+```python
+# calculate importances
+from eli5.sklearn import PermutationImportance
+perm = PermutationImportance(model, random_state=1).fit(X_valid, y_valid)
+
+# show them
+from eli5 import show_weights
+show_weights(perm, feature_names=X_valid.columns.tolist())
+```
+
+|           Weight | Feature                |
+| ---------------: | :--------------------- |
+|  0.1750 ± 0.0848 | Goal Scored            |
+|  0.0500 ± 0.0637 | Distance Covered (Kms) |
+|  0.0437 ± 0.0637 | Yellow Card            |
+|  0.0187 ± 0.0637 | Free Kicks             |
+|  0.0187 ± 0.0637 | Fouls Committed        |
+|  0.0125 ± 0.0637 | Pass Accuracy %        |
+|  0.0063 ± 0.0612 | Saves                  |
+| -0.0187 ± 0.0306 | Attempts               |
+| -0.0500 ± 0.0637 | Passes                 |
+
+The values towards the **top** are the **most important features**, and those towards the bottom matter least. The number in each row shows how much model performance decreased with a random shuffling (in this case, using "accuracy" as the performance metric). The amount of randomness in our PI is calculated by repeating the process with multiple shuffles and the number after the ± shows that.
+
+We'll occasionally see negative values for PIs. This happens when the feature didn't matter, but random chance caused the predictions on shuffled data to be more accurate. This is more common with small datasets, because there is more room for luck/chance.
+
+### From the Exercise
+
+- Higher PI for a feature can have multiple reasons, not just one. It's not a direct path!
+- We can create better features, using `abs_lat_change` instead of only `pickup_latitude` and `dropoff_latitude`.
+- The **scale of features** does not affect PI. The only reason that rescaling a feature would affect PI is indirectly, **if** rescaling helped or hurt the ability of the particular learning method we're using to make use of that feature. That won't happen with tree based models, like the Random Forest.
+
 ## Partial Plots
 *How does each feature affect your predictions? [#](https://www.kaggle.com/dansbecker/partial-plots)*
 
