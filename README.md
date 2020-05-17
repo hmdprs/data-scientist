@@ -691,6 +691,13 @@ reviews.loc[reviews["price"].notna()]
 
 - `isnull()` is an alias for `isna()`, same as `notnull()` for `notna()`.
 
+#### SQL-like Queries
+
+```python
+# query a df like SQL datasets
+wine_reviews.query("price > 100 and country = 'Italy'")
+```
+
 ### Assigning Data
 
 ```python
@@ -5243,11 +5250,11 @@ import pandas as pd
 data = pd.read_csv("../input/fifa-2018-match-statistics/FIFA 2018 Statistics.csv")
 
 # convert target from string "Yes"/"No" to binary
-y = data["Man of the Match"] == "Yes"
+y = (data["Man of the Match"] == "Yes")
 
 import numpy as np
-feature_names = [i for i in data.columns if data[i].dtype in [np.int64]]
-X = data[feature_names]
+base_features = [i for i in data.columns if data[i].dtype in [np.int64]]
+X = data[base_features]
 ```
 
 ```python
@@ -5298,6 +5305,95 @@ We'll occasionally see negative values for PIs. This happens when the feature di
 
 ## Partial Plots
 *How does each feature affect your predictions? [#](https://www.kaggle.com/dansbecker/partial-plots)*
+
+### Introduction
+
+While feature importance shows *what* variables most affect predictions, partial dependence plots show *how* a feature affects predictions. This is useful to answer questions like:
+
+- Controlling for all other house features, what impact do longitude and latitude have on home prices? To restate this, how would similarly sized houses be priced in different areas?
+- Are predicted health differences between two groups due to differences in their diets, or due to some other factor?
+
+Partial dependence plots can be interpreted similarly to the coefficients in linear or logistic regression models.
+
+### How It Works
+
+Like permutation importance, partial dependence plots are calculated **after** a model has been fit.
+
+We repeatedly **alter the value for one variable** and use the **fitted model** to make a series of predictions. We trace out predicted outcomes as we move from small values to large ones. Interactions between features may cause the plot for the dataset.
+
+We can use decision tree.
+
+```python
+# define and fit model
+from sklearn.tree import DecisionTreeClassifier
+tree_model = DecisionTreeClassifier(random_state=0, max_depth=5, min_samples_split=5).fit(
+    X_train, y_train
+)
+```
+
+```python
+# export decision tree
+from sklearn.tree import export_graphviz
+tree_graph = export_graphviz(tree_model, out_file=None, feature_names=base_features)
+
+# show it
+import graphviz
+graphviz.Source(tree_graph)
+```
+
+- Leaves with children show their splitting criterion on the top.
+- The pair of values at the bottom show the count of False values and True values for the target respectively, of data points in that node of the tree.
+
+Or, we can use [PDPBox](https://pdpbox.readthedocs.io/en/latest/) library to create a partial dependence plot.
+
+```python
+# define and fit model
+from sklearn.ensemble import RandomForestClassifier
+rf_model = RandomForestClassifier(random_state=0).fit(train_X, train_y)
+```
+
+```python
+feature_to_plot = "Distance Covered (Kms)"
+
+# create data
+from pdpbox import pdp, get_dataset, info_plots
+pdp_iso = pdp.pdp_isolate(
+    model=rf_model, dataset=X_valid, model_features=base_features, feature=feature_to_plot
+)
+
+# plot it
+pdp.pdp_plot(pdp_iso, feature_to_plot)
+from matplotlib import pyplot as plt
+plt.show()
+```
+
+- The y axis is interpreted as **change in the prediction** from what it would be predicted at the baseline or leftmost value.
+- A shaded area indicates the **level of confidence**.
+
+Or we can use 2D partial dependence plots to clarify about interactions between features.
+
+```python
+features_to_plot = ["Goal Scored", "Distance Covered (Kms)"]
+
+# create data
+pdp_inter = pdp.pdp_interact(
+    model=rf_model, dataset=X_valid, model_features=base_features, features=features_to_plot
+)
+
+# plot it
+pdp.pdp_interact_plot(
+    pdp_interact_out=pdp_inter, feature_names=features_to_plot, plot_type="contour"
+)
+plt.show()
+```
+
+- It is similar to previous PDP plot except we use `pdp_interact` instead of `pdp_isolate` and `pdp_interact_plot` instead of `pdp_isolate_plot`.
+
+### From the Exercise
+
+Consider a scenario where we have only 2 predictive features, `feat_A` and `feat_B`. Both have minimum values of -1 and maximum values of 1. The partial dependence plot for `feat_A` increases steeply over its whole range, whereas the partial dependence plot for `feat_B` increases at a slower rate (less steeply) over its whole range. Does this guarantee that `feat_A` will have a higher permutation importance than `feat_B`?
+
+- No. For example, `feat_A` could have a big effect in the cases where it varies, but could have a single value 99% of the time. In that case, permuting `feat_A` wouldn't matter much, since most values would be unchanged.
 
 ## SHAP Values
 *Understand individual predictions [#](https://www.kaggle.com/dansbecker/shap-values)*
