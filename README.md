@@ -5308,7 +5308,7 @@ We'll occasionally see negative values for PIs. This happens when the feature di
 
 ### Introduction
 
-While feature importance shows *what* variables most affect predictions, partial dependence plots show *how* a feature affects predictions. This is useful to answer questions like:
+While feature importance shows **what** variables most affect predictions, partial dependence plots show **how** a feature affects predictions. This is useful to answer questions like:
 
 - Controlling for all other house features, what impact do longitude and latitude have on home prices? To restate this, how would similarly sized houses be priced in different areas?
 - Are predicted health differences between two groups due to differences in their diets, or due to some other factor?
@@ -5397,6 +5397,81 @@ Consider a scenario where we have only 2 predictive features, `feat_A` and `feat
 
 ## SHAP Values
 *Understand individual predictions [#](https://www.kaggle.com/dansbecker/shap-values)*
+
+### Introduction
+
+We've used techniques to extract general insights from a machine learning model. SHAP Values (an acronym from SHapley Additive exPlanations) break down a prediction to show the impact of each feature. Where could we use this?
+
+- A model says a bank shouldn't loan someone money, and the bank is legally required to explain the basis for each loan rejection.
+- A healthcare provider wants to identify what factors are driving each patient's risk of some disease so they can directly address those risk factors with targeted health interventions.
+
+### How It Works
+
+SHAP values interpret/decompose the impact of having certain values for given features in comparison to the prediction we'd make if those features took some baseline value.
+
+There is some complexity to the technique, to ensure that the baseline plus the sum of individual effects adds up to the prediction. [This blog post](https://towardsdatascience.com/one-feature-attribution-method-to-supposedly-rule-them-all-shapley-values-f3e04534983d) has a theoretical explanation about it.
+
+```python
+# define & fit model
+from sklearn.ensemble import RandomForestClassifier
+model = RandomForestClassifier(random_state=0).fit(X_train, y_train)
+```
+
+```python
+# look at the raw predictions for a single row, we can do for multiple
+data_for_prediction = X_valid.iloc[0, :]
+
+# convert data column to a row, -1 is for adaptivity
+data_for_prediction_array = data_for_prediction.values.reshape(1, -1)
+
+# find predictions' probabilities
+my_model.predict_proba(data_for_prediction_array)
+>>> array([[0.3, 0.7]])
+```
+
+- The team is 70% likely to have a player win the award.
+
+We calculate SHAP values using the [SHAP](https://github.com/slundberg/shap) library.
+
+```python
+# create object can calculate SHAP values
+import shap
+explainer = shap.TreeExplainer(model)
+
+# calculate SHAP values
+shap_values = explainer.shap_values(data_for_prediction)
+```
+
+- The `shap_values` object is a list with two arrays. The first array is the SHAP values for a **negative** outcome (don't win the award), and the second array is the list of SHAP values for the **positive** outcome (wins the award).
+- We typically think about predictions in terms of the prediction of a positive outcome, so we'll pull out `shap_values[1]`.
+
+```python
+# visualize
+shap.initjs()
+shap.force_plot(explainer.expected_value[1], shap_values[1], data_for_prediction)
+```
+
+![](img/shap.png)
+
+- For `output value` we predicted 0.7, whereas the `base value` is 0.4979.
+- The biggest impact comes from `Goal Scored` being 2. Though the `Ball Possession` value has a meaningful effect decreasing the prediction.
+- If you subtract the length of the blue bars from the length of the pink bars, it equals the distance from the base value to the output.
+
+
+The SHAP package has explainers for every type of model.
+
+- `shap.TreeExplainer` works with tree models.
+- `shap.DeepExplainer` works with deep learning models.
+- `shap.KernelExplainer` works with all models, though it is slower than other explainers and it offers an approximation rather than exact SHAP values.
+
+### From the Exercise
+
+It seems `time_in_hospital` doesn't matter in `readmission` prediction. If that is what your model concluded, the doctors will believe it. But could the data be wrong, or is your model doing something more complex than they expect? If we'd like to show the raw readmission rate for each value of `time_in_hospital` to see how it compares to the partial dependence plot:
+
+```python
+all_train = pd.concat([X_train, y_train], axis=1)
+all_train.groupby("time_in_hospital")["readmitted"].mean().plot()
+```
 
 ## Advanced Uses of SHAP Values
 *Aggregate SHAP values for even more detailed model insights [#](https://www.kaggle.com/dansbecker/advanced-uses-of-shap-values)*
