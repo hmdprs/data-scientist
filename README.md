@@ -5466,7 +5466,7 @@ The SHAP package has explainers for every type of model.
 
 ### From the Exercise
 
-It seems `time_in_hospital` doesn't matter in `readmission` prediction. If that is what your model concluded, the doctors will believe it. But could the data be wrong, or is your model doing something more complex than they expect? If we'd like to show the raw readmission rate for each value of `time_in_hospital` to see how it compares to the partial dependence plot:
+It seems `time_in_hospital` doesn't matter in `readmission` prediction. If that is what our model concluded, the doctors will believe it. But could the data be wrong, or is our model doing something more complex than they expect? If we'd like to show the raw readmission rate for each value of `time_in_hospital` to see how it compares to the partial dependence plot:
 
 ```python
 all_train = pd.concat([X_train, y_train], axis=1)
