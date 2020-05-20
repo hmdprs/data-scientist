@@ -5242,7 +5242,7 @@ What features have the biggest impact on predictions? This concept is called **f
 
 Our data includes useful features, features with little predictive power, as well as some other features we won't focus on. PI is calculated **after** a model has been fitted. The **key question** is: If I randomly shuffle a single column of the validation data, leaving the target and all other columns in place, how would that affect the accuracy of predictions in that now-shuffled data? Model accuracy especially suffers if we shuffle a column that the model relied on heavily for predictions.
 
-We will use a model that predicts whether a football team will have the ``Man of the Game` winner based on the team's statistics. Model-building isn't our current focus, so the cell below loads the data and builds a rudimentary model.
+We will use a model that predicts whether a football team will have the **Man of the Game** winner based on the team's statistics. Model-building isn't our current focus, so the cell below loads the data and builds a rudimentary model.
 
 ```python
 # load and prepare data
@@ -5269,7 +5269,7 @@ from sklearn.ensemble import RandomForestClassifier
 model = RandomForestClassifier(n_estimators=100, random_state=0).fit(X_train, y_train)
 ```
 
-We'll use `elib` library to calculate and show importances.
+We'll use **elib** library to calculate and show importances.
 
 ```python
 # calculate importances
@@ -5344,7 +5344,7 @@ graphviz.Source(tree_graph)
 - Leaves with children show their splitting criterion on the top.
 - The pair of values at the bottom show the count of False values and True values for the target respectively, of data points in that node of the tree.
 
-Or, we can use [PDPBox](https://pdpbox.readthedocs.io/en/latest/) library to create a partial dependence plot.
+Or, we can use **[PDPBox](https://pdpbox.readthedocs.io/en/latest/)** library to create a partial dependence plot.
 
 ```python
 # define and fit model
@@ -5431,7 +5431,7 @@ my_model.predict_proba(data_for_prediction_array)
 
 - The team is 70% likely to have a player win the award.
 
-We calculate SHAP values using the [SHAP](https://github.com/slundberg/shap) library.
+We calculate SHAP values using the **[SHAP](https://github.com/slundberg/shap)** library.
 
 ```python
 # create object can calculate SHAP values
@@ -5555,6 +5555,139 @@ shap.dependence_plot("Ball Possession %", shap_values[1], X_valid, interaction_i
 
 ## Intro to NLP
 *Get started with NLP. [#](https://www.kaggle.com/matleonard/intro-to-nlp)*
+
+### Intro
+
+We will use **[spaCy](https://spacy.io/)**, the leading Natural Language Processing (NLP) library, to take on some of the most important tasks in working with text.
+
+- Basic text processing and pattern matching.
+- Building machine learning models with text.
+- Representing text with word embeddings that numerically capture the meaning of words and documents.
+
+spaCy relies on models that are language-specific. We can load a spaCy model with `spacy.load` or `spacy.blank`.
+
+```python
+# load the English language model
+import spacy
+nlp = spacy.load("en")
+```
+
+### Tokenizing
+
+With the model loaded, we can process texts.
+
+```python
+text = nlp("Tea is healthy and calming, don't you think?")
+```
+
+- This returns a document object that contains tokens. A **token** is a unit of text in the document, such as individual words and punctuation. SpaCy splits contractions like "don't" into two tokens, "do" and "n't".
+
+```python
+tokens = [token for token in text]
+```
+
+- Iterating through a document gives us token objects. Each of these tokens comes with additional information, such as `token.lemma_` and `token.is_stop`.
+- The **lemma** of a word is its base form. For example, "walk" is the lemma of the word "walking". `token.lemma_` returns the lemma.
+- **Stopwords** are words that occur frequently in the language and don't contain much information. English stopwords include "the", "is", "and", "but", "not". `token.is_stop` returns a boolean `True` if the token is a stopword (and `False` otherwise).
+
+### Text Preprocessing
+
+Language data has a lot of noise mixed in with informative content. Removing stop words might help the predictive model focus on relevant words. Lemmatizing helps by combining multiple forms of the same word into one base form ("calming", "calms", "calmed" would all change to "calm"). However, lemmatizing and dropping stopwords might result in our models performing **worse**. So we should treat this preprocessing as part of our **hyperparameter optimization process**.
+
+### Pattern Matching
+
+Another common NLP task is matching tokens or phrases within chunks of text or whole documents. To match individual tokens, we create a `Matcher` and for a list of terms, it's easier and more efficient to use `PhraseMatcher`.
+
+```python
+# create a PhraseMatcher object
+from spacy.matcher import PhraseMatcher
+matcher = PhraseMatcher(nlp.vocab, attr="LOWER")
+```
+
+- `nlp.vocab` is the tokenizer, using the vocabulary of our model.
+- Setting `attr="LOWER"` will match the phrases on lowercased text and provides case insensitive matching.
+
+The `PhraseMatcher` needs the patterns as document objects.
+
+```python
+# create patterns
+terms = ["Galaxy Note", "iPhone 11", "iPhone XS", "Google Pixel"]
+patterns = [nlp(item) for item in terms]
+```
+
+```python
+# add rules to the PhraseMatcher object
+matcher.add("TerminologyList", None, *patterns)
+```
+
+- In the first argument we provide a name for the set of rules we're matching to.
+- In the second argument we define special actions to take on matched words.
+
+```python
+# apply PhraseMatcher to text
+text = nlp(
+    "Glowing review overall, and some really interesting side-by-side "
+    "photography tests pitting the iPhone 11 Pro against the "
+    "Galaxy Note 10 Plus and last year’s iPhone XS and Google Pixel 3."
+)
+matches = matcher(text)
+```
+
+```python
+matches
+>>> [(3766102292120407359, 17, 19),
+     (3766102292120407359, 22, 24),
+     (3766102292120407359, 30, 32),
+     (3766102292120407359, 33, 35)]
+```
+
+- The matches are tuples of the match id (`match[0]`) and the positions of the start (`match[1]`) and end (`match[2]`) of the phrase.
+
+### From the Exercise
+
+```python
+# load data
+import pandas as pd
+data = pd.read_json("../input/nlp-course/restaurant.json")
+```
+
+```python
+# add rules to the PhraseMatcher object
+patterns = [nlp(item) for item in menu]
+matcher.add("MENU", None, *patterns)
+```
+
+```python
+# create item_ratings as a dictionary of lists of stars for food items in the menu
+from collections import defaultdict
+item_ratings = defaultdict(list)
+for idx, review in data.iterrows():
+    text = nlp(review["text"])
+    matches = matcher(doc)
+    found_items = set([doc[match[1] : match[2]] for match in matches])
+    for item in found_items:
+        item_ratings[str(item).lower()].append(review["stars"])
+```
+
+```python
+# calculate the mean ratings for each menu item
+from statistics import mean
+mean_ratings = {item: mean(ratings) for item, ratings in item_ratings.items()}
+```
+
+```python
+# calculate the number of reviews for each item
+counts = {item: len(ratings) for item, ratings in item_ratings.items()}
+
+# find the worst items + errors of calculation based on item counts
+sorted_ratings = sorted(mean_ratings, key=mean_ratings.get)
+for item in sorted_ratings[:10]:
+    print(
+        f"{item:20} Ave rating: {mean_ratings[item]:.2f} ± {1/(counts[item]**0.5):.2f} \tcount: {counts[item]}"
+    )
+```
+
+- The less data we have for any specific item, the less we can trust that the average rating is the "real" sentiment of the customers. This is fairly common sense. If more people tell us the same thing, we're more likely to believe it. It's also mathematically sound. As the number of data points increases, the error on the mean decreases as `1/sqrt(n)`.
 
 ## Text Classification
 *Combine machine learning with your newfound NLP skills. [#](https://www.kaggle.com/matleonard/text-classification)*
