@@ -5476,6 +5476,80 @@ all_train.groupby("time_in_hospital")["readmitted"].mean().plot()
 ## Advanced Uses of SHAP Values
 *Aggregate SHAP values for even more detailed model insights [#](https://www.kaggle.com/dansbecker/advanced-uses-of-shap-values)*
 
+### Introduction
+
+We'll expand on SHAP values, seeing how aggregating many SHAP values can give more detailed alternatives to permutation importance and partial dependence plots. We will focus on two of [SHAP](https://github.com/slundberg/shap) libarary's visualizations. These visualizations have conceptual similarities to permutation importance and partial dependence plots.
+
+```python
+# define & fit model
+from sklearn.ensemble import RandomForestClassifier
+model = RandomForestClassifier(random_state=0).fit(X_train, y_train)
+```
+
+### Summary Plots
+
+Permutation importance is great because it created simple numeric measures to see which features mattered to a model. But it doesn't tell us how each features matter. If a feature has medium permutation importance, that could mean it has
+
+- a large effect for a few predictions, but no effect in general, or
+- a medium effect for all predictions.
+
+SHAP Summary Plots give us a birds-eye view of feature importance and what is driving it.
+
+```python
+# create object can calculate SHAP values
+import shap
+explainer = shap.TreeExplainer(model)
+
+# calculate SHAP values for all of X_valid rather than a single row
+shap_values = explainer.shap_values(X_valid)
+```
+
+```python
+# visualize
+shap.summary_plot(shap_values[1], X_valid)
+```
+
+- For classification problems, there is a separate array of SHAP values for each possible outcome. `shap_values[0]` for the prediction of `False` and `shap_values[1]` for `True`.
+- Calculating SHAP values can be slow especially with reasonably sized datasets. The exception is when using an **xgboost** model, which SHAP has some optimizations for and which is thus much faster.
+
+![](img/shap-summary.png)
+
+- Vertical location shows what feature it is depicting.
+- Color shows whether that feature was high or low for that row of the dataset.
+- Horizontal location shows whether the effect of that value caused a higher or lower prediction.
+- Because the **range of effects** (distance between smallest effect and largest effect) is so sensitive to outliers, permutation importance is a better measure of what's generally important to the model. However if all dots on the graph are widely spread from each other, that is a reasonable indication that permutation importance is high.
+- The **jumbling** (have blue and pink dots jumbled together) suggests that the variable has an interaction effect with other variables. We could investigate that with SHAP Contribution Dependence Plots.
+
+Some things we should be able to easily pick out:
+
+- High values of `Goal Scored` caused higher predictions, and low values caused low predictions
+
+### Dependence Contribution Plots
+
+We've previously used Partial Dependence Plots to show how a single feature impacts predictions. But what is the distribution of effects? SHAP Dependence Contribution Plots provide a similar insight to PDP's, but they add a lot more detail.
+
+```python
+# visualize
+shap.dependence_plot("Ball Possession %", shap_values[1], X_valid, interaction_index="Goal Scored")
+```
+
+- There is only line that's different from the `summary_plot`.
+- If we don't supply an argument for `interaction_index`, SHAP library uses some logic to pick one that may be interesting.
+
+![](img/shap-dependence.png)
+
+- Each dot represents a row of the data. The horizontal location is the actual value from the dataset, and the vertical location shows what having that value did to the prediction.
+- The fact this slopes upward says that the more we possess the ball, the higher the model's prediction is for winning the "Man of the Game" award.
+- The spread suggests that other features must interact with `Ball Possession %`. For example, points with same ball possession value and different SHAP values.
+- This suggests we delve into the interactions, and the plots include color coding to help do that.
+- Consider those two points from bottom right stand out spatially as being far away from the upward trend. They are both indicating the team scored one goal. We can interpret this to say *In general, having the ball increases a team's chance of having their player win the award. But if they only score one goal, that trend reverses and the award judges may penalize them for having the ball so much if they score that little*.
+
+### From the Exercise
+
+![](img/shap-dependence-ex.png)
+
+- The SHAP vaue is an **estimate of the impact** of a given feature on the prediction. So, if the dots trend from upper left to lower right, that means low values of `feature_of_interest` cause higher predictions. So increasing `feature_of_interest` has a **more positive impact** on predictions when `other_feature` is high.
+
 # Natural Language Processing
 *Distinguish yourself by learning to work with text data.*
 
