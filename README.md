@@ -5553,6 +5553,15 @@ shap.dependence_plot("Ball Possession %", shap_values[1], X_valid, interaction_i
 # Natural Language Processing
 *Distinguish yourself by learning to work with text data.*
 
+## Intro to NLP
+*Get started with NLP. [#](https://www.kaggle.com/matleonard/intro-to-nlp)*
+
+## Text Classification
+*Combine machine learning with your newfound NLP skills. [#](https://www.kaggle.com/matleonard/text-classification)*
+
+## Word Vectors
+*Explore an idea that ushered in a new generation of NLP techniques. [#](https://www.kaggle.com/matleonard/word-vectors)*
+
 # Intro to Game AI and Reinforcement Learning
 *Build your own video game bots, using classic algorithms and cutting-edge techniques.*
 
