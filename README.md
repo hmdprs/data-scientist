@@ -5846,6 +5846,118 @@ correct_predictions.mean()
 ## Word Vectors
 *Explore an idea that ushered in a new generation of NLP techniques. [#](https://www.kaggle.com/matleonard/word-vectors)*
 
+### Word Embeddings
+
+We can usually represent the text numerically better with word embeddings. Word embeddings (also called **word vectors**) represent each word numerically in such a way that the vector corresponds to how that word is used or what it means. Vector encodings are learned by considering the context in which the words appear. Words that appear in similar contexts will have similar vectors. For example, vectors for "leopard", "lion", and "tiger" will be close together, while they'll be far away from "planet" and "castle".
+
+Relations between words can be examined with mathematical operations. Subtracting the vectors for "man" and "woman" will return another vector. If you add that to the vector for "king" the result is close to the vector for "queen."
+
+These vectors can be used as features for machine learning models. spaCy provides embeddings learned from a model called Word2Vec. We can access them by loading a large language model like `en_core_web_lg`. Then they will be available on tokens from the `.vector` attribute.
+
+```python
+# load the large model to get the vectors
+import spacy
+nlp = spacy.load("en_core_web_lg")
+```
+
+```python
+text = "These vectors can be used as features for machine learning models."
+
+# disable other pipes, we don't need them, it'll speed up this part
+import numpy as np
+with nlp.disable_pipes():
+    vectors = np.array([token.vector for token in nlp(text)])
+
+vectors.shape
+>>> (12, 300)
+```
+
+- These are 300-dimensional vectors, with one vector for each word.
+
+We only have document-level labels and our models won't be able to use the word-level embeddings. So, we need a vector representation for the entire document.
+
+There are many ways to combine all the word vectors into a single document vector we can use for model training. A simple and surprisingly effective approach is simply averaging the vectors for each word in the document. Then, we can use these document vectors for modeling. spaCy calculates the average document vector which we can get with `doc.vector`.
+
+```python
+# load spam data
+import pandas as pd
+spam = pd.read_csv("../input/nlp-course/spam.csv")
+
+with nlp.disable_pipes():
+    doc_vectors = np.array([nlp(text).vector for text in spam["text"]])
+
+doc_vectors.shape
+>>> (5572, 300)
+```
+
+- Why 300 columns? This is the same length as word vectors. Probably something about Eigenvectors. Huh?
+
+### Classification Models
+
+```python
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(
+    doc_vectors, spam["label"], test_size=0.1, random_state=1
+)
+```
+
+With the document vectors, we can train scikit-learn models, xgboost models, or any other standard approach to modeling. Here we'll use [Support Vector Machines (SVMs)](https://scikit-learn.org/stable/modules/svm.html#svm). Scikit-learn provides an SVM classifier `LinearSVC`.
+
+```python
+# define model
+from sklearn.svm import LinearSVC
+svc = LinearSVC(random_state=1, dual=False, max_iter=10000)
+```
+
+- Setting `dual=False` speeds up training.
+
+```python
+# fit and evaluate the mdoel
+svc.fit(X_train, y_train)
+svc.score(X_test, y_test)
+```
+
+### Document Similarity
+
+Documents with similar content generally have similar vectors. So we can find similar documents by measuring the similarity between the vectors. A common metric for this is the cosine similarity which measures the angle between two vectors, a and b:
+
+$$cosθ=a⋅b/∥a∥∥b∥$$
+
+This can vary between -1 and 1, corresponding complete opposite to perfect similarity, respectively. To calculate it, we can use the [metric from scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.pairwise.cosine_similarity.html) or write our own function.
+
+```python
+def cosine_similarity(a, b):
+    return np.dot(a, b) / np.sqrt(a.dot(a) * b.dot(b))
+```
+
+```python
+a = nlp("REPLY NOW FOR FREE TEA").vector
+b = nlp(
+    "According to legend, Emperor Shen Nung discovered tea when leaves from a wild tree blew into his pot of boiling water."
+).vector
+cosine_similarity(a, b)
+```
+
+### Centering the Vectors
+
+Sometimes people center document vectors when calculating similarities. That is, they calculate the mean vector from all documents, and they subtract this from each individual document's vector. Because sometimes our documents will already be fairly similar. For example, reviews of businesses compared to news articles, technical manuals, and recipes. We end up with all the similarities between 0.8 and 1 and no anti-similar documents (similarity < 0). When the vectors are centered, we are comparing documents within our dataset as opposed to all possible documents.
+
+```python
+review_vec = nlp("REPLY NOW FOR FREE TEA").vector
+
+# calculate the mean for the document vectors, should have shape (300,)
+vec_mean = doc_vectors.mean(axis=0)
+
+# center the document vectors
+centered = doc_vectors - vec_mean
+
+# calculate similarities for each document in the dataset, subtract the mean from the review vector
+sims = np.array([cosine_similarity(review_vec - vec_mean, vec) for vec in centered])
+
+# get the index for the most similar document
+most_similar = sims.argmax()
+```
+
 # Intro to Game AI and Reinforcement Learning
 *Build your own video game bots, using classic algorithms and cutting-edge techniques.*
 
