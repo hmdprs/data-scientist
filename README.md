@@ -5577,13 +5577,14 @@ nlp = spacy.load("en")
 With the model loaded, we can process texts.
 
 ```python
-text = nlp("Tea is healthy and calming, don't you think?")
+# tokenize text
+doc = nlp("Tea is healthy and calming, don't you think?")
 ```
 
 - This returns a document object that contains tokens. A **token** is a unit of text in the document, such as individual words and punctuation. SpaCy splits contractions like "don't" into two tokens, "do" and "n't".
 
 ```python
-tokens = [token for token in text]
+tokens = [token for token in doc]
 ```
 
 - Iterating through a document gives us token objects. Each of these tokens comes with additional information, such as `token.lemma_` and `token.is_stop`.
@@ -5624,13 +5625,15 @@ matcher.add("TerminologyList", None, *patterns)
 - In the second argument we define special actions to take on matched words.
 
 ```python
-# apply PhraseMatcher to text
-text = nlp(
+# tokenize text
+doc = nlp(
     "Glowing review overall, and some really interesting side-by-side "
     "photography tests pitting the iPhone 11 Pro against the "
     "Galaxy Note 10 Plus and last year’s iPhone XS and Google Pixel 3."
 )
-matches = matcher(text)
+
+# # apply PhraseMatcher to tokenized text
+matches = matcher(doc)
 ```
 
 ```python
@@ -5662,9 +5665,9 @@ matcher.add("MENU", None, *patterns)
 from collections import defaultdict
 item_ratings = defaultdict(list)
 for idx, review in data.iterrows():
-    text = nlp(review["text"])
+    doc = nlp(review["text"])
     matches = matcher(doc)
-    found_items = set([doc[match[1] : match[2]] for match in matches])
+    found_items = set([doc[match[1]:match[2]] for match in matches])
     for item in found_items:
         item_ratings[str(item).lower()].append(review["stars"])
 ```
@@ -5691,6 +5694,154 @@ for item in sorted_ratings[:10]:
 
 ## Text Classification
 *Combine machine learning with your newfound NLP skills. [#](https://www.kaggle.com/matleonard/text-classification)*
+
+### Intro
+
+A common task in NLP is text classification. Examples include spam detection, sentiment analysis, and tagging customer queries.
+
+We'll create a classifier that will detect spam messages.
+
+```python
+# load and shuffle data, sampling with frac<1, upsampling with frac>1
+import pandas as pd
+spam = pd.read_csv('../input/nlp-course/spam.csv').sample(frac=1, random_state=1)
+```
+
+### Bag-of-Words
+
+Machine learning models don't learn from raw text data. Instead, we need to convert the text to something numeric. The simplest common representation is a variation of one-hot encoding. We represent each document as a **vector of term frequencies** for each term in the vocabulary. The **vocabulary** is built from all the tokens (terms) in the **corpus** (the collection of documents). This is called the **BOW** (Bag-of-Words) representation.
+
+Another common representation is **TF-IDF** (Term Frequency - Inverse Document Frequency). TF-IDF is similar to bag of words except that each term count is scaled by the term's frequency in the corpus. Using TF-IDF can potentially improve our models.
+
+Once we have our documents in a bag of words representation (or TF-IDF), we can use those vectors as input to any machine learning model. spaCy handles the bag of words conversion and building a simple linear model for us with the `TextCategorizer` class.
+
+The `TextCategorizer` is a spaCy `pipe`. Pipes are classes for processing and transforming tokens. When we load a spaCy model with `spacy.load`, there are default pipes that perform part of speech tagging, entity recognition, and other transformations. When we run text through a model, the output of the pipes are attached to the tokens in the doc object. When we create a blank spaCy model with `spacy.blank`, there is only a `tokenizer` pipe. We can remove or add pipes to models.
+
+```python
+# create an empty model
+import spacy
+nlp = spacy.blank("en")
+```
+
+```python
+# create the TextCategorizer
+textcat = nlp.create_pipe(
+    "textcat",
+    config={"exclusive_classes": True, "architecture": "bow"}
+    )
+
+# add the TextCategorizer to the empty model
+nlp.add_pipe(textcat)
+```
+
+- `"exclusive_classes"` makes categories mutually exclusive.
+- `"architecture"` configures model architecture:
+  - `"ensemble"` - Stacked ensemble of a bag-of-words model and a CNN model.
+  - `"simple_cnn"` - A neural network model where token vectors are calculated using a CNN. The vectors are mean pooled and used as features in a feed-forward network.
+  - `"bow"` - An ngram bag-of-words model. The features extracted can be controlled using the keyword arguments `ngram_size` and `attr` (ex. `"lower"`). This architecture should run much faster than the others, but may not be as accurate, especially if texts are short.
+
+```python
+# add labels to TextCategorizer
+textcat.add_label("ham")
+textcat.add_label("spam")
+```
+
+### Training a Text Categorizer Model
+
+We'll convert the labels in the data to the form `TextCategorizer` requires. For each document, we'll create a dictionary of boolean values for each class. The model is looking for these labels inside another dictionary with the key `"cats"`.
+
+```python
+texts = spam["text"].values
+lebels = [
+    {"cats": {"ham": (label=="ham"), "spam": (label=="spam")}} for label in spam["label"]
+]
+```
+
+```python
+# combine the texts and labels into a single list
+data = list(zip(texts, lebels))
+```
+
+```python
+# split train and valid data
+split = int(len(data) * 0.8)
+train_data, valid_data = data[:split], data[split:]
+```
+
+```python
+# create the batch generator
+spacy.util.fix_random_seed(1)
+from spacy.util import minibatch
+batches = minibatch(train_data, size=8)
+```
+
+- In general it's more efficient to train models in small batches. `minibatch` function returns a generator yielding minibatches for training.
+
+```python
+# create an optimizer to update the model
+optimizer = nlp.begin_training()
+
+# iterate through minibatches
+for batch in batches:
+    # split texts and labels
+    texts, labels = zip(*batch)
+    # update the model
+    nlp.update(texts, labels, sgd=optimizer)
+```
+
+- Each batch is a list of (text, label) but we need to send separate lists for texts and labels to `nlp.update`.
+
+That was just one training loop (or epoch) through the data. The model will typically need multiple epochs.
+
+```python
+optimizer = nlp.begin_training()
+
+import random
+random.seed(1)
+spacy.util.fix_random_seed(1)
+
+losses = {}
+for epoch in range(10):
+    random.shuffle(train_data)
+    batches = minibatch(train_data, size=8)
+    for batch in batches:
+        texts, labels = zip(*batch)
+        nlp.update(texts, labels, sgd=optimizer, losses=losses)
+    print(losses)
+```
+
+### Making Predictions
+
+```python
+# split text and labels from valid_data
+texts, labels = zip(*valid_data)
+```
+
+```python
+# tokenize texts
+docs = [nlp.tokenizer(text) for text in texts]
+```
+
+We can make predictions with the `predict()` method.
+
+```python
+# use TextCategorizer to predict the scores/probability for each doc
+textcat = nlp.get_pipe("textcat")
+scores, _ = textcat.predict(docs)
+```
+
+```python
+# find the label with the highest score/probability
+predicted_labels = scores.argmax(axis=1)
+```
+
+```python
+# evaluate the model
+correct_predictions = (predicted_labels == labels)
+correct_predictions.mean()
+```
+
+**Note**: Look at the exercise file for functional solution.
 
 ## Word Vectors
 *Explore an idea that ushered in a new generation of NLP techniques. [#](https://www.kaggle.com/matleonard/word-vectors)*
