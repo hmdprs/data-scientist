@@ -637,9 +637,18 @@ a.min(axis=0)     # min of each column
 a.cumsum(axis=1)  # cumulative sum along each row
 ```
 
-### Universal Functions
+### Functions and Methods
 
-NumPy provides familiar mathematical functions such as `sin`, `cos`, and `exp`. In NumPy, these are called "universal functions". Within NumPy, these functions operate **elementwise** on an array, producing an array as output. Some of them are: `all`, `any`, `apply_along_axis`, `argmax`, `argmin`, `argsort`, `average`, `ceil`, `corrcoef`, `cov`, `cumsum`, `diff`, `dot`, `floor`, `inner`, `invert`, `max`, `maximum`, `mean`, `median`, `min`, `minimum`, `nonzero`, `outer`, `round`, `sort`, `std`, `sum`, `transpose`, `var`, `where`. For more deatail see [this link](https://numpy.org/devdocs/user/quickstart.html#universal-functions).
+NumPy provides familiar mathematical functions such as `sin`, `cos`, and `exp`. In NumPy, these are called "universal functions". Within NumPy, these functions operate **elementwise** on an array, producing an array as output. Here is a list of some useful NumPy functions ordered in categories. See [Routines](https://numpy.org/devdocs/reference/routines.html#routines) for the full list.
+
+- Array Creation: `arange`, `array`, `copy`, `empty`, `empty_like`, `eye`, `fromfile`, `fromfunction`, `identity`, `linspace`, `logspace`, `mgrid`, `ogrid`, `ones`, `ones_like`, `r_`, `zeros`, `zeros_like`
+- Conversions: `astype`, `atleast_1d`, `atleast_2d`, `atleast_3d`, `mat`
+- Manipulations: `apply_along_axis`, `array_split`, `column_stack`, `concatenate`, `diagonal`, `dsplit`, `dstack`, `hsplit`, `hstack`, `item`, `newaxis`, `ravel`, `repeat`, `reshape`, `resize`, `squeeze`, `swapaxes`, `take`, `transpose`, `vsplit`, `vstack`
+- Questions: `all`, `any`, `nonzero`, `where`
+- Ordering: `argmax`, `argmin`, `argsort`, `max`, `min`, `ptp`, `searchsorted`, `sort`
+- Operations: `average`, `ceil`, `choose`, `compress`, `cumprod`, `cumsum`, `diff`, `floor`, `inner`, `invert`, `fill`, `imag`, `prod`, `put`, `putmask`, `real`, `round`, `sum`
+- Basic Statistics: `cov`, `corrcoef`, `mean`, `median`, `std`, `var`
+- Basic Linear Algebra: `cross`, `dot`, `outer`, `linalg.svd`, `vdot`
 
 ### Indexing, Slicing and Iterating
 
@@ -719,6 +728,34 @@ np.hsplit(a, (3, 4))
 >>> [array([[6., 7., 6.], [8., 5., 5.]]),
      array([[9.], [7.]]),
      array([[0., 5., 4., 0., 6., 8., 5., 2.], [1., 8., 6., 7., 1., 8., 1., 0.]])]
+```
+
+## Copies and Views
+
+When operating and manipulating arrays, their data is sometimes copied into a new array and sometimes not. There are three cases:
+
+- No Copy at All - Simple assignments (`b = a`) make no copy of objects or their data.
+- Shallow Copy or **View** - The `view` method creates a new array object that looks at the same data. Slicing an array returns a view of it too. Changing the data in a view, changes the base data.
+- Deep Copy - The `copy` method makes a complete copy of the array and its data. Sometimes `copy` should be called after slicing if the original array, maybe a huge intermediate result, is not required anymore.
+
+```python
+a = np.array([[ 0,  1,  2,  3],
+              [ 4,  5,  6,  7],
+              [ 8,  9, 10, 11]])
+
+b = a           # no new object is created
+b is a
+>>> True
+
+c = a[:, 1:3]
+c.base is a
+>>> True
+c[:] = 10       # c[:] is a view of c, a's data changes
+
+
+d = a.copy()
+d.base is a     # d doesn't share anything with a
+>>> False
 ```
 
 # Pandas
