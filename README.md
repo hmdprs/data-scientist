@@ -505,6 +505,176 @@ When Python programmers want to define how operators behave on their types, they
 # NumPy
 *The fundamental package for scientific computing with Python. [#](https://numpy.org/devdocs/user/quickstart.html)*
 
+## The Basics
+
+NumPy’s main object is the homogeneous n-dimensional array. It is a table of elements (usually numbers), all of the same type, indexed by a tuple of non-negative integers. In NumPy dimensions are called **axes**.
+
+For example, the coordinates of a point in 3D space [1, 2, 1] has one axis. That axis has 3 elements in it, so we say it has a length of 3.
+
+NumPy’s array class is called `ndarray`. Note that `numpy.array` is not the same as the Standard Python Library class `array.array`, which only handles one-dimensional arrays and offers less functionality.
+
+```python
+import numpy as np
+a = np.arange(15).reshape(3, 5)
+a
+>>> array([[ 0,  1,  2,  3,  4],
+           [ 5,  6,  7,  8,  9],
+           [10, 11, 12, 13, 14]])
+
+a.ndim        # number of axes
+>>> 2
+
+a.shape       # size of array in each dimension
+>>> (3, 5)
+
+a.size        # total number of elements
+>>> 15
+
+a.dtype.name  # type of elements
+>>> 'int64'
+```
+
+### Array Creation
+
+```python
+# a single sequence as an argument
+a = np.array([2, 3, 4])
+```
+
+```python
+# sequences as arguments
+b = np.array([(1.5, 2, 3), (4, 5, 6)])
+b
+>>> array([[1.5, 2. , 3. ],
+           [4. , 5. , 6. ]])
+```
+
+```python
+# provide dtype
+c = np.array([(1, 2), (3, 4)], dtype=complex)
+c
+>>> array([[1.+0.j, 2.+0.j],
+           [3.+0.j, 4.+0.j]])
+```
+
+NumPy offers several functions to create arrays with initial placeholder content. The function `zeros` creates an array full of zeros, the function `ones` creates an array full of ones, and the function `empty` creates an array whose initial content is random and *depends on the state of the memory*. By default, the dtype of the created array is `float64`.
+
+```python
+np.ones((2, 3, 4), dtype=np.int16)
+>>> array([[[1, 1, 1, 1],
+            [1, 1, 1, 1],
+            [1, 1, 1, 1]],
+
+           [[1, 1, 1, 1],
+            [1, 1, 1, 1],
+            [1, 1, 1, 1]]], dtype=int16)
+```
+
+To create sequences of numbers, NumPy provides the `arange` function which is analogous to the Python built-in `range`, but returns an array.
+
+```python
+np.arange(0, 2, 0.3)
+>>> array([0. , 0.3, 0.6, 0.9, 1.2, 1.5, 1.8])
+```
+
+Function `linspace` receives as an argument the number of elements that we want, instead of the step. It's useful to evaluate function at lots of points
+
+```python
+from numpy import pi
+x = np.linspace(0, 2*pi, 100)
+f = np.sin(x)
+```
+
+### Printing Arrays
+
+When we print an array, NumPy displays it in a similar way to nested lists. One-dimensional arrays are printed as rows, bidimensionals as matrices and tridimensionals as lists of matrices. With `reshape` function we can change that.
+
+If an array is too large to be printed, NumPy automatically skips the central part of the array and only prints the corners. We can disable this behaviour by `np.set_printoptions(threshold=sys.maxsize)`.
+
+### Basic Operations
+
+Arithmetic operators on arrays apply **elementwise**.
+
+```python
+a = np.array([20, 30, 40, 50])
+b = np.arange(4)
+
+a - b
+b ** 2
+10 * np.sin(a)
+a < 35
+```
+
+Unlike in many matrix languages, the product operator `*` operates **elementwise** in NumPy arrays. The matrix product can be performed using the `@` operator or the `dot` function.
+
+```python
+A = np.array([(1, 1), (0, 1)])
+B = np.array([(2, 0), (3, 4)])
+
+A * B     # elementwise product
+A @ B     # matrix product
+A.dot(B)  # another matrix product
+```
+
+Some operations, such as `+=` and `*=`, act in place to modify an existing array rather than create a new one.
+
+When operating with arrays of different types, the type of the resulting array corresponds to the more general or precise one (a behavior known as **upcasting**).
+
+```python
+(np.ones(3, dtype='int8') + np.linspace(0, pi, 3)).dtype
+>>> dtype('float64')
+```
+
+Many unary operations are implemented as methods of the `ndarray` class. By default, these operations apply to the array as though it were a list of numbers, regardless of its shape. However, by specifying the `axis` parameter we can apply an operation along the specified axis of an array.
+
+```python
+# create an instance of a random generator
+rg = np.random.default_rng(1)
+a = rg.random((2, 3))
+
+a.sum()           # sum of array
+a.min(axis=0)     # min of each column
+a.cumsum(axis=1)  # cumulative sum along each row
+```
+
+### Universal Functions
+
+NumPy provides familiar mathematical functions such as `sin`, `cos`, and `exp`. In NumPy, these are called "universal functions". Within NumPy, these functions operate **elementwise** on an array, producing an array as output. Some of them are: `all`, `any`, `apply_along_axis`, `argmax`, `argmin`, `argsort`, `average`, `ceil`, `corrcoef`, `cov`, `cumsum`, `diff`, `dot`, `floor`, `inner`, `invert`, `max`, `maximum`, `mean`, `median`, `min`, `minimum`, `nonzero`, `outer`, `round`, `sort`, `std`, `sum`, `transpose`, `var`, `where`. For more deatail see [this link](https://numpy.org/devdocs/user/quickstart.html#universal-functions).
+
+### Indexing, Slicing and Iterating
+
+One-dimensional arrays can be indexed, sliced and iterated over, much like lists and other Python sequences.
+
+```python
+a = np.arange(10)**3
+
+a[2:5]
+a[:6:2] = 1000  # from start to position 6, exclusive, set every 2nd element to 1000
+a[ : :-1]       # reversed a
+```
+
+Multidimensional arrays can have one index per axis. These indices are given in a tuple.
+
+```python
+def f(x,y):
+    return 10*x + y
+b = np.fromfunction(f,(5,4), dtype=int)
+
+b[2,3]
+b[: ,1]         # each row in the second column of b
+b[1:3, :]       # each column in the second and third row of b
+b[-1]           # the last row. equivalent to b[-1,:]
+```
+
+The expression within brackets in `b[i]` is treated as an `i` followed by as many instances of `:` as needed to represent the remaining axes. NumPy also allows you to write this using dots as `b[i,...]`. The dots (`...`) represent as many colons as needed to produce a complete indexing tuple. For example, if `x` is an array with 5 axes, then `x[1,2,...]` is equivalent to `x[1,2,:,:,:]`.
+
+Iterating over multidimensional arrays is done with respect to the first axis. However, if we want to perform an operation on each element in the array, we can use the `flat` attribute which is an iterator over all the elements of the array.
+
+```python
+for element in b.flat:
+    print(element)
+```
+
 # Pandas
 *Solve short hands-on challenges to perfect your data manipulation skills.*
 
