@@ -5919,9 +5919,7 @@ svc.score(X_test, y_test)
 
 ### Document Similarity
 
-Documents with similar content generally have similar vectors. So we can find similar documents by measuring the similarity between the vectors. A common metric for this is the cosine similarity which measures the angle between two vectors, a and b:
-
-$$cosθ=a⋅b/∥a∥∥b∥$$
+Documents with similar content generally have similar vectors. So we can find similar documents by measuring the similarity between the vectors. A common metric for this is the cosine similarity which measures the angle between two vectors, a and b: cosθ=a⋅b/∥a∥∥b∥
 
 This can vary between -1 and 1, corresponding complete opposite to perfect similarity, respectively. To calculate it, we can use the [metric from scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.pairwise.cosine_similarity.html) or write our own function.
 
