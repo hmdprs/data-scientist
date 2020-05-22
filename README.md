@@ -661,7 +661,7 @@ def f(x,y):
 b = np.fromfunction(f,(5,4), dtype=int)
 
 b[2,3]
-b[: ,1]         # each row in the second column of b
+b[:, 1]         # each row in the second column of b
 b[1:3, :]       # each column in the second and third row of b
 b[-1]           # the last row. equivalent to b[-1,:]
 ```
@@ -673,6 +673,52 @@ Iterating over multidimensional arrays is done with respect to the first axis. H
 ```python
 for element in b.flat:
     print(element)
+```
+
+## Shape Manipulation
+
+An array has a shape given by the number of elements along each axis. The shape of an array can be changed with various commands. Note that the following three commands all return a modified array, but do not change the original array.
+
+```python
+a.ravel()    # returns the array, flattened
+a.T          # returns the array, transposed
+a.reshape()  # returns the array with a modified shape
+```
+
+The `reshape` function returns its argument with a modified shape, whereas the `resize` function modifies the array itself. And, if a dimension is given as `-1` in a reshaping operation, the other dimensions are automatically calculated
+
+### Stacking Together Different Arrays
+
+Several arrays can be stacked together along different axes, vertically with `vstack` and horizontally with `hstack`. The function `column_stack` stacks 1D arrays as columns into a 2D array. It is equivalent to `hstack` only for 2D arrays. On the other hand, the function `row_stack` is equivalent to `vstack` for any input arrays. In general, for arrays with more than two dimensions, `hstack` stacks along their second axes, `vstack` stacks along their first axes, and `concatenate` allows for an optional arguments giving the number of the axis along which the concatenation should happen.
+
+```python
+np.column_stack is np.hstack
+>>> False
+np.row_stack is np.vstack
+>>> True
+```
+
+### Splitting One Array into Several Smaller Ones
+
+Using `hsplit`, we can split an array along its horizontal axis, either by specifying the number of equally shaped arrays to return, or by specifying the columns after which the division should occur. `vsplit` splits along the vertical axis, and `array_split` allows one to specify along which axis to split.
+
+```python
+a = np.floor(10 * rg.random((2, 12)))
+a
+>>> array([[6., 7., 6., 9., 0., 5., 4., 0., 6., 8., 5., 2.],
+           [8., 5., 5., 7., 1., 8., 6., 7., 1., 8., 1., 0.]])
+
+# split a into 3
+np.hsplit(a, 3)
+>>> [array([[6., 7., 6., 9.], [8., 5., 5., 7.]]),
+     array([[0., 5., 4., 0.], [1., 8., 6., 7.]]),
+     array([[6., 8., 5., 2.], [1., 8., 1., 0.]])]
+
+# split a after the 3rd and the 4th column
+np.hsplit(a, (3, 4))
+>>> [array([[6., 7., 6.], [8., 5., 5.]]),
+     array([[9.], [7.]]),
+     array([[0., 5., 4., 0., 6., 8., 5., 2.], [1., 8., 6., 7., 1., 8., 1., 0.]])]
 ```
 
 # Pandas
