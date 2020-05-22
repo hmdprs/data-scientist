@@ -1,6 +1,6 @@
 Data Scientist's Roadmap
 ==========
-*A minimalist roadmap to The Data Science World, based on [Kaggle's Roadmap](https://www.kaggle.com/learn/overview).*
+*A minimalist roadmap to the Data Science World, based on [Kaggle's Micro-Cources](https://www.kaggle.com/learn/overview), plus some COOL stuffs.*
 
 # Python
 *Learn the most important language for data science.*
@@ -36,6 +36,9 @@ var.func()
 min()
 max()
 abs()
+```
+
+```python
 # conversion functions
 int()
 float()
@@ -163,10 +166,8 @@ list()
 ```python
 planets = ["Mercury", "Venus", "Earth", "Mars", "Jupiter"]
 
-# first element
-planets[0]
-# last element
-planets[-1]
+planets[0]   # first element
+planets[-1]  # last element
 ```
 
 #### Slicing
@@ -5958,6 +5959,3 @@ most_similar = sims.argmax()
 
 # Intro to Game AI and Reinforcement Learning
 *Build your own video game bots, using classic algorithms and cutting-edge techniques.*
-
-# Microchallenges
-*Solve ultra-short challenges to build and test your skill.*
