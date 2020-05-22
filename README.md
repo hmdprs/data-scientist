@@ -502,6 +502,9 @@ a + b
 
 When Python programmers want to define how operators behave on their types, they do so by implementing **Dunder (Special) Methods**, methods with special names beginning and ending with 2 underscores such as `__add__` or `__contains__`. More info: https://is.gd/3zuhhL
 
+# NumPy
+*The fundamental package for scientific computing with Python. [#](https://numpy.org/devdocs/user/quickstart.html)*
+
 # Pandas
 *Solve short hands-on challenges to perfect your data manipulation skills.*
 
