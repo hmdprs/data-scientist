@@ -543,7 +543,7 @@ a = np.array([2, 3, 4])
 
 ```python
 # sequences as arguments
-b = np.array([(1.5, 2, 3), (4, 5, 6)])
+b = np.array([[1.5, 2, 3], [4, 5, 6]])
 b
 >>> array([[1.5, 2. , 3. ],
            [4. , 5. , 6. ]])
@@ -551,7 +551,7 @@ b
 
 ```python
 # provide dtype
-c = np.array([(1, 2), (3, 4)], dtype=complex)
+c = np.array([[1, 2], [3, 4]], dtype=complex)
 c
 >>> array([[1.+0.j, 2.+0.j],
            [3.+0.j, 4.+0.j]])
@@ -608,8 +608,8 @@ a < 35
 Unlike in many matrix languages, the product operator `*` operates **elementwise** in NumPy arrays. The matrix product can be performed using the `@` operator or the `dot` function.
 
 ```python
-A = np.array([(1, 1), (0, 1)])
-B = np.array([(2, 0), (3, 4)])
+A = np.array([[1, 1], [0, 1]])
+B = np.array([[2, 0], [3, 4]])
 
 A * B     # elementwise product
 A @ B     # matrix product
@@ -650,7 +650,7 @@ a = np.arange(10)**3
 
 a[2:5]
 a[:6:2] = 1000  # from start to position 6, exclusive, set every 2nd element to 1000
-a[ : :-1]       # reversed a
+a[::-1]         # reversed a
 ```
 
 Multidimensional arrays can have one index per axis. These indices are given in a tuple.
@@ -660,13 +660,13 @@ def f(x,y):
     return 10*x + y
 b = np.fromfunction(f,(5,4), dtype=int)
 
-b[2,3]
+b[2, 3]
 b[:, 1]         # each row in the second column of b
 b[1:3, :]       # each column in the second and third row of b
 b[-1]           # the last row. equivalent to b[-1,:]
 ```
 
-The expression within brackets in `b[i]` is treated as an `i` followed by as many instances of `:` as needed to represent the remaining axes. NumPy also allows you to write this using dots as `b[i,...]`. The dots (`...`) represent as many colons as needed to produce a complete indexing tuple. For example, if `x` is an array with 5 axes, then `x[1,2,...]` is equivalent to `x[1,2,:,:,:]`.
+The expression within brackets in `b[i]` is treated as an `i` followed by as many instances of `:` as needed to represent the remaining axes. NumPy also allows you to write this using dots as `b[i, ...]`. The dots (`...`) represent as many colons as needed to produce a complete indexing tuple. For example, if `x` is an array with 5 axes, then `x[1, 2, ...]` is equivalent to `x[1, 2, :, :, :]`.
 
 Iterating over multidimensional arrays is done with respect to the first axis. However, if we want to perform an operation on each element in the array, we can use the `flat` attribute which is an iterator over all the elements of the array.
 
