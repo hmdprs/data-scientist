@@ -6291,8 +6291,9 @@ svc.score(X_test, y_test)
 
 Documents with similar content generally have similar vectors. So we can find similar documents by measuring the similarity between the vectors. A common metric for this is the cosine similarity which measures the angle between two vectors, a and b:
 
-<!-- https://alexanderrodin.com/github-latex-markdown/ -->
-![cos\theta =\frac{a.b}{\left\|a\right\|\left\|b\right\|}](https://render.githubusercontent.com/render/math?math=cos%5Ctheta%20%3D%5Cfrac%7Ba.b%7D%7B%5Cleft%5C%7Ca%5Cright%5C%7C%5Cleft%5C%7Cb%5Cright%5C%7C%7D)
+<!-- convert formula to svg: https://www.codecogs.com/latex/eqneditor.php -->
+<!-- \cos\theta = \frac{a.b}{\left \| a \right \|\left \| b \right \|} -->
+![](img/costheta.svg)
 
 This can vary between -1 and 1, corresponding complete opposite to perfect similarity, respectively. To calculate it, we can use the [metric from scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.pairwise.cosine_similarity.html) or write our own function.
 
