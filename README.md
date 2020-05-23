@@ -608,21 +608,21 @@ a.cumsum(axis=1)  # cumulative sum along each row
 
 Here is a list of some useful NumPy functions ordered in categories. See [Routines](https://numpy.org/devdocs/reference/routines.html#routines) for the full list.
 
-Array Creation: `arange`, `array`, `copy`, `empty`, `empty_like`, `eye`, `fromfile`, `fromfunction`, `identity`, `linspace`, `logspace`, `mgrid`, `ogrid`, `ones`, `ones_like`, `r_`, `zeros`, `zeros_like`
+- Array Creation: `arange`, `array`, `copy`, `empty`, `empty_like`, `eye`, `fromfile`, `fromfunction`, `identity`, `linspace`, `logspace`, `mgrid`, `ogrid`, `ones`, `ones_like`, `r_`, `zeros`, `zeros_like`
 
-Conversions: `astype`, `atleast_1d`, `atleast_2d`, `atleast_3d`, `mat`
+- Conversions: `astype`, `atleast_1d`, `atleast_2d`, `atleast_3d`, `mat`
 
-Manipulations: `apply_along_axis`, `array_split`, `column_stack`, `concatenate`, `diagonal`, `dsplit`, `dstack`, `hsplit`, `hstack`, `item`, `newaxis`, `ravel`, `repeat`, `reshape`, `resize`, `squeeze`, `swapaxes`, `take`, `transpose`, `vsplit`, `vstack`
+- Manipulations: `apply_along_axis`, `array_split`, `column_stack`, `concatenate`, `diagonal`, `dsplit`, `dstack`, `hsplit`, `hstack`, `item`, `newaxis`, `ravel`, `repeat`, `reshape`, `resize`, `squeeze`, `swapaxes`, `take`, `transpose`, `vsplit`, `vstack`
 
-Questions: `all`, `any`, `nonzero`, `where`
+- Questions: `all`, `any`, `nonzero`, `where`
 
-Ordering: `argmax`, `argmin`, `argsort`, `max`, `min`, `ptp`, `searchsorted`, `sort`
+- Ordering: `argmax`, `argmin`, `argsort`, `max`, `min`, `ptp`, `searchsorted`, `sort`
 
-Operations: `average`, `ceil`, `choose`, `compress`, `cumprod`, `conj`, `cumsum`, `diff`, `floor`, `inner`, `invert`, `fill`, `imag`, `prod`, `put`, `putmask`, `real`, `round`, `sum`
+- Operations: `average`, `ceil`, `choose`, `compress`, `cumprod`, `conj`, `cumsum`, `diff`, `floor`, `inner`, `invert`, `fill`, `imag`, `prod`, `put`, `putmask`, `real`, `round`, `sum`
 
-Basic Statistics: `cov`, `corrcoef`, `mean`, `median`, `std`, `var`
+- Basic Statistics: `cov`, `corrcoef`, `mean`, `median`, `std`, `var`
 
-Basic Linear Algebra: `cross`, `dot`, `outer`, `linalg.svd`, `vdot`
+- Basic Linear Algebra: `cross`, `dot`, `outer`, `linalg.svd`, `vdot`
 
 When operating with arrays of different types, the type of the resulting array corresponds to the more general or precise one (a behavior known as **upcasting**).
 
