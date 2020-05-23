@@ -758,6 +758,140 @@ d.base is a     # d doesn't share anything with a
 >>> False
 ```
 
+## Advanced Indexing
+
+NumPy offers more indexing facilities than regular Python sequences. In addition to indexing by integers and slices, as we saw before, arrays can be indexed by arrays of integers and arrays of booleans.
+
+### Indexing with Arrays of Indices
+
+```python
+a = np.arange(12) ** 2           # the first 12 square numbers
+
+i = np.array([1, 1, 3, 8, 5])    # an array of indices
+a[i]                             # the elements of a at the positions i
+>>> array([ 1,  1,  9, 64, 25])
+
+j = np.array([[3, 4], [9, 7]])   # a bidimensional array of indices
+a[j]                             # the same shape as j
+>>> array([[ 9, 16],
+           [81, 49]])
+```
+
+```python
+a = np.arange(12).reshape(3,4)
+a
+>>> array([[ 0,  1,  2,  3],
+           [ 4,  5,  6,  7],
+           [ 8,  9, 10, 11]])
+
+i = np.array([[0, 1], [1, 2]])
+j = np.array([[2, 1], [3, 3]])
+
+a[i, j]
+>>> array([[ 2,  5],
+           [ 7, 11]])
+
+a[i, 2]                          # broadcasting
+>>> array([[ 2,  6],
+           [ 6, 10]])
+```
+
+We can also use indexing with arrays as a target to assign to.
+
+```python
+a = np.arange(5)
+a[[1, 3, 4]] = 0
+a
+>>> array([0, 0, 2, 0, 0])
+```
+
+However, when the list of indices contains repetitions, the assignment is done several times, leaving behind the last value.
+
+```python
+a = np.arange(5)
+a[[0, 0, 2]] = [1, 2, 3]
+a
+>>> array([2, 1, 3, 3, 4])
+```
+
+```python
+a = np.arange(5)
+a[[0, 0, 2]] += 1
+a
+>>> array([1, 1, 3, 3, 4])       # the 0th element is only incremented once
+```
+
+### Indexing with Boolean Arrays
+
+When we index arrays with arrays of (integer) indices we are providing the list of indices to pick. With boolean indices the approach is different; we explicitly choose which items in the array we want and which ones we don’t. This can be very useful in assignments.
+
+```python
+a = np.arange(12).reshape(3, 4)
+b = a > 4
+b                                          # b is a boolean with a's shape
+>>> array([[False, False, False, False],
+           [False,  True,  True,  True],
+           [ True,  True,  True,  True]])
+a[b]                                       # 1d array with the selected elements
+>>> array([ 5,  6,  7,  8,  9, 10, 11])
+a[b] = 0                                   # All elements of 'a' higher than 4 become 0
+a
+>>> array([[0, 1, 2, 3],
+           [4, 0, 0, 0],
+           [0, 0, 0, 0]])
+```
+
+The second way of indexing with booleans is that for each dimension of the array we give a 1D boolean array selecting the slices we want.
+
+```python
+a = np.arange(12).reshape(3, 4)
+b1 = np.array([False, True, True])         # first dim selection
+b2 = np.array([True, False, True, False])  # second dim selection
+
+a[b1, :]                                   # selecting rows
+>>> array([[ 4,  5,  6,  7],
+           [ 8,  9, 10, 11]])
+
+a[:, b2]                                   # selecting columns
+>>> array([[ 0,  2],
+           [ 4,  6],
+           [ 8, 10]])
+
+a[b1][:, b2]
+>>> array([[ 4,  6],
+           [ 8, 10]])
+
+a[b1, b2]                                  # a weird thing to do
+>>> array([ 4, 10])
+```
+
+### The ix_() function
+
+The `ix_` function can be used to construct an open mesh from multiple sequences. This function takes N 1-D sequences and returns N outputs with N dimensions each. Using `ix_` one can quickly construct index arrays that will index the cross product.
+
+```python
+a = np.arange(10).reshape(2, 5)
+a
+>>> array([[0, 1, 2, 3, 4],
+           [5, 6, 7, 8, 9]])
+
+ixgrid = np.ix_([0, 1], [2, 4])
+ixgrid
+>>> (array([[0],
+           [1]]), array([[2, 4]]))
+ixgrid[0].shape, ixgrid[1].shape
+>>> ((2, 1), (1, 2))
+
+a[ixgrid]
+>>> array([[2, 4],
+           [7, 9]])
+
+ixgrid = np.ix_([True, True], [2, 4])
+a[ixgrid]
+>>> array([[2, 4],
+           [7, 9]])
+```
+
 # Pandas
 *Solve short hands-on challenges to perfect your data manipulation skills.*
 
