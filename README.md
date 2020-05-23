@@ -507,50 +507,28 @@ When Python programmers want to define how operators behave on their types, they
 
 ## The Basics
 
-NumPy’s main object is the homogeneous n-dimensional array. It is a table of elements (usually numbers), all of the same type, indexed by a tuple of non-negative integers. In NumPy dimensions are called **axes**.
-
-For example, the coordinates of a point in 3D space [1, 2, 1] has one axis. That axis has 3 elements in it, so we say it has a length of 3.
-
-NumPy’s array class is called `ndarray`. Note that `numpy.array` is not the same as the Standard Python Library class `array.array`, which only handles one-dimensional arrays and offers less functionality.
+NumPy’s main object is the homogeneous n-dimensional array. It is a table of elements (usually numbers), all of the same type, indexed by a tuple of non-negative integers. In NumPy dimensions are called **axes**. NumPy’s array class is called `ndarray`. Note that `numpy.array` is not the same as the Standard Python Library class `array.array`, which only handles one-dimensional arrays and offers less functionality.
 
 ```python
+# create an array with a single sequence as an argument
 import numpy as np
-a = np.arange(15).reshape(3, 5)
-a
->>> array([[ 0,  1,  2,  3,  4],
-           [ 5,  6,  7,  8,  9],
-           [10, 11, 12, 13, 14]])
+a = np.array([2, 3, 4])
 
 a.ndim        # number of axes
->>> 2
+>>> 1
 
 a.shape       # size of array in each dimension
->>> (3, 5)
+>>> (1, 3)
 
 a.size        # total number of elements
->>> 15
+>>> 3
 
 a.dtype.name  # type of elements
 >>> 'int64'
 ```
 
-### Array Creation
-
 ```python
-# a single sequence as an argument
-a = np.array([2, 3, 4])
-```
-
-```python
-# sequences as arguments
-b = np.array([[1.5, 2, 3], [4, 5, 6]])
-b
->>> array([[1.5, 2. , 3. ],
-           [4. , 5. , 6. ]])
-```
-
-```python
-# provide dtype
+# sequences as arguments + dtype
 c = np.array([[1, 2], [3, 4]], dtype=complex)
 c
 >>> array([[1.+0.j, 2.+0.j],
@@ -573,6 +551,14 @@ np.ones((2, 3, 4), dtype=np.int16)
 To create sequences of numbers, NumPy provides the `arange` function which is analogous to the Python built-in `range`, but returns an array.
 
 ```python
+a = np.arange(15).reshape(3, 5)
+a
+>>> array([[ 0,  1,  2,  3,  4],
+           [ 5,  6,  7,  8,  9],
+           [10, 11, 12, 13, 14]])
+```
+
+```python
 np.arange(0, 2, 0.3)
 >>> array([0. , 0.3, 0.6, 0.9, 1.2, 1.5, 1.8])
 ```
@@ -585,15 +571,9 @@ x = np.linspace(0, 2*pi, 100)
 f = np.sin(x)
 ```
 
-### Printing Arrays
+## Functions and Methods
 
-When we print an array, NumPy displays it in a similar way to nested lists. One-dimensional arrays are printed as rows, bidimensionals as matrices and tridimensionals as lists of matrices. With `reshape` function we can change that.
-
-If an array is too large to be printed, NumPy automatically skips the central part of the array and only prints the corners. We can disable this behaviour by `np.set_printoptions(threshold=sys.maxsize)`.
-
-### Basic Operations
-
-Arithmetic operators on arrays apply **elementwise**.
+On NumPy arrays, arithmetic operators apply **elementwise**, even the product operator `*`, unlike in many matrix languages. The matrix product can be performed using the `@` operator or the `dot` function. NumPy provides familiar mathematical functions such as `sin`, `cos`, and `exp`. Some operations, such as `+=` and `*=`, act in place to modify an existing array rather than create a new one.
 
 ```python
 a = np.array([20, 30, 40, 50])
@@ -605,8 +585,6 @@ b ** 2
 a < 35
 ```
 
-Unlike in many matrix languages, the product operator `*` operates **elementwise** in NumPy arrays. The matrix product can be performed using the `@` operator or the `dot` function.
-
 ```python
 A = np.array([[1, 1], [0, 1]])
 B = np.array([[2, 0], [3, 4]])
@@ -614,15 +592,6 @@ B = np.array([[2, 0], [3, 4]])
 A * B     # elementwise product
 A @ B     # matrix product
 A.dot(B)  # another matrix product
-```
-
-Some operations, such as `+=` and `*=`, act in place to modify an existing array rather than create a new one.
-
-When operating with arrays of different types, the type of the resulting array corresponds to the more general or precise one (a behavior known as **upcasting**).
-
-```python
-(np.ones(3, dtype='int8') + np.linspace(0, pi, 3)).dtype
->>> dtype('float64')
 ```
 
 Many unary operations are implemented as methods of the `ndarray` class. By default, these operations apply to the array as though it were a list of numbers, regardless of its shape. However, by specifying the `axis` parameter we can apply an operation along the specified axis of an array.
@@ -637,37 +606,49 @@ a.min(axis=0)     # min of each column
 a.cumsum(axis=1)  # cumulative sum along each row
 ```
 
-### Functions and Methods
+Here is a list of some useful NumPy functions ordered in categories. See [Routines](https://numpy.org/devdocs/reference/routines.html#routines) for the full list.
 
-NumPy provides familiar mathematical functions such as `sin`, `cos`, and `exp`. In NumPy, these are called "universal functions". Within NumPy, these functions operate **elementwise** on an array, producing an array as output. Here is a list of some useful NumPy functions ordered in categories. See [Routines](https://numpy.org/devdocs/reference/routines.html#routines) for the full list.
+Array Creation: `arange`, `array`, `copy`, `empty`, `empty_like`, `eye`, `fromfile`, `fromfunction`, `identity`, `linspace`, `logspace`, `mgrid`, `ogrid`, `ones`, `ones_like`, `r_`, `zeros`, `zeros_like`
 
-- Array Creation: `arange`, `array`, `copy`, `empty`, `empty_like`, `eye`, `fromfile`, `fromfunction`, `identity`, `linspace`, `logspace`, `mgrid`, `ogrid`, `ones`, `ones_like`, `r_`, `zeros`, `zeros_like`
-- Conversions: `astype`, `atleast_1d`, `atleast_2d`, `atleast_3d`, `mat`
-- Manipulations: `apply_along_axis`, `array_split`, `column_stack`, `concatenate`, `diagonal`, `dsplit`, `dstack`, `hsplit`, `hstack`, `item`, `newaxis`, `ravel`, `repeat`, `reshape`, `resize`, `squeeze`, `swapaxes`, `take`, `transpose`, `vsplit`, `vstack`
-- Questions: `all`, `any`, `nonzero`, `where`
-- Ordering: `argmax`, `argmin`, `argsort`, `max`, `min`, `ptp`, `searchsorted`, `sort`
-- Operations: `average`, `ceil`, `choose`, `compress`, `cumprod`, `cumsum`, `diff`, `floor`, `inner`, `invert`, `fill`, `imag`, `prod`, `put`, `putmask`, `real`, `round`, `sum`
-- Basic Statistics: `cov`, `corrcoef`, `mean`, `median`, `std`, `var`
-- Basic Linear Algebra: `cross`, `dot`, `outer`, `linalg.svd`, `vdot`
+Conversions: `astype`, `atleast_1d`, `atleast_2d`, `atleast_3d`, `mat`
 
-### Indexing, Slicing and Iterating
+Manipulations: `apply_along_axis`, `array_split`, `column_stack`, `concatenate`, `diagonal`, `dsplit`, `dstack`, `hsplit`, `hstack`, `item`, `newaxis`, `ravel`, `repeat`, `reshape`, `resize`, `squeeze`, `swapaxes`, `take`, `transpose`, `vsplit`, `vstack`
+
+Questions: `all`, `any`, `nonzero`, `where`
+
+Ordering: `argmax`, `argmin`, `argsort`, `max`, `min`, `ptp`, `searchsorted`, `sort`
+
+Operations: `average`, `ceil`, `choose`, `compress`, `cumprod`, `conj`, `cumsum`, `diff`, `floor`, `inner`, `invert`, `fill`, `imag`, `prod`, `put`, `putmask`, `real`, `round`, `sum`
+
+Basic Statistics: `cov`, `corrcoef`, `mean`, `median`, `std`, `var`
+
+Basic Linear Algebra: `cross`, `dot`, `outer`, `linalg.svd`, `vdot`
+
+When operating with arrays of different types, the type of the resulting array corresponds to the more general or precise one (a behavior known as **upcasting**).
+
+```python
+(np.ones(3, dtype='int8') + np.linspace(0, pi, 3)).dtype.name
+>>> 'float64'
+```
+
+## Indexing and Slicing
 
 One-dimensional arrays can be indexed, sliced and iterated over, much like lists and other Python sequences.
 
 ```python
-a = np.arange(10)**3
+a = np.arange(10) ** 3  # the first 10 qube numbers
 
 a[2:5]
-a[:6:2] = 1000  # from start to position 6, exclusive, set every 2nd element to 1000
-a[::-1]         # reversed a
+a[:6:2] = 1000          # from start-to-6, set every 2nd element to 1000
+a[::-1]                 # reversed a
 ```
 
 Multidimensional arrays can have one index per axis. These indices are given in a tuple.
 
 ```python
 def f(x,y):
-    return 10*x + y
-b = np.fromfunction(f,(5,4), dtype=int)
+    return 10 * x + y
+b = np.fromfunction(f, (5, 4), dtype=int)
 
 b[2, 3]
 b[:, 1]         # each row in the second column of b
@@ -684,85 +665,9 @@ for element in b.flat:
     print(element)
 ```
 
-## Shape Manipulation
-
-An array has a shape given by the number of elements along each axis. The shape of an array can be changed with various commands. Note that the following three commands all return a modified array, but do not change the original array.
-
-```python
-a.ravel()    # returns the array, flattened
-a.T          # returns the array, transposed
-a.reshape()  # returns the array with a modified shape
-```
-
-The `reshape` function returns its argument with a modified shape, whereas the `resize` function modifies the array itself. And, if a dimension is given as `-1` in a reshaping operation, the other dimensions are automatically calculated
-
-### Stacking Together Different Arrays
-
-Several arrays can be stacked together along different axes, vertically with `vstack` and horizontally with `hstack`. The function `column_stack` stacks 1D arrays as columns into a 2D array. It is equivalent to `hstack` only for 2D arrays. On the other hand, the function `row_stack` is equivalent to `vstack` for any input arrays. In general, for arrays with more than two dimensions, `hstack` stacks along their second axes, `vstack` stacks along their first axes, and `concatenate` allows for an optional arguments giving the number of the axis along which the concatenation should happen.
-
-```python
-np.column_stack is np.hstack
->>> False
-np.row_stack is np.vstack
->>> True
-```
-
-### Splitting One Array into Several Smaller Ones
-
-Using `hsplit`, we can split an array along its horizontal axis, either by specifying the number of equally shaped arrays to return, or by specifying the columns after which the division should occur. `vsplit` splits along the vertical axis, and `array_split` allows one to specify along which axis to split.
-
-```python
-a = np.floor(10 * rg.random((2, 12)))
-a
->>> array([[6., 7., 6., 9., 0., 5., 4., 0., 6., 8., 5., 2.],
-           [8., 5., 5., 7., 1., 8., 6., 7., 1., 8., 1., 0.]])
-
-# split a into 3
-np.hsplit(a, 3)
->>> [array([[6., 7., 6., 9.], [8., 5., 5., 7.]]),
-     array([[0., 5., 4., 0.], [1., 8., 6., 7.]]),
-     array([[6., 8., 5., 2.], [1., 8., 1., 0.]])]
-
-# split a after the 3rd and the 4th column
-np.hsplit(a, (3, 4))
->>> [array([[6., 7., 6.], [8., 5., 5.]]),
-     array([[9.], [7.]]),
-     array([[0., 5., 4., 0., 6., 8., 5., 2.], [1., 8., 6., 7., 1., 8., 1., 0.]])]
-```
-
-## Copies and Views
-
-When operating and manipulating arrays, their data is sometimes copied into a new array and sometimes not. There are three cases:
-
-- No Copy at All - Simple assignments (`b = a`) make no copy of objects or their data.
-- Shallow Copy or **View** - The `view` method creates a new array object that looks at the same data. Slicing an array returns a view of it too. Changing the data in a view, changes the base data.
-- Deep Copy - The `copy` method makes a complete copy of the array and its data. Sometimes `copy` should be called after slicing if the original array, maybe a huge intermediate result, is not required anymore.
-
-```python
-a = np.array([[ 0,  1,  2,  3],
-              [ 4,  5,  6,  7],
-              [ 8,  9, 10, 11]])
-
-b = a           # no new object is created
-b is a
->>> True
-
-c = a[:, 1:3]
-c.base is a
->>> True
-c[:] = 10       # c[:] is a view of c, a's data changes
-
-
-d = a.copy()
-d.base is a     # d doesn't share anything with a
->>> False
-```
-
-## Advanced Indexing
-
 NumPy offers more indexing facilities than regular Python sequences. In addition to indexing by integers and slices, as we saw before, arrays can be indexed by arrays of integers and arrays of booleans.
 
-### Indexing with Arrays of Indices
+### Indexing with Numerical Arrays
 
 ```python
 a = np.arange(12) ** 2           # the first 12 square numbers
@@ -778,7 +683,7 @@ a[j]                             # the same shape as j
 ```
 
 ```python
-a = np.arange(12).reshape(3,4)
+a = np.arange(12).reshape(3, 4)
 a
 >>> array([[ 0,  1,  2,  3],
            [ 4,  5,  6,  7],
@@ -890,6 +795,80 @@ ixgrid = np.ix_([True, True], [2, 4])
 a[ixgrid]
 >>> array([[2, 4],
            [7, 9]])
+```
+
+## Shape Manipulation
+
+An array has a shape given by the number of elements along each axis. The shape of an array can be changed with various commands. Note that the following three commands all return a modified array, but do not change the original array.
+
+```python
+a.ravel()      # returns the array, flattened
+a.transpose()  # returns the array, transposed
+a.reshape()    # returns the array with a modified shape
+```
+
+The `reshape` function returns its argument with a modified shape, whereas the `resize` function modifies the array itself. And, if a dimension is given as `-1` in a reshaping operation, the other dimensions are automatically calculated.
+
+### Stacking Together Different Arrays
+
+Several arrays can be stacked together along different axes, vertically with `vstack` and horizontally with `hstack`. The function `column_stack` stacks 1D arrays as columns into a 2D array. It is equivalent to `hstack` only for 2D arrays. On the other hand, the function `row_stack` is equivalent to `vstack` for any input arrays. In general, for arrays with more than two dimensions, `hstack` stacks along their second axes, `vstack` stacks along their first axes, and `concatenate` allows for an optional arguments giving the number of the axis along which the concatenation should happen.
+
+```python
+np.column_stack is np.hstack
+>>> False
+np.row_stack is np.vstack
+>>> True
+```
+
+### Splitting One Array into Several Smaller Ones
+
+Using `hsplit`, we can split an array along its horizontal axis, either by specifying the number of equally shaped arrays to return, or by specifying the columns after which the division should occur. `vsplit` splits along the vertical axis, and `array_split` allows one to specify along which axis to split.
+
+```python
+a = np.floor(10 * rg.random((2, 12)))
+a
+>>> array([[6., 7., 6., 9., 0., 5., 4., 0., 6., 8., 5., 2.],
+           [8., 5., 5., 7., 1., 8., 6., 7., 1., 8., 1., 0.]])
+
+# split a into 3
+np.hsplit(a, 3)
+>>> [array([[6., 7., 6., 9.], [8., 5., 5., 7.]]),
+     array([[0., 5., 4., 0.], [1., 8., 6., 7.]]),
+     array([[6., 8., 5., 2.], [1., 8., 1., 0.]])]
+
+# split a after the 3rd and the 4th column
+np.hsplit(a, (3, 4))
+>>> [array([[6., 7., 6.], [8., 5., 5.]]),
+     array([[9.], [7.]]),
+     array([[0., 5., 4., 0., 6., 8., 5., 2.], [1., 8., 6., 7., 1., 8., 1., 0.]])]
+```
+
+## Copies and Views
+
+When operating and manipulating arrays, their data is sometimes copied into a new array and sometimes not. There are three cases:
+
+- No Copy at All - Simple assignments (`b = a`) make no copy of objects or their data.
+- Shallow Copy or **View** - The `view` method creates a new array object that looks at the same data. Slicing an array returns a view of it too. Changing the data in a view, changes the base data.
+- Deep Copy - The `copy` method makes a complete copy of the array and its data. Sometimes `copy` should be called after slicing if the original array, maybe a huge intermediate result, is not required anymore.
+
+```python
+a = np.array([[ 0,  1,  2,  3],
+              [ 4,  5,  6,  7],
+              [ 8,  9, 10, 11]])
+
+b = a           # no new object is created
+b is a
+>>> True
+
+c = a[:, 1:3]
+c.base is a
+>>> True
+c[:] = 10       # c[:] is a view of c, a's data changes
+
+
+d = a.copy()
+d.base is a     # d doesn't share anything with a
+>>> False
 ```
 
 # Pandas
