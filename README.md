@@ -636,7 +636,7 @@ When operating with arrays of different types, the type of the resulting array c
 One-dimensional arrays can be indexed, sliced and iterated over, much like lists and other Python sequences.
 
 ```python
-a = np.arange(10) ** 3  # the first 10 qube numbers
+a = np.arange(10) ** 3  # the first 10 cube numbers
 
 a[2:5]
 a[:6:2] = 1000          # from start-to-6, set every 2nd element to 1000
