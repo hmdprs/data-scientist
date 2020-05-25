@@ -6332,3 +6332,15 @@ most_similar = sims.argmax()
 
 # Intro to Game AI and Reinforcement Learning
 *Build your own video game bots, using classic algorithms and cutting-edge techniques.*
+
+## Play the Game
+*Write your first game-playing agent. [#](https://www.kaggle.com/alexisbcook/play-the-game)*
+
+## One-Step Lookahead
+*Make your agent smarter with a few simple changes. [#](https://www.kaggle.com/alexisbcook/one-step-lookahead)*
+
+## N-Step Lookahead
+*Use the minimax algorithm to dramatically improve your agent. [#](https://www.kaggle.com/alexisbcook/n-step-lookahead)*
+
+## Deep Reinforcement Learning
+*Explore advanced techniques for creating intelligent agents. [#](https://www.kaggle.com/alexisbcook/deep-reinforcement-learning)*
