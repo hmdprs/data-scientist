@@ -3,7 +3,7 @@ Data Scientist's Roadmap
 *A minimalist roadmap to the Data Science World, based on [Kaggle's Micro-Cources](https://www.kaggle.com/learn/overview), plus some COOL stuffs.*
 
 <!-- badges -->
-![Licence: MIT](https://img.shields.io/github/license/hmdprs/DataScientist) [![Code Style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Licence: MIT](https://img.shields.io/github/license/hmdprs/DataScientist)](https://github.com/hmdprs/DataScientist) [![Code Style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 - [Python](#python)
   - [Hello, Python](#hello-python)
