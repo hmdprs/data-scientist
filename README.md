@@ -430,7 +430,7 @@ dir()
 ```python
 def func_name(vars):
     # some useful codes
-    return # some useful results
+    return  # some useful results
 ```
 
 #### Docstrings
@@ -448,7 +448,7 @@ print()
 #### Default Arguments
 
 ```python
-print(..., sep='\t')
+print(..., sep="\t")
 ```
 
 #### Functions Applied to Functions
@@ -517,7 +517,7 @@ else
 *Setting a variable to either of two values depending on a condition.*
 
 ```python
-outcome = 'failed' if grade < 50 else 'passed'
+outcome = "failed" if grade < 50 else "passed"
 ```
 
 ## Lists
@@ -536,7 +536,7 @@ list()
 ```python
 planets = ["Mercury", "Venus", "Earth", "Mars", "Jupiter"]
 
-planets[0]   # first element
+planets[0]  # first element
 planets[-1]  # last element
 ```
 
@@ -550,7 +550,7 @@ planets[-3:]
 #### Changing Lists
 
 ```python
-planets[:3] = ['Mur', 'Vee', 'Ur']
+planets[:3] = ["Mur", "Vee", "Ur"]
 ```
 
 #### List Functions
@@ -623,7 +623,7 @@ for - in - :
 ```
 
 ```python
-squares = [n**2 for n in range(10)]
+squares = [n ** 2 for n in range(10)]
 # constant
 [32 for planet in planets]
 ```
@@ -658,19 +658,18 @@ for index, item in enumerate(items):
 *Immutable.*
 
 ```python
-''
 ""
 """ """
 str()
 ```
 
 ```python
-[char + '! ' for char in "Planet"]
+[char + "! " for char in "Planet"]
 >>> ['P! ', 'l! ', 'a! ', 'n! ', 'e! ', 't! ']
 ```
 
 ```python
-"Planet"[0] = 'M'
+"Planet"[0] = "M"
 >>> TypeError: 'str' object does not support item assignment
 ```
 
@@ -715,9 +714,9 @@ dict()
 ```
 
 ```python
-numbers = {'one':1, 'two':2, 'three':3}
-numbers['one']
-numbers['eleven'] = 11
+numbers = {"one": 1, "two": 2, "three": 3}
+numbers["one"]
+numbers["eleven"] = 11
 ```
 
 #### Dictionary Comprehensions
@@ -734,7 +733,7 @@ dict.values()
 ```
 
 ```python
-' '.join(sorted(planet_to_initial.values()))
+" ".join(sorted(planet_to_initial.values()))
 ```
 
 #### Get key by value
@@ -746,7 +745,7 @@ key_of_min_value = min(numbers, key=numbers.get)
 #### `in`
 
 ```python
-'M' in planet_to_initial.values()
+"M" in planet_to_initial.values()
 >>> True
 ```
 
@@ -761,7 +760,7 @@ for planet in planet_to_initial:
 ```python
 # loop over (key, value) pairs using `item`
 for planet, initial in planet_to_initial.items():
-    print(f"{planet} begins with \"{initial}\"")
+    print(f'{planet} begins with "{initial}"')
 ```
 
 ## Working with External Libraries
@@ -835,15 +834,15 @@ dir(umpy.ndarray)
 
 ```python
 # list
-xlist = [[1,2,3], [2,4,6]]
-xlist[1,-1]
+xlist = [[1, 2, 3], [2, 4, 6]]
+xlist[1, -1]
 >>> TypeError: list indices must be integers or slices, not tuple
 ```
 
 ```python
 # numpy array
 xarray = numpy.asarray(xlist)
-xarray[1,-1]
+xarray[1, -1]
 >>> 6
 ```
 
@@ -937,7 +936,7 @@ Function `linspace` receives as an argument the number of elements that we want,
 
 ```python
 from numpy import pi
-x = np.linspace(0, 2*pi, 100)
+x = np.linspace(0, 2 * pi, 100)
 f = np.sin(x)
 ```
 
@@ -1016,7 +1015,7 @@ a[::-1]                 # reversed a
 Multidimensional arrays can have one index per axis. These indices are given in a tuple.
 
 ```python
-def f(x,y):
+def f(x, y):
     return 10 * x + y
 b = np.fromfunction(f, (5, 4), dtype=int)
 
@@ -1140,7 +1139,7 @@ a[b1, b2]                                  # a weird thing to do
 >>> array([ 4, 10])
 ```
 
-### The ix_() function
+### The `ix_()` function
 
 The `ix_` function can be used to construct an open mesh from multiple sequences. This function takes N 1-D sequences and returns N outputs with N dimensions each. Using `ix_` one can quickly construct index arrays that will index the cross product.
 
@@ -1263,7 +1262,9 @@ The syntax for declaring a new one is a **dictionary** whose keys are the column
 The list of row labels used in a DataFrame is known as an Index. We can assign values to it by using an `index` parameter in our constructor.
 
 ```python
-pd.DataFrame({"Apples": [50, 21], "Bananas": [131, 2]}, index=["2018 Sales", "2019 Sales"])
+pd.DataFrame(
+    {"Apples": [50, 21], "Bananas": [131, 2]}, index=["2018 Sales", "2019 Sales"]
+)
 ```
 
 #### Series
@@ -1286,7 +1287,9 @@ Data can be stored in any of a number of different forms and formats. By far the
 
 ```python
 # load data
-wine_reviews = pd.read_csv("../input/wine-reviews/winemag-data-130k-v2.csv", index_col=0)
+wine_reviews = pd.read_csv(
+    "../input/wine-reviews/winemag-data-130k-v2.csv", index_col=0
+)
 ```
 
 - If your CSV file has a built-in index, pandas can use that column for the index (instead of creating a new one automatically).
@@ -1308,7 +1311,9 @@ wine_reviews.tail()
 ### Writing Data to File
 
 ```python
-animals = pd.DataFrame({"Cows": [12, 20], "Goats": [22, 19]}, index=["Year 1", "Year 2"])
+animals = pd.DataFrame(
+    {"Cows": [12, 20], "Goats": [22, 19]}, index=["Year 1", "Year 2"]
+)
 animals.to_csv("cows_and_goats.csv")
 ```
 
@@ -1408,8 +1413,8 @@ To combine multiple conditions in pandas, **bitwise operators** must be used.
 For example, suppose that we're interested in better-than-average wines produced in Italy.
 
 ```python
-cond1 = (reviews["country"] == "Italy")
-cond2 = (reviews["points"] >= 90)
+cond1 = reviews["country"] == "Italy"
+cond2 = reviews["points"] >= 90
 reviews.loc[cond1 & cond2]
 ```
 
@@ -1768,7 +1773,7 @@ import seaborn as sns
 spotify_data = pd.read_csv("../input/spotify.csv", index_col="Date", parse_dates=True)
 
 # set the width and height of the figure
-plt.figure(figsize=(14,6))
+plt.figure(figsize=(14, 6))
 
 # add title
 plt.title("Daily Global Streams of Popular Songs in 2017-2018")
@@ -1844,7 +1849,9 @@ sns.scatterplot(x=insurance_data["bmi"], y=insurance_data["charges"])
 sns.regplot(x=insurance_data["bmi"], y=insurance_data["charges"])
 
 # a color-coded scatter plot
-sns.scatterplot(x=insurance_data["bmi"], y=insurance_data["charges"], hue=insurance_data["smoker"])
+sns.scatterplot(
+    x=insurance_data["bmi"], y=insurance_data["charges"], hue=insurance_data["smoker"]
+)
 
 # add two regression lines, corresponding to hue
 sns.lmplot(x="bmi", y="charges", hue="smoker", data=insurance_data)
@@ -1869,7 +1876,9 @@ sns.distplot(a=iris_data["Petal Length (cm)"], kde=False)
 sns.kdeplot(data=iris_data["Petal Length (cm)"], shade=True)
 
 # a 2D kde plot
-sns.jointplot(x=iris_data["Petal Length (cm)"], y=iris_data["Sepal Width (cm)"], kind="kde")
+sns.jointplot(
+    x=iris_data["Petal Length (cm)"], y=iris_data["Sepal Width (cm)"], kind="kde"
+)
 ```
 
 ### Color-coded Plots
@@ -1969,7 +1978,9 @@ world_loans = gpd.read_file(
 
 # define a base map with county boundaries
 world = gpd.read_file(gpd.datasets.get_path("naturalearth_lowres"))
-ax = world.plot(figsize=(20, 20), color="whitesmoke", linestyle=":", edgecolor="lightgray")
+ax = world.plot(
+    figsize=(20, 20), color="whitesmoke", linestyle=":", edgecolor="lightgray"
+)
 
 # add loans to the base map
 world_loans.plot(ax=ax, color="black", markersize=2)
@@ -1983,10 +1994,14 @@ phl_loans = world_loans.loc[world_loans["country"] == "Philippines"].copy()
 
 # enable fiona driver & load a KML file containing island boundaries
 gpd.io.file.fiona.drvsupport.supported_drivers["KML"] = "rw"
-phl = gpd.read_file("../input/geospatial-learn-course-data/Philippines_AL258.kml", driver="KML")
+phl = gpd.read_file(
+    "../input/geospatial-learn-course-data/Philippines_AL258.kml", driver="KML"
+)
 
 # define a base map with county boundaries
-ax_ph = phl.plot(figsize=(20, 20), color="whitesmoke", linestyle=":", edgecolor="lightgray")
+ax_ph = phl.plot(
+    figsize=(20, 20), color="whitesmoke", linestyle=":", edgecolor="lightgray"
+)
 
 # add loans to the base map
 phl_loans.plot(ax=ax_ph, color="black", markersize=2)
@@ -2011,11 +2026,16 @@ When we create a GeoDataFrame from a shapefile, the CRS is already imported for 
 ```python
 # create a DataFrame with health facilities in Ghana
 import pandas as pd
-facilities_df = pd.read_csv("../input/geospatial-learn-course-data/ghana/ghana/health_facilities.csv")
+facilities_df = pd.read_csv(
+    "../input/geospatial-learn-course-data/ghana/ghana/health_facilities.csv"
+)
 
 # convert the DataFrame to a GeoDataFrame
 import geopandas as gpd
-facilities = gpd.GeoDataFrame(facilities_df, geometry=gpd.points_from_xy(facilities_df.Longitude, facilities_df.Latitude))
+facilities = gpd.GeoDataFrame(
+    facilities_df,
+    geometry=gpd.points_from_xy(facilities_df.Longitude, facilities_df.Latitude),
+)
 
 # set the CRS code
 facilities.crs = {"init": "epsg:4326"}
@@ -2066,7 +2086,7 @@ All three types of geometric objects have built-in attributes that you can use t
 facilities["geometry"].x
 
 # calculate the area (in square kilometers) of all polygons
-sum(regions["geometry"].to_crs(epsg=3035).area) / 10**6
+sum(regions["geometry"].to_crs(epsg=3035).area) / 10 ** 6
 ```
 
 -  [ESPG 3035](https://epsg.io/3035) Scope: Statistical mapping at all scales and other purposes where **true area** representation is required.
@@ -2083,7 +2103,8 @@ birds_df = pd.read_csv(
 # create the GeoDataFrame
 import geopandas as gpd
 birds = gpd.GeoDataFrame(
-    birds_df, geometry=gpd.points_from_xy(birds_df["location-long"], birds_df["location-lat"])
+    birds_df,
+    geometry=gpd.points_from_xy(birds_df["location-long"], birds_df["location-lat"]),
 )
 
 # create GeoDataFrame showing path for each bird
@@ -2352,7 +2373,9 @@ When geocoding a large dataframe, you might encounter an error when geocoding.
 
 ```python
 # rows with missing locations
-rows_with_missing = starbucks[starbucks["Latitude"].isna() | starbucks["Longitude"].isna()]
+rows_with_missing = starbucks[
+    starbucks["Latitude"].isna() | starbucks["Longitude"].isna()
+]
 ```
 
 ```python
@@ -2381,7 +2404,8 @@ CA_pop = pd.read_csv(
 )
 # create DataFrame contains the number of households with high income
 CA_high_earners = pd.read_csv(
-    "../input/geospatial-learn-course-data/CA_county_high_earners.csv", index_col="GEOID"
+    "../input/geospatial-learn-course-data/CA_county_high_earners.csv",
+    index_col="GEOID",
 )
 # create DataFrame contains the median age for each county
 CA_median_age = pd.read_csv(
@@ -2433,7 +2457,8 @@ sel_counties.crs = {"init": "epsg:4326"}
 
 ```python
 starbucks_gdf = gpd.GeoDataFrame(
-    starbucks, geometry=gpd.points_from_xy(starbucks["Longitude"], starbucks["Latitude"])
+    starbucks,
+    geometry=gpd.points_from_xy(starbucks["Longitude"], starbucks["Latitude"]),
 )
 starbucks_gdf.crs = {"init": "epsg:4326"}
 ```
@@ -2539,12 +2564,14 @@ my_union.contains(collisions.iloc[-1]["geometry"])
 ```
 
 ```python
-outside_range = collisions.loc[~collisions["geometry"].apply(lambda x: my_union.contains(x))]
+outside_range = collisions.loc[
+    ~collisions["geometry"].apply(lambda x: my_union.contains(x))
+]
 ```
 
 ```python
 # calculate the percentage of collisions occurred more than 10 km away from the closest hospital
-round(100 * len(outside_range)/len(collisions), 2)
+round(100 * len(outside_range) / len(collisions), 2)
 ```
 
 ### Make a Recommender
@@ -2736,7 +2763,7 @@ def get_mae(max_leaf_nodes, X_train, X_valid, y_train, y_valid):
     model.fit(X_train, y_train)
     predictions_val = model.predict(X_valid)
     mae = mean_absolute_error(y_valid, predictions_val)
-    return(mae)
+    return mae
 ```
 
 ```python
@@ -2807,7 +2834,9 @@ X_test = X_test_full[features].copy()
 ```python
 # break off validation set from training data
 from sklearn.model_selection import train_test_split
-X_train, X_valid, y_train, y_valid = train_test_split(X, y, train_size=0.8, test_size=0.2, random_state=0)
+X_train, X_valid, y_train, y_valid = train_test_split(
+    X, y, train_size=0.8, test_size=0.2, random_state=0
+)
 ```
 
 ### Evaluate Several Models
@@ -3076,7 +3105,9 @@ X_train_full, X_valid_full, y_train, y_valid = train_test_split(
 
 ```python
 # handle missing values (simplest approach)
-cols_with_missing = [col for col in X_train_full.columns if X_train_full[col].isna().any()]
+cols_with_missing = [
+    col for col in X_train_full.columns if X_train_full[col].isna().any()
+]
 X_train_full.drop(cols_with_missing, axis=1, inplace=True)
 X_valid_full.drop(cols_with_missing, axis=1, inplace=True)
 ```
@@ -3092,7 +3123,9 @@ categorical_cols = [
 
 # select numerical columns
 numerical_cols = [
-    cname for cname in X_train_full.columns if X_train_full[cname].dtype in ["int64", "float64"]
+    cname
+    for cname in X_train_full.columns
+    if X_train_full[cname].dtype in ["int64", "float64"]
 ]
 
 # keep selected columns only
@@ -3137,7 +3170,9 @@ For **tree-based models** (like decision trees and random forests), you can expe
 
 ```python
 # find columns, which are in validation data but not in training data
-good_label_cols = [col for col in categorical_cols if set(X_train[col]) == set(X_valid[col])]
+good_label_cols = [
+    col for col in categorical_cols if set(X_train[col]) == set(X_valid[col])
+]
 bad_label_cols = list(set(categorical_cols) - set(good_label_cols))
 
 # drop them
@@ -3268,7 +3303,9 @@ categorical_cols = [
 
 # select numerical columns
 numerical_cols = [
-    cname for cname in X_train_full.columns if X_train_full[cname].dtype in ["int64", "float64"]
+    cname
+    for cname in X_train_full.columns
+    if X_train_full[cname].dtype in ["int64", "float64"]
 ]
 
 # keep selected columns only
@@ -3410,7 +3447,9 @@ X_full.drop(["SalePrice"], axis=1, inplace=True)
 
 ```python
 # select numeric columns only
-numeric_cols = [cname for cname in X_full.columns if X_full[cname].dtype in ["int64", "float64"]]
+numeric_cols = [
+    cname for cname in X_full.columns if X_full[cname].dtype in ["int64", "float64"]
+]
 X = X_full[numeric_cols].copy()
 X_test = test_data[numeric_cols].copy()
 ```
@@ -3461,7 +3500,9 @@ def get_score(n_estimators):
         ]
     )
 
-    scores = -1 * cross_val_score(my_pipeline, X, y, cv=3, scoring="neg_mean_absolute_error")
+    scores = -1 * cross_val_score(
+        my_pipeline, X, y, cv=3, scoring="neg_mean_absolute_error"
+    )
 
     return scores.mean()
 ```
@@ -3550,7 +3591,9 @@ low_cardinality_cols = [
 
 # select numeric columns
 numeric_cols = [
-    cname for cname in X_train_full.columns if X_train_full[cname].dtype in ["int64", "float64"]
+    cname
+    for cname in X_train_full.columns
+    if X_train_full[cname].dtype in ["int64", "float64"]
 ]
 
 # keep selected columns only
@@ -3598,7 +3641,8 @@ mean_absolute_error(predictions, y_valid)
 ```python
 my_model = XGBRegressor(n_estimators=200, learning_rate=0.05, n_jobs=4)
 my_model.fit(
-    X_train, y_train,
+    X_train,
+    y_train,
     early_stopping_rounds=5,
     eval_set=[(X_valid, y_valid)],
     verbose=False,
@@ -3851,7 +3895,8 @@ We'll apply the techniques using data from Kickstarter projects. What we can do 
 ```python
 import pandas as pd
 ks = pd.read_csv(
-    "../input/kickstarter-projects/ks-projects-201801.csv", parse_dates=["deadline", "launched"]
+    "../input/kickstarter-projects/ks-projects-201801.csv",
+    parse_dates=["deadline", "launched"],
 )
 ```
 
@@ -4112,7 +4157,8 @@ Creating new features from the raw data is one of the best ways to improve your 
 # load data
 import pandas as pd
 ks = pd.read_csv(
-    "../input/kickstarter-projects/ks-projects-201801.csv", parse_dates=["deadline", "launched"]
+    "../input/kickstarter-projects/ks-projects-201801.csv",
+    parse_dates=["deadline", "launched"],
 )
 
 # drop live projects
@@ -4383,15 +4429,13 @@ You don't directly choose the numbers to go into your convolutions for deep lear
 For example, a convolution that detected horizontal lines:
 
 ```python
-horizontal_line_conv = [[1, 1],
-                        [-1, -1]]
+horizontal_line_conv = [[1, 1], [-1, -1]]
 ```
 
 or, a vertical line detector:
 
 ```python
-vertical_line_conv = [[1, -1],
-                      [1, -1]]
+vertical_line_conv = [[1, -1], [1, -1]]
 ```
 
 While any one convolution measures only a single pattern, there are more possible convolutions that can be created with large sizes. So there are also more patterns that can be captured with large convolutions. Does this mean powerful models require extremely large convolutions? Not necessarily.
@@ -4457,7 +4501,10 @@ image_size = 224
 def read_and_prep_images(img_paths, img_height=image_size, img_width=image_size):
     # load images
     from tensorflow.keras.preprocessing.image import load_img
-    imgs = [load_img(img_path, target_size=(img_height, img_width)) for img_path in img_paths]
+    imgs = [
+        load_img(img_path, target_size=(img_height, img_width))
+        for img_path in img_paths
+    ]
 
     # convert each image to an array
     import numpy as np
@@ -4481,7 +4528,9 @@ def read_and_prep_images(img_paths, img_height=image_size, img_width=image_size)
 from tensorflow.keras.applications import ResNet50
 
 # load a pre-trained model's weights (values in the convolution filters)
-my_model = ResNet50(weights="../input/resnet50/resnet50_weights_tf_dim_ordering_tf_kernels.h5")
+my_model = ResNet50(
+    weights="../input/resnet50/resnet50_weights_tf_dim_ordering_tf_kernels.h5"
+)
 ```
 
 ```python
@@ -4500,7 +4549,9 @@ We have predictions about what's in each image. We had four photographs and our 
 
 ```python
 # function extracts the highest probabilities for each image
-def decode_predictions(preds, top=5, class_list_path="../input/resnet50/imagenet_class_index.json"):
+def decode_predictions(
+    preds, top=5, class_list_path="../input/resnet50/imagenet_class_index.json"
+):
     """Decodes the prediction of an ImageNet model"""
     if len(preds.shape) != 2 or preds.shape[1] != 1000:
         raise ValueError(
@@ -4647,7 +4698,10 @@ validation_generator = data_generator.flow_from_directory(
 ```python
 # fit model
 model.fit_generator(
-    train_generator, steps_per_epoch=3, validation_data=validation_generator, validation_steps=1
+    train_generator,
+    steps_per_epoch=3,
+    validation_data=validation_generator,
+    validation_steps=1,
 )
 ```
 
@@ -4673,6 +4727,7 @@ We do these kind of triks with some arguments in `ImageDataGenerator` function. 
 # define data generator with augmentation
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.applications.resnet50 import preprocess_input
+
 data_generator_with_aug = ImageDataGenerator(
     preprocessing_function=preprocess_input,
     horizontal_flip=True,
@@ -4838,7 +4893,11 @@ model = Sequential()
 ```python
 # add 2D convolutional first layer
 from tensorflow.keras.layers import Conv2D
-model.add(Conv2D(20, kernel_size=(3, 3), activation="relu", input_shape=(img_rows, img_cols, 1)))
+model.add(
+    Conv2D(
+        20, kernel_size=(3, 3), activation="relu", input_shape=(img_rows, img_cols, 1)
+    )
+)
 ```
 
 - For each convolution layer, we need to specify the number of convolutions (filters) to include in that layer, the `kernel_size` (size of the filters), and the `activation` function. For the very first layer only, we need to specify the shape of each image (rows, cols, channels).
@@ -5100,7 +5159,7 @@ Or, we can create `QueryJobConfig` object and use the `maximum_bytes_billed` par
 
 ```python
 # setup the query (run the query if it's less than 1 GB, cancel if it exeeds)
-safe_config = bigquery.QueryJobConfig(maximum_bytes_billed=10**9)
+safe_config = bigquery.QueryJobConfig(maximum_bytes_billed=10 ** 9)
 query_job = client.query(query, job_config=safe_config)
 ```
 
@@ -5449,7 +5508,7 @@ def expert_finder(topic, client):
         a.owner_user_id
     """
 
-    safe_config = bigquery.QueryJobConfig(maximum_bytes_billed=10**9)
+    safe_config = bigquery.QueryJobConfig(maximum_bytes_billed=10 ** 9)
     my_query_job = client.query(query, job_config=safe_config)
     results = my_query_job.to_dataframe()
 
@@ -5521,7 +5580,7 @@ ORDER BY
 """
 
 # run the query (if it's less than 1 GB), and return a pandas DataFrame
-safe_config = bigquery.QueryJobConfig(maximum_bytes_billed=10**9)
+safe_config = bigquery.QueryJobConfig(maximum_bytes_billed=10 ** 9)
 join_result = client.query(query, job_config=safe_config).result().to_dataframe()
 ```
 
@@ -5549,7 +5608,7 @@ WHERE
 """
 
 # run the query (if it's less than 1 GB), and return a pandas DataFrame
-safe_config = bigquery.QueryJobConfig(maximum_bytes_billed=10**9)
+safe_config = bigquery.QueryJobConfig(maximum_bytes_billed=10 ** 9)
 union_result = client.query(query, job_config=safe_config).result().to_dataframe()
 ```
 
@@ -5807,7 +5866,11 @@ def show_amount_of_data_scanned(query):
     # dry_run lets us see how much data the query uses without running it
     dry_run_config = bigquery.QueryJobConfig(dry_run=True)
     query_job = client.query(query, job_config=dry_run_config)
-    print("Data processed: {} GB".format(round(query_job.total_bytes_processed / 10 ** 9, 3)))
+    print(
+        "Data processed: {} GB".format(
+            round(query_job.total_bytes_processed / 10 ** 9, 3)
+        )
+    )
 ```
 
 ```python
@@ -5990,7 +6053,7 @@ import pandas as pd
 data = pd.read_csv("../input/fifa-2018-match-statistics/FIFA 2018 Statistics.csv")
 
 # convert target from string "Yes"/"No" to binary
-y = (data["Man of the Match"] == "Yes")
+y = data["Man of the Match"] == "Yes"
 
 import numpy as np
 base_features = [i for i in data.columns if data[i].dtype in [np.int64]]
@@ -6066,9 +6129,9 @@ We can use decision tree.
 ```python
 # define and fit model
 from sklearn.tree import DecisionTreeClassifier
-tree_model = DecisionTreeClassifier(random_state=0, max_depth=5, min_samples_split=5).fit(
-    X_train, y_train
-)
+tree_model = DecisionTreeClassifier(
+    random_state=0, max_depth=5, min_samples_split=5
+).fit(X_train, y_train)
 ```
 
 ```python
@@ -6098,7 +6161,10 @@ feature_to_plot = "Distance Covered (Kms)"
 # create data
 from pdpbox import pdp, get_dataset, info_plots
 pdp_iso = pdp.pdp_isolate(
-    model=rf_model, dataset=X_valid, model_features=base_features, feature=feature_to_plot
+    model=rf_model,
+    dataset=X_valid,
+    model_features=base_features,
+    feature=feature_to_plot,
 )
 
 # plot it
@@ -6117,7 +6183,10 @@ features_to_plot = ["Goal Scored", "Distance Covered (Kms)"]
 
 # create data
 pdp_inter = pdp.pdp_interact(
-    model=rf_model, dataset=X_valid, model_features=base_features, features=features_to_plot
+    model=rf_model,
+    dataset=X_valid,
+    model_features=base_features,
+    features=features_to_plot,
 )
 
 # plot it
@@ -6270,7 +6339,9 @@ We've previously used Partial Dependence Plots to show how a single feature impa
 
 ```python
 # visualize
-shap.dependence_plot("Ball Possession %", shap_values[1], X_valid, interaction_index="Goal Scored")
+shap.dependence_plot(
+    "Ball Possession %", shap_values[1], X_valid, interaction_index="Goal Scored"
+)
 ```
 
 - There is only line that's different from the `summary_plot`.
@@ -6407,7 +6478,7 @@ item_ratings = defaultdict(list)
 for idx, review in data.iterrows():
     doc = nlp(review["text"])
     matches = matcher(doc)
-    found_items = set([doc[match[1]:match[2]] for match in matches])
+    found_items = set([doc[match[1] : match[2]] for match in matches])
     for item in found_items:
         item_ratings[str(item).lower()].append(review["stars"])
 ```
@@ -6444,7 +6515,7 @@ We'll create a classifier that will detect spam messages.
 ```python
 # load and shuffle data, sampling with frac<1, upsampling with frac>1
 import pandas as pd
-spam = pd.read_csv('../input/nlp-course/spam.csv').sample(frac=1, random_state=1)
+spam = pd.read_csv("../input/nlp-course/spam.csv").sample(frac=1, random_state=1)
 ```
 
 ### Bag-of-Words
@@ -6466,9 +6537,8 @@ nlp = spacy.blank("en")
 ```python
 # create the TextCategorizer
 textcat = nlp.create_pipe(
-    "textcat",
-    config={"exclusive_classes": True, "architecture": "bow"}
-    )
+    "textcat", config={"exclusive_classes": True, "architecture": "bow"}
+)
 
 # add the TextCategorizer to the empty model
 nlp.add_pipe(textcat)
@@ -6493,7 +6563,8 @@ We'll convert the labels in the data to the form `TextCategorizer` requires. For
 ```python
 texts = spam["text"].values
 lebels = [
-    {"cats": {"ham": (label=="ham"), "spam": (label=="spam")}} for label in spam["label"]
+    {"cats": {"ham": (label == "ham"), "spam": (label == "spam")}}
+    for label in spam["label"]
 ]
 ```
 
@@ -6577,7 +6648,7 @@ predicted_labels = scores.argmax(axis=1)
 
 ```python
 # evaluate the model
-correct_predictions = (predicted_labels == labels)
+correct_predictions = predicted_labels == labels
 correct_predictions.mean()
 ```
 
