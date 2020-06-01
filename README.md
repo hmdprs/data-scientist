@@ -371,11 +371,6 @@ Data Scientist's Roadmap
     - [Classification Models](#classification-models)
     - [Document Similarity](#document-similarity)
     - [Centering the Vectors](#centering-the-vectors)
-- [Intro to Game AI and Reinforcement Learning](#intro-to-game-ai-and-reinforcement-learning)
-  - [Play the Game](#play-the-game)
-  - [One-Step Lookahead](#one-step-lookahead)
-  - [N-Step Lookahead](#n-step-lookahead)
-  - [Deep Reinforcement Learning](#deep-reinforcement-learning)
 
 # Python
 *Learn the most important language for data science.*
@@ -6704,18 +6699,3 @@ sims = np.array([cosine_similarity(review_vec - vec_mean, vec) for vec in center
 # get the index for the most similar document
 most_similar = sims.argmax()
 ```
-
-# Intro to Game AI and Reinforcement Learning
-*Build your own video game bots, using classic algorithms and cutting-edge techniques.*
-
-## Play the Game
-*Write your first game-playing agent. [#](https://www.kaggle.com/alexisbcook/play-the-game)*
-
-## One-Step Lookahead
-*Make your agent smarter with a few simple changes. [#](https://www.kaggle.com/alexisbcook/one-step-lookahead)*
-
-## N-Step Lookahead
-*Use the minimax algorithm to dramatically improve your agent. [#](https://www.kaggle.com/alexisbcook/n-step-lookahead)*
-
-## Deep Reinforcement Learning
-*Explore advanced techniques for creating intelligent agents. [#](https://www.kaggle.com/alexisbcook/deep-reinforcement-learning)*
