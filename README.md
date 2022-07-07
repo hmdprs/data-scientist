@@ -1,11 +1,9 @@
-Data Scientist's Roadmap
+Data Scientist's RoadMap
 ==========
+*A minimalist roadmap to the **Data Science World**, based on the [Kaggle's courses](https://www.kaggle.com/learn/), plus some COOL stuffs. For the Kaggle's courses, all credits goes to their instructors.*
+
 <!-- badges -->
-[![Licence: MIT](https://img.shields.io/github/license/hmdprs/DataScientist)](https://github.com/hmdprs/DataScientist) [![Code Style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-
-*A minimalist roadmap to the Data Science World, based on [Kaggle's Micro-Courses](https://www.kaggle.com/learn/overview), plus some COOL stuffs.*
-
----
+[![License: MIT](https://img.shields.io/github/license/hmdprs/DataScientist)](https://github.com/hmdprs/DataScientist) [![Code Style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 <details><summary><a href="#python">Python</a></summary>
 
@@ -425,7 +423,8 @@ Data Scientist's Roadmap
 
 </details>
 
----
+<b></b>
+
 
 # Python
 *Learn the most important language for data science.*
@@ -879,7 +878,7 @@ As you work with various libraries for specialized tasks, you'll find that they 
 Use `type()` to find the type of an object. Use `dir()` and `help()` for more details.
 
 ```python
-dir(umpy.ndarray)
+dir(numpy.ndarray)
 >>> [...,'__bool__', ..., '__delattr__', '__delitem__', '__dir__', ..., '__sizeof__', ..., 'max', 'mean', 'min', ..., 'sort', ..., 'sum', ..., 'tobytes', 'tofile', 'tolist', 'tostring', ...]
 ```
 
